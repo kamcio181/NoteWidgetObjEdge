@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/app_widget_horizontal_margin"
+    android:paddingRight="@dimen/app_widget_horizontal_margin"
+    android:paddingTop="@dimen/app_widget_vertical_margin"
+    android:paddingBottom="@dimen/app_widget_vertical_margin"
+    android:theme="@style/AppTheme.NoActionBar">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:id="@+id/configLayout"
+        android:background="@color/colorPrimary">
+
+        <ImageView
+            android:layout_width="@dimen/app_widget_action_width"
+            android:layout_height="@dimen/app_widget_action_height"
+            android:id="@+id/modeSwitchImageView"
+            android:src="@mipmap/ic_arrow_left_white_24dp"
+            android:scaleType="center" />
+
+        <ImageView
+            android:layout_width="@dimen/app_widget_action_width"
+            android:layout_height="@dimen/app_widget_action_height"
+            android:id="@+id/increaseTextSizeImageView"
+            android:src="@mipmap/ic_fontsize_plus_white_24dp"
+            android:scaleType="center" />
+
+        <ImageView
+            android:layout_width="@dimen/app_widget_action_width"
+            android:layout_height="@dimen/app_widget_action_height"
+            android:id="@+id/decreaseTextSizeImageView"
+            android:scaleType="center"
+            android:src="@mipmap/ic_fontsize_minus_white_24dp" />
+
+        <ImageView
+            android:layout_width="@dimen/app_widget_action_width"
+            android:layout_height="@dimen/app_widget_action_height"
+            android:id="@+id/switchThemeImageView"
+            android:src="@mipmap/ic_contrast_box_white_24dp"
+            android:scaleType="center" />
+
+    </LinearLayout>
+
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        layout="@layout/note_list" />
+
+
+</LinearLayout>

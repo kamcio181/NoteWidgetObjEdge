@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="#ffffff"
+    android:orientation="vertical">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:src="@drawable/drop_shadow"
+        android:id="@+id/shadow" />
+    <ListView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/noteListView"
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp"
+        android:dividerHeight="0dp"
+        android:divider="@null"
+        android:paddingBottom="6dp" />
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Note is empty"
+        android:id="@+id/emptyTextView"
+        android:visibility="gone"
+        android:background="#ffffff"
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp"
+        android:paddingBottom="6dp" />
+</LinearLayout>
