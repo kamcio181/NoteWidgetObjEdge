@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/app_widget_horizontal_margin"
+    android:paddingRight="@dimen/app_widget_horizontal_margin"
+    android:paddingTop="@dimen/app_widget_vertical_margin"
+    android:paddingBottom="@dimen/app_widget_vertical_margin"
+    android:theme="@style/AppTheme.NoActionBar">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:id="@+id/headerLayout"
+        android:background="@drawable/widget_title_bg_yellow" >
+
+        <ImageView
+            android:layout_width="@dimen/app_widget_action_width"
+            android:layout_height="@dimen/app_widget_action_height"
+            android:id="@+id/modeSwitchImageView"
+            android:src="@mipmap/ic_menu_grey600_24dp"
+            android:scaleType="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Medium Text"
+            android:id="@+id/titleTextView"
+            android:textColor="@color/colorOfNoteTextDark"
+            android:gravity="center_vertical" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/widget_content_bg">
+
+        <include
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            layout="@layout/note_list" />
+    </FrameLayout>
+
+</LinearLayout>

@@ -51,6 +51,7 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
         if(extras != null){
             widgetID = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,
                     AppWidgetManager.INVALID_APPWIDGET_ID);
+            Log.e("config", "widgetId "+ widgetID);
         }
     }
 
@@ -83,16 +84,20 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
         contentValues.put(Constants.CONNECTED_NOTE_ID, noteId);
 
         if(cursor.getCount()>0) {
+
             cursor.close();
             db.update(Constants.WIDGETS_TABLE, contentValues, Constants.WIDGET_ID + " = ?",
                     new String[]{Integer.toString(widgetID)});
+            Log.e("config", "item updated " + contentValues.toString());
         } else {
             contentValues.put(Constants.WIDGET_ID, widgetID);
             contentValues.put(Constants.CURRENT_MODE, Constants.WIDGET_TITLE_MODE);
             contentValues.put(Constants.CURRENT_THEME, Constants.WIDGET_THEME_LIGHT);
             contentValues.put(Constants.CURRENT_TEXT_SIZE, 18);
-        }   db.insert(Constants.WIDGETS_TABLE, null, contentValues);
-        Log.e("config", "item inserted " + contentValues.toString());
+            Log.e("config", "item inserted " + contentValues.toString());
+        }
+        db.insert(Constants.WIDGETS_TABLE, null, contentValues);
+
     }
 
     private void getNoteCursor(){
@@ -110,16 +115,17 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
         views.setOnClickPendingIntent(R.id.modeSwitchImageView, getPendingIntentWithAction(
                 new Intent(this, WidgetProvider.class), widgetID, WidgetProvider.CHANGE_WIDGET_MODE));
 
-        Log.e("provider", "list update");
+        Log.e("config", "list update");
         //which layout to show on widget
 
         //Set note title and intent to change note
         views.setTextViewText(R.id.titleTextView, noteCursor.getString(
                 noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
-
+        Log.e("config", "title " + noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
         //Reconfigure intent
         Intent configIntent = new Intent(this, WidgetConfigActivity.class);
         configIntent.setAction(WidgetProvider.ACTION_WIDGET_CONFIGURE);
+        configIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent configPendingIntent = PendingIntent.getActivity(this, 0, configIntent, 0);
         views.setOnClickPendingIntent(R.id.titleTextView, configPendingIntent);
 

@@ -31,7 +31,6 @@ public class WidgetProvider extends AppWidgetProvider {
     private Cursor noteCursor;
 
     private SharedPreferences preferences;
-    private boolean isConfugured = false;
 
     private int currentSize = 18;
     private int currentMode = Constants.WIDGET_TITLE_MODE;
@@ -179,14 +178,12 @@ public class WidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.modeSwitchImageView, getPendingIntentWithAction(context,
                 new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_WIDGET_MODE));
 
-        getCursors(context, appWidgetId);
-
-        Log.e("provider", "list update");
+        Log.e("provider", "list update "+ currentMode);
         //which layout to show on widget
         if(currentMode == Constants.WIDGET_TITLE_MODE){
             //Set note title and intent to change note
             views.setTextViewText(R.id.titleTextView, noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
-
+            Log.e("provider", "title "+noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
             //Reconfigure intent
             Intent configIntent = new Intent(context, WidgetConfigActivity.class);
             configIntent.setAction(WidgetProvider.ACTION_WIDGET_CONFIGURE);

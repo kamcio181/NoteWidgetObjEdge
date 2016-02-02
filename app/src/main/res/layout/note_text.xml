@@ -8,5 +8,6 @@
         android:layout_height="match_parent"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="noteTextView"
+        android:textColor="@color/colorOfNoteTextDark"
         android:id="@+id/noteTextView" />
 </FrameLayout>

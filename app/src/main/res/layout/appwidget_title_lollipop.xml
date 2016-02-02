@@ -28,14 +28,20 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Medium Text"
             android:id="@+id/titleTextView"
-            android:textColor="#ffffff"
+            android:textColor="@color/colorOfNoteTextLight"
             android:gravity="center_vertical" />
 
     </LinearLayout>
 
-    <include
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        layout="@layout/note_list" />
+        android:background="#fff">
+
+        <include
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            layout="@layout/note_list" />
+    </FrameLayout>
 
 </LinearLayout>
