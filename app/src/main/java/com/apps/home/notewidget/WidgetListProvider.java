@@ -81,7 +81,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
 
     @Override
     public void onCreate() {
-        Log.e("list", "create");
+        setTextSize();
     }
 
     @Override

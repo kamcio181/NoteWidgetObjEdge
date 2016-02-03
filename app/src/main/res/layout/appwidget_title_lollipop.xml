@@ -11,7 +11,7 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="@dimen/app_widget_action_height"
         android:id="@+id/headerLayout"
         android:background="@color/colorPrimary" >
 
@@ -37,6 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#fff">
+        <include layout="@layout/shadow_imageview"/>
 
         <include
             android:layout_width="match_parent"

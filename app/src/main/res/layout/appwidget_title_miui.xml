@@ -11,9 +11,9 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="@dimen/app_widget_action_height"
         android:id="@+id/headerLayout"
-        android:background="@drawable/widget_title_bg_yellow" >
+        android:background="@drawable/widget_title_background_miui" >
 
         <ImageView
             android:layout_width="@dimen/app_widget_action_width"
@@ -36,7 +36,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/widget_content_bg">
+        android:background="@drawable/widget_content_miui">
 
         <include
             android:layout_width="match_parent"

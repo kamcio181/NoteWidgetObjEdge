@@ -184,10 +184,13 @@ public class WidgetProvider extends AppWidgetProvider {
             //Set note title and intent to change note
             views.setTextViewText(R.id.titleTextView, noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
             Log.e("provider", "title "+noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
+
             //Reconfigure intent
             Intent configIntent = new Intent(context, WidgetConfigActivity.class);
             configIntent.setAction(WidgetProvider.ACTION_WIDGET_CONFIGURE);
-            PendingIntent configPendingIntent = PendingIntent.getActivity(context, 0, configIntent, 0);
+            configIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            PendingIntent configPendingIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             views.setOnClickPendingIntent(R.id.titleTextView, configPendingIntent);
 
         }

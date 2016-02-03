@@ -22,8 +22,8 @@ public interface Constants {
 
     int WIDGET_TITLE_MODE = R.layout.appwidget_title_lollipop;
     int WIDGET_CONFIG_MODE = R.layout.appwidget_config_lollipop;
-    //int WIDGET_TITLE_MODE = R.layout.appwidget_title_miui;
-    //int WIDGET_CONFIG_MODE = R.layout.appwidget_config_miui;
+   /* int WIDGET_TITLE_MODE = R.layout.appwidget_title_miui;
+    int WIDGET_CONFIG_MODE = R.layout.appwidget_config_miui;*/
 
     int WIDGET_THEME_LIGHT = 0;
     int WIDGET_THEME_DARK = 1;
