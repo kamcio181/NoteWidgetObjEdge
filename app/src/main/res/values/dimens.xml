@@ -8,6 +8,4 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="app_widget_action_height">36dp</dimen>
     <dimen name="app_widget_action_width">36dp</dimen>
-    <dimen name="app_widget_horizontal_margin">6dp</dimen>
-    <dimen name="app_widget_vertical_margin">6dp</dimen>
 </resources>

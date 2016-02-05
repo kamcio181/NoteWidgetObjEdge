@@ -78,8 +78,8 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
             Log.e("config", "item updated " + contentValues.toString());
         } else {
             contentValues.put(Constants.WIDGET_ID, widgetID);
-            contentValues.put(Constants.CURRENT_MODE, Constants.WIDGET_TITLE_MODE);
-            contentValues.put(Constants.CURRENT_THEME, Constants.WIDGET_THEME_LIGHT);
+            contentValues.put(Constants.CURRENT_WIDGET_MODE, Constants.WIDGET_MODE_TITLE);
+            contentValues.put(Constants.CURRENT_THEME_MODE, Constants.WIDGET_THEME_LIGHT);
             contentValues.put(Constants.CURRENT_TEXT_SIZE, 18);
             Log.e("config", "item inserted " + contentValues.toString());
         }

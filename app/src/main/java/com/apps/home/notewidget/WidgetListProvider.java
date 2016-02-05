@@ -10,11 +10,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Color;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
-
-import java.util.ArrayList;
 
 /**
  * If you are familiar with Adapter of ListView,this is the same as adapter
@@ -25,6 +24,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
     private Context context = null;
     private int appWidgetId;
     private int currentSize;
+    private int currentThemeMode;
     private String noteText;
     private SQLiteDatabase db;
     private Cursor configCursor;
@@ -37,18 +37,20 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
         Log.e("list", "constructor");
     }
 
-    private void setTextSize(){
+    private void getCursors(){
         if(db==null) {
             SQLiteOpenHelper helper = new DatabaseHelper(context);
             db = helper.getWritableDatabase();
         }
 
-        configCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.CURRENT_TEXT_SIZE},
+        configCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.CURRENT_TEXT_SIZE, Constants.CURRENT_THEME_MODE},
                 Constants.WIDGET_ID + " = ?", new String[]{Integer.toString(appWidgetId)},
                 null, null, null);
         configCursor.moveToFirst();
 
         currentSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE));
+
+        currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE));
     }
 
     /*
@@ -58,14 +60,17 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
     */
     @Override
     public RemoteViews getViewAt(int position) {
+        getCursors();
+
+        int item = currentThemeMode == Constants.WIDGET_THEME_LIGHT? R.layout.note_text_light : R.layout.note_text_dark;
+        Log.e("list", "currentThemeMode " + currentThemeMode);
         final RemoteViews remoteView = new RemoteViews(
-                context.getPackageName(), R.layout.note_text);
+                context.getPackageName(),item);
 
         //Set note text
         remoteView.setTextViewText(R.id.noteTextView, noteText);
         //Set text size
         remoteView.setFloat(R.id.noteTextView, "setTextSize", currentSize);
-        Log.e("list", "getViewAt "+currentSize);
         return remoteView;
     }
 
@@ -81,12 +86,11 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
 
     @Override
     public void onCreate() {
-        setTextSize();
     }
 
     @Override
     public void onDataSetChanged() {
-        setTextSize();
+
     }
 
     @Override

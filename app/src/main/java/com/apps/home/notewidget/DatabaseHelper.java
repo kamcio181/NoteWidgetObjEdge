@@ -41,13 +41,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + Constants.ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + Constants.WIDGET_ID + " INTEGER, "
                     + Constants.CONNECTED_NOTE_ID + " INTEGER, "
-                    + Constants.CURRENT_MODE + " INTEGER, "
-                    + Constants.CURRENT_THEME + " INTEGER, "
+                    + Constants.CURRENT_WIDGET_MODE + " INTEGER, "
+                    + Constants.CURRENT_THEME_MODE + " INTEGER, "
                     + Constants.CURRENT_TEXT_SIZE + " INTEGER);");
 
             Log.e("helper", "created" + Constants.WIDGETS_TABLE + " table");
             insertItem(db, 14122015, "tytuł 1", "przykadowy text notatki 1");
             insertItem(db, 14122015, "tytuł 2", "przykadowy text notatki 2");
+            insertItem(db, 14122015, "tytuł 3", "przykadowy text notatki 3");
+            insertItem(db, 14122015, "tytuł 4", "przykadowy text notatki 4");
+            insertItem(db, 14122015, "tytuł 5", "przykadowy text notatki 5");
         }
     }
 

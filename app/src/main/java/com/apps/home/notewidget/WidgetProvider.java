@@ -9,13 +9,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.RemoteViews;
-import android.widget.SimpleCursorAdapter;
 
 /**
  * Created by k.kaszubski on 1/20/16.
@@ -24,6 +21,7 @@ public class WidgetProvider extends AppWidgetProvider {
     public static final String INCREASE_TEXT_SIZE = "android.appwidget.action.INCREASE_TEXT_SIZE";
     public static final String DECREASE_TEXT_SIZE = "android.appwidget.action.DECREASE_TEXT_SIZE";
     public static final String CHANGE_WIDGET_MODE = "android.appwidget.action.CHANGE_WIDGET_MODE";
+    public static final String CHANGE_THEME_MODE = "android.appwidget.action.CHANGE_THEME_MODE";
     public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
 
     private SQLiteDatabase db;
@@ -32,51 +30,52 @@ public class WidgetProvider extends AppWidgetProvider {
 
     private SharedPreferences preferences;
 
-    private int currentSize = 18;
-    private int currentMode = Constants.WIDGET_TITLE_MODE;
+    private int currentTextSize;
+    private int currentWidgetMode;
+    private int currentThemeMode;
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
         int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
+        if(isConfigured(context, appWidgetId)) {
+            getCursors(context, appWidgetId);
 
-        switch(intent.getAction()){
-            case INCREASE_TEXT_SIZE:
-                getCursors(context, appWidgetId);
+            switch (intent.getAction()) {
+                case INCREASE_TEXT_SIZE:
+                    putInConfigTable(context, Constants.CURRENT_TEXT_SIZE, (currentTextSize + 1), appWidgetId);
 
-                currentSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE))+1;
-                putInConfigTable(context, Constants.CURRENT_TEXT_SIZE, currentSize, appWidgetId);
+                    Utils.showToast(context, "Text size: " + (currentTextSize + 1));
 
-                Utils.showToast(context, "Text size: " + currentSize);
+                    updateNote(context, appWidgetId);
 
-                updateNote(context, appWidgetId);
+                    break;
+                case DECREASE_TEXT_SIZE:
+                    if (currentTextSize > 1) {
+                        putInConfigTable(context, Constants.CURRENT_TEXT_SIZE, (currentTextSize - 1), appWidgetId);
 
-                break;
-            case DECREASE_TEXT_SIZE:
-                getCursors(context, appWidgetId);
+                        Utils.showToast(context, "Text size: " + (currentTextSize - 1));
 
-                currentSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE))-1;
-                putInConfigTable(context, Constants.CURRENT_TEXT_SIZE, currentSize, appWidgetId);
+                        updateNote(context, appWidgetId);
+                    } else
+                        Utils.showToast(context, "Text size cannot be lower than 1");
 
-                Utils.showToast(context, "Text size: " + currentSize);
+                    break;
+                case CHANGE_WIDGET_MODE:
+                    putInConfigTable(context, Constants.CURRENT_WIDGET_MODE, Utils.switchWidgetMode(currentWidgetMode), appWidgetId);
 
-                updateNote(context, appWidgetId);
+                    AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
 
-                break;
-            case CHANGE_WIDGET_MODE:
-                getCursors(context, appWidgetId);
+                    break;
 
-                currentMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_MODE));
+                case CHANGE_THEME_MODE:
+                    putInConfigTable(context, Constants.CURRENT_THEME_MODE, Utils.switchThemeMode(currentThemeMode), appWidgetId);
 
-                currentMode = currentMode == Constants.WIDGET_TITLE_MODE? Constants.WIDGET_CONFIG_MODE : Constants.WIDGET_TITLE_MODE;
-                putInConfigTable(context, Constants.CURRENT_MODE, currentMode, appWidgetId);
+                    AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
 
-                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-
-                RemoteViews views = updateWidgetListView(context, appWidgetId);
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-                break;
+                    break;
+            }
         }
         super.onReceive(context, intent);
     }
@@ -91,9 +90,9 @@ public class WidgetProvider extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             if(isConfigured(context, appWidgetId)){
 
-            RemoteViews views = updateWidgetListView(context, appWidgetId);
+                RemoteViews views = updateWidgetListView(context, appWidgetId);
 
-            appWidgetManager.updateAppWidget(appWidgetId, views);
+                appWidgetManager.updateAppWidget(appWidgetId, views);
             }
         }
         super.onUpdate(context, appWidgetManager, appWidgetIds);
@@ -119,8 +118,8 @@ public class WidgetProvider extends AppWidgetProvider {
         }
 
         configCursor = db.query(Constants.WIDGETS_TABLE, new String[]{
-                        Constants.CONNECTED_NOTE_ID, Constants.CURRENT_MODE,
-                        Constants.CURRENT_THEME, Constants.CURRENT_TEXT_SIZE},
+                        Constants.CONNECTED_NOTE_ID, Constants.CURRENT_WIDGET_MODE,
+                        Constants.CURRENT_THEME_MODE, Constants.CURRENT_TEXT_SIZE},
                 Constants.WIDGET_ID + " = ?", new String[]{Integer.toString(widgetId)},
                 null, null, null);
         configCursor.moveToFirst();
@@ -130,6 +129,10 @@ public class WidgetProvider extends AppWidgetProvider {
                         configCursor.getInt(configCursor.getColumnIndexOrThrow(
                                 Constants.CONNECTED_NOTE_ID)))}, null, null, null );
         noteCursor.moveToFirst();
+
+        currentTextSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE));
+        currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE));
+        currentWidgetMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE));
     }
 
     private void putInConfigTable(Context context, String column, int value, int widgetId){
@@ -172,15 +175,16 @@ public class WidgetProvider extends AppWidgetProvider {
                                              int appWidgetId) {
         getCursors(context, appWidgetId);
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), currentMode);
+        Log.e("provider", "themeMode " + currentThemeMode + " widgetMode "+currentWidgetMode);
+        RemoteViews views = new RemoteViews(context.getPackageName(), Utils.getLayoutFile(currentThemeMode, currentWidgetMode));
 
         //Set intent for change widget mode
         views.setOnClickPendingIntent(R.id.modeSwitchImageView, getPendingIntentWithAction(context,
                 new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_WIDGET_MODE));
 
-        Log.e("provider", "list update "+ currentMode);
+        Log.e("provider", "list update "+ currentWidgetMode);
         //which layout to show on widget
-        if(currentMode == Constants.WIDGET_TITLE_MODE){
+        if(currentWidgetMode == Constants.WIDGET_MODE_TITLE){
             //Set note title and intent to change note
             views.setTextViewText(R.id.titleTextView, noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
             Log.e("provider", "title "+noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
@@ -196,12 +200,16 @@ public class WidgetProvider extends AppWidgetProvider {
         }
         else {
             //Set intent for increase text size
-            views.setOnClickPendingIntent(R.id.increaseTextSizeImageView, getPendingIntentWithAction(context, new
-                    Intent(context, WidgetProvider.class), appWidgetId, INCREASE_TEXT_SIZE));
+            views.setOnClickPendingIntent(R.id.increaseTextSizeImageView, getPendingIntentWithAction(context,
+                    new Intent(context, WidgetProvider.class), appWidgetId, INCREASE_TEXT_SIZE));
 
             //Set intent for decrease text size
             views.setOnClickPendingIntent(R.id.decreaseTextSizeImageView, getPendingIntentWithAction(context,
                     new Intent(context, WidgetProvider.class), appWidgetId, DECREASE_TEXT_SIZE));
+
+            //Set intent for change widget theme mode
+            views.setOnClickPendingIntent(R.id.switchThemeImageView, getPendingIntentWithAction(context,
+                    new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_THEME_MODE));
         }
 
         //RemoteViews Service needed to provide adapter for ListView

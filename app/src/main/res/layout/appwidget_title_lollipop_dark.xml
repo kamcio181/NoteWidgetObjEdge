@@ -15,7 +15,7 @@
             android:layout_width="@dimen/app_widget_action_width"
             android:layout_height="@dimen/app_widget_action_height"
             android:id="@+id/modeSwitchImageView"
-            android:src="@mipmap/ic_menu_white_24dp"
+            android:src="@mipmap/ic_menu_black_24dp"
             android:scaleType="center" />
 
         <TextView
@@ -24,7 +24,7 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Medium Text"
             android:id="@+id/titleTextView"
-            android:textColor="@color/colorOfNoteTextLight"
+            android:textColor="#000"
             android:gravity="center_vertical" />
 
     </LinearLayout>
@@ -32,7 +32,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#fff">
+        android:background="#212121">
         <include layout="@layout/shadow_imageview"/>
 
         <include

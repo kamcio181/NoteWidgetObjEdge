@@ -13,17 +13,24 @@ public interface Constants {
     String WIDGETS_TABLE = "WIDGETS";
     String WIDGET_ID = "widgetId";
     String CONNECTED_NOTE_ID = "noteID";
-    String CURRENT_MODE = "mode";
-    String CURRENT_THEME = "theme";
+    String CURRENT_WIDGET_MODE = "mode";
+    String CURRENT_THEME_MODE = "themeMode";
     String CURRENT_TEXT_SIZE = "textSize";
 
     String PREFS_NAME = "prefs";
     String CONFIGURED_KEY = " configured";
 
-    int WIDGET_TITLE_MODE = R.layout.appwidget_title_lollipop;
-    int WIDGET_CONFIG_MODE = R.layout.appwidget_config_lollipop;
+    //int WIDGET_TITLE_MODE = R.layout.appwidget_title_lollipop;
+    //int WIDGET_CONFIG_MODE = R.layout.appwidget_config_lollipop;
    /* int WIDGET_TITLE_MODE = R.layout.appwidget_title_miui;
     int WIDGET_CONFIG_MODE = R.layout.appwidget_config_miui;*/
+
+    int WIDGET_MODE_TITLE = 0;
+    int WIDGET_MODE_CONFIG = 1;
+
+    int WIDGET_THEME_LOLLIPOP = 0;
+    int WIDGET_THEME_MIUI = 1;
+    int WIDGET_THEME_SIMPLE = 2;
 
     int WIDGET_THEME_LIGHT = 0;
     int WIDGET_THEME_DARK = 1;

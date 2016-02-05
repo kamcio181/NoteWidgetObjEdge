@@ -2,10 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingLeft="@dimen/app_widget_horizontal_margin"
-    android:paddingRight="@dimen/app_widget_horizontal_margin"
-    android:paddingTop="@dimen/app_widget_vertical_margin"
-    android:paddingBottom="@dimen/app_widget_vertical_margin"
     android:theme="@style/AppTheme.NoActionBar">
 
     <LinearLayout
@@ -26,7 +22,7 @@
             android:layout_width="@dimen/app_widget_action_width"
             android:layout_height="@dimen/app_widget_action_height"
             android:id="@+id/increaseTextSizeImageView"
-            android:src="@mipmap/ic_fontsize_plus_white_24dp"
+            android:src="@mipmap/ic_playlist_plus_white_24dp"
             android:scaleType="center" />
 
         <ImageView
@@ -34,7 +30,7 @@
             android:layout_height="@dimen/app_widget_action_height"
             android:id="@+id/decreaseTextSizeImageView"
             android:scaleType="center"
-            android:src="@mipmap/ic_fontsize_minus_white_24dp" />
+            android:src="@mipmap/ic_playlist_minus_white_24dp" />
 
         <ImageView
             android:layout_width="@dimen/app_widget_action_width"
