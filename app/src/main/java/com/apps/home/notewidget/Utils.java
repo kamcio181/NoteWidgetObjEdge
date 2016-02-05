@@ -20,13 +20,21 @@ public class Utils {
     public static int getLayoutFile(int themeMode, int widgetMode){
         if(widgetLayouts==null) {
             widgetLayouts = new int[3][2][2];
-            widgetLayouts[0][0][0] = R.layout.appwidget_title_lollipop;
-            widgetLayouts[0][0][1] = R.layout.appwidget_config_lollipop;
+            widgetLayouts[0][0][0] = R.layout.appwidget_title_lollipop_light;
+            widgetLayouts[0][0][1] = R.layout.appwidget_config_lollipop_light;
             widgetLayouts[0][1][0] = R.layout.appwidget_title_lollipop_dark;
             widgetLayouts[0][1][1] = R.layout.appwidget_config_lollipop_dark;
+            widgetLayouts[1][0][0] = R.layout.appwidget_title_miui_light;
+            widgetLayouts[1][0][1] = R.layout.appwidget_config_miui_light;
+            widgetLayouts[1][1][0] = R.layout.appwidget_title_miui_dark;
+            widgetLayouts[1][1][1] = R.layout.appwidget_config_miui_dark;
+            widgetLayouts[2][0][0] = R.layout.appwidget_title_simple_light;
+            widgetLayouts[2][0][1] = R.layout.appwidget_config_simple_light;
+            widgetLayouts[2][1][0] = R.layout.appwidget_title_simple_dark;
+            widgetLayouts[2][1][1] = R.layout.appwidget_config_simple_dark;
             //TODO fill other cells
         }
-        return widgetLayouts[0][themeMode][widgetMode];
+        return widgetLayouts[2][themeMode][widgetMode];
     }
 
     public static int switchWidgetMode(int currentMode){

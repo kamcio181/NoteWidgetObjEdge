@@ -227,7 +227,7 @@ public class WidgetProvider extends AppWidgetProvider {
         views.setRemoteAdapter(R.id.noteListView,
                 svcIntent);
         //setting an empty view in case of no data
-        views.setEmptyView(R.id.noteListView, R.id.emptyTextView);
+        views.setEmptyView(R.id.noteListView, R.id.noteTextView);
         return views;
     }
 }

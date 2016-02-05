@@ -20,10 +20,10 @@ public interface Constants {
     String PREFS_NAME = "prefs";
     String CONFIGURED_KEY = " configured";
 
-    //int WIDGET_TITLE_MODE = R.layout.appwidget_title_lollipop;
-    //int WIDGET_CONFIG_MODE = R.layout.appwidget_config_lollipop;
-   /* int WIDGET_TITLE_MODE = R.layout.appwidget_title_miui;
-    int WIDGET_CONFIG_MODE = R.layout.appwidget_config_miui;*/
+    //int WIDGET_TITLE_MODE = R.layout.appwidget_title_lollipop_light;
+    //int WIDGET_CONFIG_MODE = R.layout.appwidget_config_lollipop_light;
+   /* int WIDGET_TITLE_MODE = R.layout.appwidget_title_miui_light;
+    int WIDGET_CONFIG_MODE = R.layout.appwidget_config_miui_light;*/
 
     int WIDGET_MODE_TITLE = 0;
     int WIDGET_MODE_CONFIG = 1;

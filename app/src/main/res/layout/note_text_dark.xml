@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:theme="@style/AppTheme.NoActionBar">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="noteTextView"
-        android:textColor="#B2FFFFFF"
-        android:id="@+id/noteTextView"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="10dp" />
-</FrameLayout>
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:text="Note is empty. Click here to edit your note"
+    android:textColor="#B2FFFFFF"
+    android:id="@+id/noteTextView"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingTop="10dp" />
+

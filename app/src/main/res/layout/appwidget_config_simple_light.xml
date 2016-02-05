@@ -2,31 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical"
-    android:theme="@style/AppTheme.NoActionBar">
+    android:theme="@style/AppTheme.NoActionBar"
+    android:background="@drawable/widget_background_simple_light">
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary">
+        android:id="@+id/configLayout">
 
-        <include
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            layout="@layout/widget_title_bar_dark" />
+    <include
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        layout="@layout/widget_config_bar_dark" />
 
     </FrameLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#212121">
+        android:layout_height="match_parent">
         <include layout="@layout/shadow_imageview"/>
-
         <include
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             layout="@layout/note_list" />
 
     </FrameLayout>
+
 
 </LinearLayout>
