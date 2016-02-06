@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp"
+    android:paddingTop="16dp">
+
+    <com.apps.home.notewidget.RobotoTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Medium Text"
+        android:id="@+id/textView2"
+        android:layout_alignParentTop="true"
+        android:textSize="16sp"
+        android:textColor="#DD000000" />
+
+    <com.apps.home.notewidget.RobotoTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Small Text"
+        android:id="@+id/textView3"
+        android:layout_alignParentBottom="true"
+        android:textSize="14sp"
+        android:textColor="#8A000000" />
+</RelativeLayout>

@@ -22,8 +22,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
-    private EditText noteText;
+        implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener {
     private SQLiteDatabase db;
     private Cursor cursor;
 
@@ -52,7 +51,6 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        noteText = (EditText) findViewById(R.id.editText);
     }
 
     @Override
@@ -121,9 +119,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(Constants.NOTE_TEXT_COL, noteText.getText().toString());
-        db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + "=0", null);
     }
 
     @Override
@@ -131,6 +126,15 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
         cursor.close();
         db.close();
+    }
+
+    public Cursor getCursor() {
+        return cursor;
+    }
+
+    @Override
+    public void onItemClicked(int position) {
+        Utils.showToast(this, "Item clicked "+position);
     }
 
     private class LoadDatabase extends AsyncTask<Void, Integer, Boolean> {
@@ -141,8 +145,9 @@ public class MainActivity extends AppCompatActivity
             try {
                 db = helper.getWritableDatabase();
 
-                cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.NOTE_TEXT_COL},
-                        null, null, null, null, null);
+                cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL, Constants.MILLIS_COL,
+                        Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
+                        null, null, null, null, null); //TODO more columns
 
                 return true;
 
@@ -156,8 +161,7 @@ public class MainActivity extends AppCompatActivity
         protected void onPostExecute(Boolean aBoolean) {
             if(aBoolean){
                 cursor.moveToFirst();
-                noteText.setText(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
-                noteText.setSelection(noteText.getText().length());
+                getSupportFragmentManager().beginTransaction().add(R.id.container, new NoteListFragment(), "NoteListFragment").commit();
             }
             else {
                 Toast.makeText(MainActivity.this, "Database unavailable", Toast.LENGTH_SHORT).show();
