@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,18 +13,11 @@ import android.view.ViewGroup;
 
 import java.util.Calendar;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link OnItemClickListener} interface
- * to handle interaction events.
- */
 public class NoteListFragment extends Fragment {
-    private RecyclerView recyclerView;
-    private NotesCursorRecyclerAdapter adapter;
-    private OnItemClickListener mListener;
+    private static final String TAG = "NoteListFragment";
 
+    private RecyclerView recyclerView;
+    private OnItemClickListener mListener;
 
     public NoteListFragment() {
         // Required empty public constructor
@@ -33,7 +27,10 @@ public class NoteListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+
+
+
+
         return inflater.inflate(R.layout.fragment_note_list, container, false);
     }
 
@@ -41,17 +38,18 @@ public class NoteListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("My Notes");
         recyclerView = (RecyclerView) view;
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
-        adapter = new NotesCursorRecyclerAdapter(getActivity(), ((MainActivity) getActivity()).getCursor(), new NotesCursorRecyclerAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                if(mListener != null)
-                    mListener.onItemClicked(position);
-            }
-        });
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(new NotesCursorRecyclerAdapter(((MainActivity) getActivity()).getCursor(),
+                new NotesCursorRecyclerAdapter.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        if (mListener != null)
+                            mListener.onItemClicked(position);
+                    }
+                }));
     }
 
     @Override
@@ -86,8 +84,8 @@ public class NoteListFragment extends Fragment {
     }
 }
 
+
 class NotesCursorRecyclerAdapter extends CursorRecyclerAdapter<NotesCursorRecyclerAdapter.DoubleLineViewHolder>{
-    private Context context;
     private Calendar calendar;
     private NotesCursorRecyclerAdapter.OnItemClickListener listener;
 
@@ -95,9 +93,8 @@ class NotesCursorRecyclerAdapter extends CursorRecyclerAdapter<NotesCursorRecycl
         void onItemClick(View view, int position);
     }
 
-    public NotesCursorRecyclerAdapter (Context context, Cursor cursor, OnItemClickListener listener){
+    public NotesCursorRecyclerAdapter (Cursor cursor, OnItemClickListener listener){
         super(cursor);
-        this.context = context;
         this.listener = listener;
         calendar = Calendar.getInstance();
     }

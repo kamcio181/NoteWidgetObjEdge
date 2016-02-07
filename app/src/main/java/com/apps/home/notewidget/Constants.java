@@ -20,6 +20,9 @@ public interface Constants {
     String PREFS_NAME = "prefs";
     String CONFIGURED_KEY = " configured";
 
+    String FRAGMENT_LIST = "ListFragment";
+    String FRAGMENT_NOTE = "NoteFragment";
+
     //int WIDGET_TITLE_MODE = R.layout.appwidget_title_lollipop_light;
     //int WIDGET_CONFIG_MODE = R.layout.appwidget_config_lollipop_light;
    /* int WIDGET_TITLE_MODE = R.layout.appwidget_title_miui_light;
