@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity
                 Log.e(TAG, orderColumn);
                 cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL, Constants.MILLIS_COL,
                                 Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
-                        null, null, null, null, orderColumn + " ASC");
+                        null, null, null, null, "LOWER(" + orderColumn + ") ASC");
 
                 return true;
 
