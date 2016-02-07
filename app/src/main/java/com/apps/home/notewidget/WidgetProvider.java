@@ -186,7 +186,7 @@ public class WidgetProvider extends AppWidgetProvider {
 
         if(noteCursor.getCount()>0){
             Log.e("provider", "themeMode " + currentThemeMode + " widgetMode "+currentWidgetMode);
-            views = new RemoteViews(context.getPackageName(), Utils.getLayoutFile(currentThemeMode, currentWidgetMode));
+            views = new RemoteViews(context.getPackageName(), Utils.getLayoutFile(context, currentThemeMode, currentWidgetMode));
 
             //Set intent for change widget mode
             views.setOnClickPendingIntent(R.id.modeSwitchImageView, getPendingIntentWithAction(context,

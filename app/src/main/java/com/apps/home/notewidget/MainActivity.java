@@ -3,6 +3,7 @@ package com.apps.home.notewidget;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -125,6 +126,17 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_delete:
                 ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
                 onBackPressed();
+                break;
+            case R.id.action_change_widget_theme:
+                if(preferences.getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0) == 0)
+                    preferences.edit().putInt(Constants.CURRENT_WIDGET_THEME_KEY, 1).apply();
+                else if(preferences.getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0) == 1)
+                    preferences.edit().putInt(Constants.CURRENT_WIDGET_THEME_KEY, 2).apply();
+                else if(preferences.getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0) == 2)
+                    preferences.edit().putInt(Constants.CURRENT_WIDGET_THEME_KEY, 0).apply();
+                int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(),WidgetProvider.class));
+                WidgetProvider widgetProvider = new WidgetProvider();
+                widgetProvider.onUpdate(this,AppWidgetManager.getInstance(this),ids);
                 break;
         }
 

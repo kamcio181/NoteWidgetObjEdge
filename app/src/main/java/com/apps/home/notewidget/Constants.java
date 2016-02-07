@@ -20,6 +20,7 @@ public interface Constants {
     String PREFS_NAME = "prefs";
     String CONFIGURED_KEY = "configured";
     String SORT_BY_DATE_KEY = "sortByDate";
+    String CURRENT_WIDGET_THEME_KEY = "currentWidgetTheme";
 
     String FRAGMENT_LIST = "ListFragment";
     String FRAGMENT_NOTE = "NoteFragment";

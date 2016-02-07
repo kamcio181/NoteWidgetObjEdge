@@ -17,7 +17,7 @@ public class Utils {
         toast.show();
     }
 
-    public static int getLayoutFile(int themeMode, int widgetMode){
+    public static int getLayoutFile(Context context, int themeMode, int widgetMode){
         if(widgetLayouts==null) {
             widgetLayouts = new int[3][2][2];
             widgetLayouts[0][0][0] = R.layout.appwidget_title_lollipop_light;
@@ -32,9 +32,10 @@ public class Utils {
             widgetLayouts[2][0][1] = R.layout.appwidget_config_simple_light;
             widgetLayouts[2][1][0] = R.layout.appwidget_title_simple_dark;
             widgetLayouts[2][1][1] = R.layout.appwidget_config_simple_dark;
-            //TODO fill other cells
         }
-        return widgetLayouts[2][themeMode][widgetMode];
+
+        return widgetLayouts[context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).
+                getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0)][themeMode][widgetMode];
     }
 
     public static int switchWidgetMode(int currentMode){

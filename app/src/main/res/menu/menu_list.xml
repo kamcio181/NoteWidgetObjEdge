@@ -11,4 +11,10 @@
         android:orderInCategory="200"
         android:title="Sort by title"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_change_widget_theme"
+        android:orderInCategory="200"
+        android:title="Change widget theme"
+        app:showAsAction="never" />
 </menu>
