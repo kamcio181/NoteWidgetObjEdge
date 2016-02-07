@@ -65,22 +65,22 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
     private void insertOrUpdateItem() {
         Log.e("config", "insert");
         Cursor cursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.ID_COL},
-                Constants.WIDGET_ID + " = ?", new String[]{Integer.toString(widgetID)}, null, null, null, null);
+                Constants.WIDGET_ID_COL + " = ?", new String[]{Integer.toString(widgetID)}, null, null, null, null);
 
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Constants.CONNECTED_NOTE_ID, noteId);
+        contentValues.put(Constants.CONNECTED_NOTE_ID_COL, noteId);
 
         if(cursor.getCount()>0) {
 
             cursor.close();
-            db.update(Constants.WIDGETS_TABLE, contentValues, Constants.WIDGET_ID + " = ?",
+            db.update(Constants.WIDGETS_TABLE, contentValues, Constants.WIDGET_ID_COL + " = ?",
                     new String[]{Integer.toString(widgetID)});
             Log.e("config", "item updated " + contentValues.toString());
         } else {
-            contentValues.put(Constants.WIDGET_ID, widgetID);
-            contentValues.put(Constants.CURRENT_WIDGET_MODE, Constants.WIDGET_MODE_TITLE);
-            contentValues.put(Constants.CURRENT_THEME_MODE, Constants.WIDGET_THEME_LIGHT);
-            contentValues.put(Constants.CURRENT_TEXT_SIZE, 18);
+            contentValues.put(Constants.WIDGET_ID_COL, widgetID);
+            contentValues.put(Constants.CURRENT_WIDGET_MODE_COL, Constants.WIDGET_MODE_TITLE);
+            contentValues.put(Constants.CURRENT_THEME_MODE_COL, Constants.WIDGET_THEME_LIGHT);
+            contentValues.put(Constants.CURRENT_TEXT_SIZE_COL, 18);
             Log.e("config", "item inserted " + contentValues.toString());
         }
         db.insert(Constants.WIDGETS_TABLE, null, contentValues);

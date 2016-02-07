@@ -39,18 +39,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Log.e("helper", "created" + Constants.NOTES_TABLE + " table");
             db.execSQL("CREATE TABLE " + Constants.WIDGETS_TABLE + " ("
                     + Constants.ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    + Constants.WIDGET_ID + " INTEGER, "
-                    + Constants.CONNECTED_NOTE_ID + " INTEGER, "
-                    + Constants.CURRENT_WIDGET_MODE + " INTEGER, "
-                    + Constants.CURRENT_THEME_MODE + " INTEGER, "
-                    + Constants.CURRENT_TEXT_SIZE + " INTEGER);");
+                    + Constants.WIDGET_ID_COL + " INTEGER, "
+                    + Constants.CONNECTED_NOTE_ID_COL + " INTEGER, "
+                    + Constants.CURRENT_WIDGET_MODE_COL + " INTEGER, "
+                    + Constants.CURRENT_THEME_MODE_COL + " INTEGER, "
+                    + Constants.CURRENT_TEXT_SIZE_COL + " INTEGER);");
 
             Log.e("helper", "created" + Constants.WIDGETS_TABLE + " table");
-            insertItem(db, 14122015, "tytuł 1", "przykładowy text notatki 1");
+            /*insertItem(db, 14122015, "tytuł 1", "przykładowy text notatki 1");
             insertItem(db, 14122015, "tytuł 2", "przykładowy text notatki 2");
             insertItem(db, 14122015, "tytuł 3", "przykładowy text notatki 3");
             insertItem(db, 14122015, "tytuł 4", "przykładowy text notatki 4");
-            insertItem(db, 14122015, "tytuł 5", "przykładowy text notatki 5");
+            insertItem(db, 14122015, "tytuł 5", "przykładowy text notatki 5");*/
         }
     }
 

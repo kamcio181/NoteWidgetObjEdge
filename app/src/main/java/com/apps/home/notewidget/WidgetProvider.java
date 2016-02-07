@@ -44,7 +44,7 @@ public class WidgetProvider extends AppWidgetProvider {
 
             switch (intent.getAction()) {
                 case INCREASE_TEXT_SIZE:
-                    putInConfigTable(context, Constants.CURRENT_TEXT_SIZE, (currentTextSize + 1), appWidgetId);
+                    putInConfigTable(context, Constants.CURRENT_TEXT_SIZE_COL, (currentTextSize + 1), appWidgetId);
 
                     Utils.showToast(context, "Text size: " + (currentTextSize + 1));
 
@@ -53,7 +53,7 @@ public class WidgetProvider extends AppWidgetProvider {
                     break;
                 case DECREASE_TEXT_SIZE:
                     if (currentTextSize > 1) {
-                        putInConfigTable(context, Constants.CURRENT_TEXT_SIZE, (currentTextSize - 1), appWidgetId);
+                        putInConfigTable(context, Constants.CURRENT_TEXT_SIZE_COL, (currentTextSize - 1), appWidgetId);
 
                         Utils.showToast(context, "Text size: " + (currentTextSize - 1));
 
@@ -63,14 +63,14 @@ public class WidgetProvider extends AppWidgetProvider {
 
                     break;
                 case CHANGE_WIDGET_MODE:
-                    putInConfigTable(context, Constants.CURRENT_WIDGET_MODE, Utils.switchWidgetMode(currentWidgetMode), appWidgetId);
+                    putInConfigTable(context, Constants.CURRENT_WIDGET_MODE_COL, Utils.switchWidgetMode(currentWidgetMode), appWidgetId);
 
                     AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
 
                     break;
 
                 case CHANGE_THEME_MODE:
-                    putInConfigTable(context, Constants.CURRENT_THEME_MODE, Utils.switchThemeMode(currentThemeMode), appWidgetId);
+                    putInConfigTable(context, Constants.CURRENT_THEME_MODE_COL, Utils.switchThemeMode(currentThemeMode), appWidgetId);
 
                     AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
 
@@ -118,21 +118,21 @@ public class WidgetProvider extends AppWidgetProvider {
         }
 
         configCursor = db.query(Constants.WIDGETS_TABLE, new String[]{
-                        Constants.CONNECTED_NOTE_ID, Constants.CURRENT_WIDGET_MODE,
-                        Constants.CURRENT_THEME_MODE, Constants.CURRENT_TEXT_SIZE},
-                Constants.WIDGET_ID + " = ?", new String[]{Integer.toString(widgetId)},
+                        Constants.CONNECTED_NOTE_ID_COL, Constants.CURRENT_WIDGET_MODE_COL,
+                        Constants.CURRENT_THEME_MODE_COL, Constants.CURRENT_TEXT_SIZE_COL},
+                Constants.WIDGET_ID_COL + " = ?", new String[]{Integer.toString(widgetId)},
                 null, null, null);
         configCursor.moveToFirst();
 
         noteCursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
                 Constants.ID_COL + " = ?", new String[]{Integer.toString(
                         configCursor.getInt(configCursor.getColumnIndexOrThrow(
-                                Constants.CONNECTED_NOTE_ID)))}, null, null, null );
+                                Constants.CONNECTED_NOTE_ID_COL)))}, null, null, null );
         noteCursor.moveToFirst();
 
-        currentTextSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE));
-        currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE));
-        currentWidgetMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE));
+        currentTextSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL));
+        currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL));
+        currentWidgetMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE_COL));
     }
 
     private void putInConfigTable(Context context, String column, int value, int widgetId){
@@ -143,7 +143,7 @@ public class WidgetProvider extends AppWidgetProvider {
 
         ContentValues contentValues = new ContentValues();
         contentValues.put(column, value);
-        db.update(Constants.WIDGETS_TABLE, contentValues, Constants.WIDGET_ID + " = ?",
+        db.update(Constants.WIDGETS_TABLE, contentValues, Constants.WIDGET_ID_COL + " = ?",
                 new String[]{Integer.toString(widgetId)});
     }
 
@@ -160,7 +160,7 @@ public class WidgetProvider extends AppWidgetProvider {
             args[i] = Integer.toString(widgetIds[i]);
             preferences.edit().remove(widgetIds[i]+Constants.CONFIGURED_KEY).commit();
         }
-        db.delete(Constants.WIDGETS_TABLE, Constants.WIDGET_ID + " = ?", args);
+        db.delete(Constants.WIDGETS_TABLE, Constants.WIDGET_ID_COL + " = ?", args);
 
 
     }
@@ -171,63 +171,74 @@ public class WidgetProvider extends AppWidgetProvider {
         return PendingIntent.getBroadcast(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    private PendingIntent getConfigPendingIntent(Context context, int appWidgetId){
+        Intent configIntent = new Intent(context, WidgetConfigActivity.class);
+        configIntent.setAction(WidgetProvider.ACTION_WIDGET_CONFIGURE);
+        configIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        return PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
     private RemoteViews updateWidgetListView(Context context,
                                              int appWidgetId) {
         getCursors(context, appWidgetId);
+        RemoteViews views;
 
-        Log.e("provider", "themeMode " + currentThemeMode + " widgetMode "+currentWidgetMode);
-        RemoteViews views = new RemoteViews(context.getPackageName(), Utils.getLayoutFile(currentThemeMode, currentWidgetMode));
+        if(noteCursor.getCount()>0){
+            Log.e("provider", "themeMode " + currentThemeMode + " widgetMode "+currentWidgetMode);
+            views = new RemoteViews(context.getPackageName(), Utils.getLayoutFile(currentThemeMode, currentWidgetMode));
 
-        //Set intent for change widget mode
-        views.setOnClickPendingIntent(R.id.modeSwitchImageView, getPendingIntentWithAction(context,
-                new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_WIDGET_MODE));
+            //Set intent for change widget mode
+            views.setOnClickPendingIntent(R.id.modeSwitchImageView, getPendingIntentWithAction(context,
+                    new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_WIDGET_MODE));
 
-        Log.e("provider", "list update "+ currentWidgetMode);
-        //which layout to show on widget
-        if(currentWidgetMode == Constants.WIDGET_MODE_TITLE){
-            //Set note title and intent to change note
-            views.setTextViewText(R.id.titleTextView, noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
-            Log.e("provider", "title "+noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
+            Log.e("provider", "list update "+ currentWidgetMode);
+            //which layout to show on widget
+            if(currentWidgetMode == Constants.WIDGET_MODE_TITLE){
+                //Set note title and intent to change note
+                views.setTextViewText(R.id.titleTextView, noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
+                Log.e("provider", "title "+noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
 
-            //Reconfigure intent
-            Intent configIntent = new Intent(context, WidgetConfigActivity.class);
-            configIntent.setAction(WidgetProvider.ACTION_WIDGET_CONFIGURE);
-            configIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            PendingIntent configPendingIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            views.setOnClickPendingIntent(R.id.titleTextView, configPendingIntent);
+                //Reconfigure intent
+                views.setOnClickPendingIntent(R.id.titleTextView, getConfigPendingIntent(context, appWidgetId));
+
+            }
+            else {
+                //Set intent for increase text size
+                views.setOnClickPendingIntent(R.id.increaseTextSizeImageView, getPendingIntentWithAction(context,
+                        new Intent(context, WidgetProvider.class), appWidgetId, INCREASE_TEXT_SIZE));
+
+                //Set intent for decrease text size
+                views.setOnClickPendingIntent(R.id.decreaseTextSizeImageView, getPendingIntentWithAction(context,
+                        new Intent(context, WidgetProvider.class), appWidgetId, DECREASE_TEXT_SIZE));
+
+                //Set intent for change widget theme mode
+                views.setOnClickPendingIntent(R.id.switchThemeImageView, getPendingIntentWithAction(context,
+                        new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_THEME_MODE));
+            }
+
+            //RemoteViews Service needed to provide adapter for ListView
+            Intent svcIntent = new Intent(context, WidgetService.class);
+            //passing app widget id to that RemoteViews Service
+            svcIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            //pass note text
+            svcIntent.putExtra(Constants.NOTE_TEXT_COL, noteCursor.getString(
+                    noteCursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
+            //setting a unique Uri to the intent
+            //don't know its purpose to me right now
+            svcIntent.setData(Uri.parse(
+                    svcIntent.toUri(Intent.URI_INTENT_SCHEME)));
+            //setting adapter to listview of the widget
+            views.setRemoteAdapter(R.id.noteListView,
+                    svcIntent);
+            //setting an empty view in case of no data
+            views.setEmptyView(R.id.noteListView, R.id.noteTextView);
+        } else {
+            views = new RemoteViews(context.getPackageName(), R.layout.appwidget_deleted_note);
+            views.setTextViewText(R.id.noteTextView, "Note was deleted, click here to pick new one");
+            views.setOnClickPendingIntent(R.id.container, getConfigPendingIntent(context, appWidgetId));
 
         }
-        else {
-            //Set intent for increase text size
-            views.setOnClickPendingIntent(R.id.increaseTextSizeImageView, getPendingIntentWithAction(context,
-                    new Intent(context, WidgetProvider.class), appWidgetId, INCREASE_TEXT_SIZE));
-
-            //Set intent for decrease text size
-            views.setOnClickPendingIntent(R.id.decreaseTextSizeImageView, getPendingIntentWithAction(context,
-                    new Intent(context, WidgetProvider.class), appWidgetId, DECREASE_TEXT_SIZE));
-
-            //Set intent for change widget theme mode
-            views.setOnClickPendingIntent(R.id.switchThemeImageView, getPendingIntentWithAction(context,
-                    new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_THEME_MODE));
-        }
-
-        //RemoteViews Service needed to provide adapter for ListView
-        Intent svcIntent = new Intent(context, WidgetService.class);
-        //passing app widget id to that RemoteViews Service
-        svcIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        //pass note text
-        svcIntent.putExtra(Constants.NOTE_TEXT_COL, noteCursor.getString(
-                noteCursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
-        //setting a unique Uri to the intent
-        //don't know its purpose to me right now
-        svcIntent.setData(Uri.parse(
-                svcIntent.toUri(Intent.URI_INTENT_SCHEME)));
-        //setting adapter to listview of the widget
-        views.setRemoteAdapter(R.id.noteListView,
-                svcIntent);
-        //setting an empty view in case of no data
-        views.setEmptyView(R.id.noteListView, R.id.noteTextView);
         return views;
     }
 }

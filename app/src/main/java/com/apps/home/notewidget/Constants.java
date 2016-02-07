@@ -11,14 +11,15 @@ public interface Constants {
     String NOTE_TEXT_COL = "noteText";
 
     String WIDGETS_TABLE = "WIDGETS";
-    String WIDGET_ID = "widgetId";
-    String CONNECTED_NOTE_ID = "noteID";
-    String CURRENT_WIDGET_MODE = "mode";
-    String CURRENT_THEME_MODE = "themeMode";
-    String CURRENT_TEXT_SIZE = "textSize";
+    String WIDGET_ID_COL = "widgetId";
+    String CONNECTED_NOTE_ID_COL = "noteID";
+    String CURRENT_WIDGET_MODE_COL = "mode";
+    String CURRENT_THEME_MODE_COL = "themeMode";
+    String CURRENT_TEXT_SIZE_COL = "textSize";
 
     String PREFS_NAME = "prefs";
-    String CONFIGURED_KEY = " configured";
+    String CONFIGURED_KEY = "configured";
+    String SORT_BY_DATE_KEY = "sortByDate";
 
     String FRAGMENT_LIST = "ListFragment";
     String FRAGMENT_NOTE = "NoteFragment";

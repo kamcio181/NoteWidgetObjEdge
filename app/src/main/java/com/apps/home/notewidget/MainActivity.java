@@ -2,8 +2,10 @@ package com.apps.home.notewidget;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.appwidget.AppWidgetManager;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -12,8 +14,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -37,6 +39,10 @@ public class MainActivity extends AppCompatActivity
     private long creationTimeMillis;
     private long noteId;
     private Toolbar toolbar;
+    private FloatingActionButton fab;
+    private FragmentManager fragmentManager;
+    private SharedPreferences preferences;
+    private boolean sortByDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +50,11 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        fragmentManager = getSupportFragmentManager();
+        preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
+        sortByDate = preferences.getBoolean(Constants.SORT_BY_DATE_KEY, false);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
         /*fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,7 +73,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        getSupportFragmentManager().beginTransaction().
+        fragmentManager.beginTransaction().
                 add(R.id.container, new NoteListFragment(), Constants.FRAGMENT_LIST).commit();
 
         new LoadDatabase().execute();
@@ -76,8 +85,8 @@ public class MainActivity extends AppCompatActivity
         Fragment fragment;
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if ((fragment = getSupportFragmentManager().findFragmentByTag(Constants.FRAGMENT_NOTE)) != null) {
-            getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+        } else if ((fragment = fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)) != null) {
+            fragmentManager.beginTransaction().remove(fragment).commit();
             new LoadDatabase().execute();
         } else {
             super.onBackPressed();
@@ -87,7 +96,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        switch (fragmentManager.findFragmentById(R.id.container).getTag()){
+            case Constants.FRAGMENT_LIST:
+                getMenuInflater().inflate(R.menu.menu_list, menu);
+                break;
+            case Constants.FRAGMENT_NOTE:
+                getMenuInflater().inflate(R.menu.menu_note, menu);
+                break;
+        }
         return true;
     }
 
@@ -99,11 +115,26 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id){
+            case R.id.action_sort_by_date:
+                setOrderType(true);
+                break;
+            case R.id.action_sort_by_title:
+                setOrderType(false);
+                break;
+            case R.id.action_delete:
+                ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
+                onBackPressed();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setOrderType(Boolean orderByDate){
+        sortByDate = orderByDate;
+        new LoadDatabase().execute();
+        preferences.edit().putBoolean(Constants.SORT_BY_DATE_KEY, orderByDate).apply();
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -162,10 +193,29 @@ public class MainActivity extends AppCompatActivity
         }else{
             db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
                     new String[]{Long.toString(noteId)});
-
+            updateConnectedWidgets();
             Log.e(TAG, "update " + contentValues.toString());
         }
         Utils.showToast(this, "Saved");
+    }
+
+    public void removeFromNoteTable(){
+        db.delete(Constants.NOTES_TABLE, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
+        updateConnectedWidgets();
+        Utils.showToast(this, "Note removed");
+    }
+
+    private void updateConnectedWidgets(){
+        WidgetProvider widgetProvider = new WidgetProvider();
+        Cursor widgetCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.WIDGET_ID_COL},
+                Constants.CONNECTED_NOTE_ID_COL + " = ?", new String[]{Long.toString(noteId)}, null,null, null);
+        widgetCursor.moveToFirst();
+        int[] widgetIds = new int[widgetCursor.getCount()];
+        for (int i=0; i<widgetCursor.getCount(); i++){
+            widgetIds[i] = widgetCursor.getInt(0);
+            widgetCursor.moveToNext();
+        }
+        widgetProvider.onUpdate(this, AppWidgetManager.getInstance(this), widgetIds);
     }
 
     public void setOnTitleClickListener(boolean enable){
@@ -201,7 +251,7 @@ public class MainActivity extends AppCompatActivity
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        getSupportActionBar().setTitle(titleEditText.getText().toString());
+                        getSupportActionBar().setTitle(titleEditText.getText().toString());//TODO cap first letter to fix sorting
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -216,7 +266,7 @@ public class MainActivity extends AppCompatActivity
     public void onItemClicked(int position) {
 
         cursor.moveToPosition(position);
-        getSupportFragmentManager().beginTransaction().
+        fragmentManager.beginTransaction().
                 replace(R.id.container, NoteFragment.newInstance(false), Constants.FRAGMENT_NOTE).commit();
         getSupportActionBar().setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
         Calendar calendar = Calendar.getInstance();
@@ -229,17 +279,29 @@ public class MainActivity extends AppCompatActivity
         return cursor;
     }
 
+    public FloatingActionButton getFab() {
+        return fab;
+    }
+
     @Override
     public void onClick(View v) {
         switch(v.getId()){
             case R.id.fab:
-                getSupportFragmentManager().beginTransaction().
-                        replace(R.id.container, NoteFragment.newInstance(true), Constants.FRAGMENT_NOTE).commit();
-                getSupportActionBar().setTitle("Untitled");
-                Calendar calendar = Calendar.getInstance();
-                creationTimeMillis = calendar.getTimeInMillis();
-                getSupportActionBar().setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
-                noteId = -1;
+                switch (fragmentManager.findFragmentById(R.id.container).getTag()){
+                    case Constants.FRAGMENT_LIST:
+                        fragmentManager.beginTransaction().
+                                replace(R.id.container, NoteFragment.newInstance(true), Constants.FRAGMENT_NOTE).commit();
+                        getSupportActionBar().setTitle("Untitled");
+                        Calendar calendar = Calendar.getInstance();
+                        creationTimeMillis = calendar.getTimeInMillis();
+                        Log.e(TAG, "millis "+ creationTimeMillis);
+                        getSupportActionBar().setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+                        noteId = -1;
+                        break;
+                    case Constants.FRAGMENT_NOTE:
+                        onBackPressed();
+                        break;
+                }
                 break;
         }
     }
@@ -253,10 +315,11 @@ public class MainActivity extends AppCompatActivity
                     SQLiteOpenHelper helper = new DatabaseHelper(MainActivity.this);
                     db = helper.getWritableDatabase();
                 }
-
+                String orderColumn = sortByDate? Constants.MILLIS_COL : Constants.NOTE_TITLE_COL;
+                Log.e(TAG, orderColumn);
                 cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL, Constants.MILLIS_COL,
                                 Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
-                        null, null, null, null, null);
+                        null, null, null, null, orderColumn + " ASC");
 
                 return true;
 
@@ -272,7 +335,7 @@ public class MainActivity extends AppCompatActivity
                 Log.e(TAG, "database Loaded");
                 cursor.moveToFirst();
 
-                getSupportFragmentManager().beginTransaction()
+                fragmentManager.beginTransaction()
                         .replace(R.id.container, new NoteListFragment(), Constants.FRAGMENT_LIST).commit();
             }
             else {

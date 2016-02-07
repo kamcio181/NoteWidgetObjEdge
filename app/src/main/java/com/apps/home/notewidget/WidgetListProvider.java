@@ -10,7 +10,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.Color;
+import android.text.Html;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
@@ -43,14 +43,14 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
             db = helper.getWritableDatabase();
         }
 
-        configCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.CURRENT_TEXT_SIZE, Constants.CURRENT_THEME_MODE},
-                Constants.WIDGET_ID + " = ?", new String[]{Integer.toString(appWidgetId)},
+        configCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.CURRENT_TEXT_SIZE_COL, Constants.CURRENT_THEME_MODE_COL},
+                Constants.WIDGET_ID_COL + " = ?", new String[]{Integer.toString(appWidgetId)},
                 null, null, null);
         configCursor.moveToFirst();
 
-        currentSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE));
+        currentSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL));
 
-        currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE));
+        currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL));
     }
 
     /*
@@ -68,7 +68,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
                 context.getPackageName(),item);
 
         //Set note text
-        remoteView.setTextViewText(R.id.noteTextView, noteText);
+        remoteView.setTextViewText(R.id.noteTextView, Html.fromHtml(noteText));
         //Set text size
         remoteView.setFloat(R.id.noteTextView, "setTextSize", currentSize);
         return remoteView;

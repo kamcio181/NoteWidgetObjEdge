@@ -4,9 +4,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +29,7 @@ public class NoteListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        getActivity().invalidateOptionsMenu();
 
 
 
@@ -39,6 +41,9 @@ public class NoteListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("My Notes");
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setSubtitle("");
+        ((MainActivity)getActivity()).setOnTitleClickListener(false);
+        ((MainActivity)getActivity()).getFab().setImageDrawable(ContextCompat.getDrawable(getActivity(), R.mipmap.ic_add_white_24dp));
         recyclerView = (RecyclerView) view;
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
@@ -106,8 +111,8 @@ class NotesCursorRecyclerAdapter extends CursorRecyclerAdapter<NotesCursorRecycl
 
     @Override
     public void onBindViewHolder(NotesCursorRecyclerAdapter.DoubleLineViewHolder holder, Cursor cursor) {
-        calendar.setTimeInMillis(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
-
+        calendar.setTimeInMillis(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
+        Log.e("RecycleViewAdapter", "millis " + cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
         holder.titleTextView.setText(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
         holder.subtitleTextView.setText(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
     }
