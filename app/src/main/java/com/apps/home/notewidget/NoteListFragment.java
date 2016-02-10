@@ -43,7 +43,7 @@ public class NoteListFragment extends Fragment {
         ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("My Notes");
         ((AppCompatActivity)getActivity()).getSupportActionBar().setSubtitle("");
         ((MainActivity)getActivity()).setOnTitleClickListener(false);
-        ((MainActivity)getActivity()).getFab().setImageDrawable(ContextCompat.getDrawable(getActivity(), R.mipmap.ic_add_white_24dp));
+        ((MainActivity)getActivity()).getFab().setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_add_white));
         recyclerView = (RecyclerView) view;
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));

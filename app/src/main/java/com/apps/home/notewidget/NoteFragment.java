@@ -59,7 +59,7 @@ public class NoteFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ((MainActivity)getActivity()).getFab().setImageDrawable(ContextCompat.getDrawable(getActivity(), R.mipmap.ic_create_white_24dp));
+        ((MainActivity)getActivity()).getFab().setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_create_white));
         noteEditText = (RobotoEditText) view.findViewById(R.id.noteEditText);
         if(!isNewNote){
             cursor = ((MainActivity)getActivity()).getCursor();

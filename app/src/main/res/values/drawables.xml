@@ -5,4 +5,16 @@
     <item name="ic_menu_manage" type="drawable">@android:drawable/ic_menu_manage</item>
     <item name="ic_menu_share" type="drawable">@android:drawable/ic_menu_share</item>
     <item name="ic_menu_send" type="drawable">@android:drawable/ic_menu_send</item>
+    <item name="ic_add_white" type="drawable">@mipmap/ic_add_white_18dp</item>
+    <item name="ic_create_white" type="drawable">@mipmap/ic_create_white_18dp</item>
+    <item name="ic_menu_white" type="drawable">@mipmap/ic_menu_white_18dp</item>
+    <item name="ic_menu_black" type="drawable">@mipmap/ic_menu_black_18dp</item>
+    <item name="ic_font_size_inc_white" type="drawable">@mipmap/ic_playlist_plus_white_18dp</item>
+    <item name="ic_font_size_inc_black" type="drawable">@mipmap/ic_playlist_plus_black_18dp</item>
+    <item name="ic_font_size_dec_white" type="drawable">@mipmap/ic_playlist_minus_white_18dp</item>
+    <item name="ic_font_size_dec_black" type="drawable">@mipmap/ic_playlist_minus_black_18dp</item>
+    <item name="ic_theme_mode_white" type="drawable">@mipmap/ic_contrast_box_white_18dp</item>
+    <item name="ic_theme_mode_black" type="drawable">@mipmap/ic_contrast_box_black_18dp</item>
+    <item name="ic_back_arrow_white" type="drawable">@mipmap/ic_arrow_left_white_18dp</item>
+    <item name="ic_back_arrow_black" type="drawable">@mipmap/ic_arrow_left_black_18dp</item>
 </resources>

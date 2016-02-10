@@ -9,13 +9,13 @@
     android:layout_width="@dimen/app_widget_action_width"
     android:layout_height="@dimen/app_widget_action_height"
     android:id="@+id/modeSwitchImageView"
-    android:src="@mipmap/ic_menu_black_24dp"
+    android:src="@drawable/ic_menu_black"
     android:scaleType="center" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Medium Text"
         android:id="@+id/titleTextView"
         android:textColor="#000"
