@@ -80,7 +80,7 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
             contentValues.put(Constants.WIDGET_ID_COL, widgetID);
             contentValues.put(Constants.CURRENT_WIDGET_MODE_COL, Constants.WIDGET_MODE_TITLE);
             contentValues.put(Constants.CURRENT_THEME_MODE_COL, Constants.WIDGET_THEME_LIGHT);
-            contentValues.put(Constants.CURRENT_TEXT_SIZE_COL, 18);
+            contentValues.put(Constants.CURRENT_TEXT_SIZE_COL, 13);
             Log.e("config", "item inserted " + contentValues.toString());
         }
         db.insert(Constants.WIDGETS_TABLE, null, contentValues);
