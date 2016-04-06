@@ -49,14 +49,6 @@ public class WidgetEditNoteActivity extends AppCompatActivity implements View.On
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Utils.closeDb();
-    }
-
-
-
-    @Override
     public void onBackPressed() {
         preferences.edit().
                 putBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, true).apply();

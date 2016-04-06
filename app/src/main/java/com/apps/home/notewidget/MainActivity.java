@@ -249,6 +249,7 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");
             intent.putExtra(Intent.EXTRA_TEXT, textToShare);
+            intent.putExtra(Constants.TITLE_KEY, getSupportActionBar().getTitle());
             startActivity(Intent.createChooser(intent, "Share via"));
         } else
             Utils.showToast(this, "Note is empty");

@@ -7,7 +7,7 @@
         android:paddingBottom="72dp">
     <com.apps.home.notewidget.customviews.RobotoEditText
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:padding="@dimen/note_text_padding"
         android:id="@+id/noteEditText"
         android:gravity="top" />

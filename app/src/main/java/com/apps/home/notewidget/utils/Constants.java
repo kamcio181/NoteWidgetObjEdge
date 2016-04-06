@@ -33,6 +33,7 @@ public interface Constants {
     String REMOVE_NOTE_FRAGMENT_KEY = "removeNoteFragment";
     String MY_NOTES_ID_KEY = "myNotesId";
     String TRASH_ID_KEY = "trashId";
+    String TITLE_KEY = "title";
     String SEARCH_IN_TITLE = "titleSearch";
     String SEARCH_IN_CONTENT = "contentSearch";
 

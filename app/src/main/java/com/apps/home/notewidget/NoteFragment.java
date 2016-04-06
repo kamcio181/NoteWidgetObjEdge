@@ -112,7 +112,7 @@ public class NoteFragment extends Fragment {
 
         noteEditText = (RobotoEditText) view.findViewById(R.id.noteEditText);
         noteEditText.addTextChangedListener(textWatcher);
-        noteEditText.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 5, metrics )); //TODO change size from settings inc to 20
+        noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);//TODO change size from settings inc to 20
         newLine = System.getProperty("line.separator");
 
         if(!isNewNote)

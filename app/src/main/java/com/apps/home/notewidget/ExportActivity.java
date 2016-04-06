@@ -22,6 +22,7 @@ import android.widget.ImageView;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
 import com.apps.home.notewidget.utils.Utils;
 
@@ -38,12 +39,14 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
     private RecyclerView recyclerView;
     private String path;
     private String note;
+    private String title;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
         note = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+        title = getIntent().getStringExtra(Constants.TITLE_KEY);
 
         setContentView(R.layout.activity_export);
         setupToolbarAndFab();
@@ -88,7 +91,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
         final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
-        titleEditText.setText(R.string.new_file);
+        titleEditText.setText(title);
         titleEditText.setSelection(0, titleEditText.length());
 
         AlertDialog dialog = builder.setTitle("Set file name").setView(layout)
