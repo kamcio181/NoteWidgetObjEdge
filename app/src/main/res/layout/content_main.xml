@@ -13,5 +13,7 @@
     tools:context="com.apps.home.notewidget.MainActivity"
     tools:showIn="@layout/app_bar_main"
     >
+    <include layout="@layout/shadow_imageview"
+        android:id="@+id/shadowImageView" />
 
 </RelativeLayout>

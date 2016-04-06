@@ -4,12 +4,13 @@
     android:orientation="vertical"
     android:id="@+id/container"
     android:theme="@style/AppTheme.NoActionBar"
-    android:background="@drawable/widget_background_simple_light">
+    android:background="@drawable/widget_background_simple_light"
+    android:padding="10dp">
 
 
     <include
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         layout="@layout/note_text_light"
         android:layout_gravity="center" />
 </FrameLayout>

@@ -1,9 +1,15 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-<com.apps.home.notewidget.RobotoEditText
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/noteEditText"
-    android:gravity="top" />
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="72dp">
+    <com.apps.home.notewidget.customviews.RobotoEditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/note_text_padding"
+        android:id="@+id/noteEditText"
+        android:gravity="top" />
+    </FrameLayout>
 </ScrollView>

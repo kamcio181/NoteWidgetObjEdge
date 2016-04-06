@@ -3,10 +3,15 @@
 
     <ListView
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="match_parent"
+		android:fillViewport="true"
         android:id="@+id/noteListView"
         android:dividerHeight="0dp"
-        android:divider="@null" />
+        android:divider="@null" 
+		android:paddingLeft="10dp"
+		android:paddingRight="10dp"
+		android:paddingTop="6dp"
+		android:paddingBottom="10dp" />
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"

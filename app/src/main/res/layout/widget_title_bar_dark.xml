@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
+    android:paddingLeft="@dimen/app_widget_action_bar_padding_left"
     android:layout_height="@dimen/app_widget_action_height"
     android:id="@+id/headerLayout">
 

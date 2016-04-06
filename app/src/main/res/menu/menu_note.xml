@@ -2,8 +2,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_delete"
+        android:id="@+id/action_move_to_other_folder"
         android:orderInCategory="100"
-        android:title="Delete"
+        android:title="Move to other folder"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_delete"
+        android:orderInCategory="200"
+        android:title="Move to trash"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_share"
+        android:orderInCategory="400"
+        android:icon="@drawable/ic_share_white"
+        android:title="Share"
+        app:showAsAction="always" />
 </menu>

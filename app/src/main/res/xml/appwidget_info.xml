@@ -3,7 +3,7 @@
     android:minWidth="120dp"
     android:minHeight="60dp"
     android:updatePeriodMillis="0"
-    android:configure="com.apps.home.notewidget.WidgetConfigActivity"
+    android:configure="com.apps.home.notewidget.widget.WidgetConfigActivity"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen|keyguard"
     android:previewImage="@drawable/ic_menu_camera">

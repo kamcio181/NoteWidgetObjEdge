@@ -6,44 +6,62 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.apps.home.notewidget.customviews.RobotoEditText;
+import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.Utils;
+import com.apps.home.notewidget.widget.WidgetProvider;
 
 import java.lang.reflect.Field;
-import java.util.Calendar;
+
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener, View.OnClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener,
+        View.OnClickListener, NoteFragment.DatabaseUpdated, SearchFragment.OnItemClickListener{
     private static final String TAG = "MainActivity";
-    private SQLiteDatabase db;
-    private Cursor cursor;
-    private long creationTimeMillis;
-    private long noteId;
+
+    private long noteId = -1;
     private Toolbar toolbar;
     private FloatingActionButton fab;
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
-    private boolean sortByDate;
+    private NavigationView navigationView;
+    private String folder = "My Notes";
+    private int folderId = 1;
+    private SQLiteDatabase db;
+    private int myNotesNavId;
+    private int trashNavId;
+    private String textToFind;
+    private boolean exit = false;
+    private Handler handler = new Handler();
+    private Runnable exitRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,17 +71,22 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
-        sortByDate = preferences.getBoolean(Constants.SORT_BY_DATE_KEY, false);
+        preferences.edit().putBoolean(Constants.REMOVE_NOTE_FRAGMENT_KEY, false).apply();
+        Log.e(TAG, "ONCREATE remove false");
+        setResetExitFlagRunnable();
+
+        myNotesNavId = preferences.getInt(Constants.MY_NOTES_ID_KEY, 1);
+        Log.e(TAG, "my notes id " + myNotesNavId);
+        trashNavId = preferences.getInt(Constants.TRASH_ID_KEY, 2);
+        Log.e(TAG, "trash id " + trashNavId);
+        folderId = myNotesNavId;
+
+        if(Build.VERSION.SDK_INT >= 21)
+            findViewById(R.id.shadowImageView).setVisibility(View.GONE);
+
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
-        /*fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -71,38 +94,76 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        fragmentManager.beginTransaction().
-                add(R.id.container, new NoteListFragment(), Constants.FRAGMENT_LIST).commit();
 
-        new LoadDatabase().execute();
+        attachFragment(Constants.FRAGMENT_LIST);
+
+        new LoadNavViewItems().execute();
     }
 
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        Fragment fragment;
+        String attachedFragment = fragmentManager.findFragmentById(R.id.container).getTag();
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if ((fragment = fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)) != null) {
-            fragmentManager.beginTransaction().remove(fragment).commit();
-            new LoadDatabase().execute();
         } else {
-            super.onBackPressed();
+            switch (attachedFragment) {
+                case Constants.FRAGMENT_NOTE:
+                case Constants.FRAGMENT_TRASH_NOTE:
+                    if(textToFind.length()==0)
+                        attachFragment(Constants.FRAGMENT_LIST);
+                    else
+                        attachFragment(Constants.FRAGMENT_SEARCH);
+                    break;
+                case Constants.FRAGMENT_SEARCH:
+                    attachFragment(Constants.FRAGMENT_LIST);
+                    break;
+                case Constants.FRAGMENT_LIST:
+                    if(!exit){
+                        exit = true;
+                        handler.postDelayed(exitRunnable, 5000);
+                        Utils.showToast(this, "Press back button again to exit");
+                    } else {
+                        //Exit flag reset and canceling exit runnable in onStop method to handle home button presses
+                        super.onBackPressed();
+                    }
+                break;
+            }
         }
+    }
+
+    private void setResetExitFlagRunnable(){
+        exitRunnable = new Runnable() {
+            @Override
+            public void run() {
+                exit = false;
+            }
+        };
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         switch (fragmentManager.findFragmentById(R.id.container).getTag()){
+            case Constants.FRAGMENT_SEARCH:
+                getMenuInflater().inflate(R.menu.menu_empty, menu);
+                break;
             case Constants.FRAGMENT_LIST:
-                getMenuInflater().inflate(R.menu.menu_list, menu);
+                if(folderId == myNotesNavId)
+                    getMenuInflater().inflate(R.menu.menu_my_notes_list, menu);
+                else if (folderId == trashNavId)
+                    getMenuInflater().inflate(R.menu.menu_trash, menu);
+                else
+                    getMenuInflater().inflate(R.menu.menu_folder_list, menu);
                 break;
             case Constants.FRAGMENT_NOTE:
                 getMenuInflater().inflate(R.menu.menu_note, menu);
+                break;
+            case Constants.FRAGMENT_TRASH_NOTE:
+                getMenuInflater().inflate(R.menu.menu_note_trash, menu);
                 break;
         }
         return true;
@@ -114,6 +175,7 @@ public class MainActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        String confirmationTitle;
 
         //noinspection SimplifiableIfStatement
         switch (id){
@@ -125,8 +187,24 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.action_delete:
                 ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
-                onBackPressed();
+                if(textToFind.length()==0)
+                    attachFragment(Constants.FRAGMENT_LIST);
+                else
+                    attachFragment(Constants.FRAGMENT_SEARCH);
                 break;
+            case R.id.action_delete_all:
+            case R.id.action_restore_all:
+                confirmationTitle = id == R.id.action_delete_all ? "Do you want to delete all notes?" :
+                        "Do you want to restore all notes?";
+                Utils.getConfirmationDialog(this, confirmationTitle, getRestoreOrRemoveAllNotesFromTrashAction(id)).show();
+                break;
+            case R.id.action_delete_from_trash:
+            case R.id.action_restore_from_trash:
+                confirmationTitle = id == R.id.action_delete_from_trash ? "Do you want to delete this note from trash?" :
+                        "Do you want to restore this note from trash?";
+                Utils.getConfirmationDialog(this, confirmationTitle, getRestoreOrRemoveNoteFromTrashAction(id)).show();
+                break;
+
             case R.id.action_change_widget_theme:
                 if(preferences.getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0) == 0)
                     preferences.edit().putInt(Constants.CURRENT_WIDGET_THEME_KEY, 1).apply();
@@ -136,7 +214,27 @@ public class MainActivity extends AppCompatActivity
                     preferences.edit().putInt(Constants.CURRENT_WIDGET_THEME_KEY, 0).apply();
                 int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(),WidgetProvider.class));
                 WidgetProvider widgetProvider = new WidgetProvider();
-                widgetProvider.onUpdate(this,AppWidgetManager.getInstance(this),ids);
+                widgetProvider.onUpdate(this, AppWidgetManager.getInstance(this), ids);
+                break;
+            case R.id.action_add_nav_folder:
+                addFolderDialog().show();
+                break;
+            case R.id.action_delete_nav_folder:
+                Utils.getConfirmationDialog(this, "Do you want to delete this folder and all associated notes?",
+                        getRemoveFolderAndAllNotesAction()).show();
+                break;
+            case R.id.action_move_to_other_folder:
+                Utils.getFolderListDialog(this, navigationView.getMenu(), folderId, trashNavId, getMoveNoteToOtherFolderAction()).show();
+                break;
+            case R.id.action_search:
+                attachFragment(Constants.FRAGMENT_SEARCH);
+                break;
+            case R.id.action_share:
+                sendShareIntent();
+                //TODO share + export to txt
+                break;
+            case R.id.action_exp:
+                startActivity(new Intent(this, ExportActivity.class));
                 break;
         }
 
@@ -144,31 +242,41 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setOrderType(Boolean orderByDate){
-        sortByDate = orderByDate;
-        new LoadDatabase().execute();
-        preferences.edit().putBoolean(Constants.SORT_BY_DATE_KEY, orderByDate).apply();
+        ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).setSortByDate(orderByDate);
+    }
+
+    private void sendShareIntent(){
+        Log.e(TAG, "SHARE IS NOT NULL");
+        String textToShare = ((NoteFragment) fragmentManager.
+                findFragmentByTag(Constants.FRAGMENT_NOTE)).getNoteText();
+        if(textToShare.length()!=0) {
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_TEXT, textToShare);
+            startActivity(Intent.createChooser(intent, "Share via")); // TODO own export to file activity
+        }
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
+
         int id = item.getItemId();
+        Log.e(TAG, "nav clicked " + id + " " + item.getTitle().toString());
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if(id == R.id.nav_settings){
+            //TODO open settings activity
+            Log.e(TAG, "NAV clicked - Settings");
+        } else if (id == R.id.nav_about) {
+            //TODO open about activity
+            Log.e(TAG, "NAV clicked - About Activity");
+        } else {
+            Log.e(TAG, "NAV clicked - Other");
+            openFolderWithNotes(id);
         }
-
+        
+        Log.e(TAG, "FOLDER after click = "+folder);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -177,57 +285,89 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-
+        if(preferences.getBoolean(Constants.REMOVE_NOTE_FRAGMENT_KEY, false)){
+            preferences.edit().putBoolean(Constants.REMOVE_NOTE_FRAGMENT_KEY, false).apply();
+            Log.e(TAG, "ONSTART remove false");
+            if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).reloadNote();
+            attachFragment(Constants.FRAGMENT_LIST);
+        }
     }
+
+	@Override
+	protected void onRestart() {
+        Log.e(TAG, "onRestart " + preferences.getBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false));
+		super.onRestart();
+        //Leave main activity
+		if(preferences.getBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false)){
+            preferences.edit().putBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false).apply();
+
+            preferences.edit().putBoolean(Constants.REMOVE_NOTE_FRAGMENT_KEY, true).apply();
+            Log.e(TAG, "ONRESTART remove true");
+            //Do not save changes in note
+            if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null) {
+                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).reloadNote();
+            }
+            moveTaskToBack(true);
+        }
+	}
 
     @Override
     protected void onStop() {
         super.onStop();
+        exit = false;
+        handler.removeCallbacks(exitRunnable);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        cursor.close();
-        db.close();
+        preferences.edit().putBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false).apply();
+        Utils.closeDb();
     }
 
-    public void putInNoteTable(String note){
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(Constants.NOTE_TEXT_COL, note);
-        contentValues.put(Constants.NOTE_TITLE_COL, getSupportActionBar().getTitle().toString());
-        Log.e(TAG, "noteId " + noteId);
-
-        if(noteId<0) {
-            contentValues.put(Constants.MILLIS_COL, creationTimeMillis);
-            noteId = db.insert(Constants.NOTES_TABLE, null, contentValues);
-            Log.e(TAG, "insert " + contentValues.toString());
-        }else{
-            db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
-                    new String[]{Long.toString(noteId)});
-            updateConnectedWidgets();
-            Log.e(TAG, "update " + contentValues.toString());
-        }
-        Utils.showToast(this, "Saved");
+    private void openFolderWithNotes(int id){
+        folder = navigationView.getMenu().findItem(id).getTitle().toString();
+        folderId = id;
+        attachFragment(Constants.FRAGMENT_LIST);
+        setTitle(folder);
+        navigationView.setCheckedItem(folderId);
     }
 
-    public void removeFromNoteTable(){
-        db.delete(Constants.NOTES_TABLE, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-        updateConnectedWidgets();
-        Utils.showToast(this, "Note removed");
+    private DialogInterface.OnClickListener getRestoreOrRemoveAllNotesFromTrashAction(final int action){
+        return new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                new RestoreOrRemoveAllNotesFromTrash().execute(action);
+            }
+        };
     }
 
-    private void updateConnectedWidgets(){
-        WidgetProvider widgetProvider = new WidgetProvider();
-        Cursor widgetCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.WIDGET_ID_COL},
-                Constants.CONNECTED_NOTE_ID_COL + " = ?", new String[]{Long.toString(noteId)}, null,null, null);
-        widgetCursor.moveToFirst();
-        int[] widgetIds = new int[widgetCursor.getCount()];
-        for (int i=0; i<widgetCursor.getCount(); i++){
-            widgetIds[i] = widgetCursor.getInt(0);
-            widgetCursor.moveToNext();
-        }
-        widgetProvider.onUpdate(this, AppWidgetManager.getInstance(this), widgetIds);
+    private DialogInterface.OnClickListener getRestoreOrRemoveNoteFromTrashAction(final int action){
+        return new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ((TrashNoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE)).removeOrRestoreFromTrash(action);
+            }
+        };
+    }
+
+    private DialogInterface.OnClickListener getRemoveFolderAndAllNotesAction(){
+        return new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                new RemoveFolderAndAllNotes().execute();
+            }
+        };
+    }
+
+    private DialogInterface.OnClickListener getMoveNoteToOtherFolderAction(){
+        return new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                new MoveNoteToOtherFolder().execute(Utils.getFolderId(which));
+            }
+        };
     }
 
     public void setOnTitleClickListener(boolean enable){
@@ -250,20 +390,23 @@ public class MainActivity extends AppCompatActivity
         } catch (NoSuchFieldException e){
             Log.e(TAG, "" + e);
         } catch (IllegalAccessException e) {
-            Log.e(TAG, "" + e);
+            Log.e(TAG, " " + e);
         }
     }
 
     private Dialog setNoteTitleDialog(){
-        final RobotoEditText titleEditText = new RobotoEditText(this);
-        titleEditText.setSingleLine(true);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null, false);
+        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
         titleEditText.setText(getSupportActionBar().getTitle().toString());
-        titleEditText.setSelection(titleEditText.length());
-        return new AlertDialog.Builder(this).setTitle("Set title").setView(titleEditText)
+        titleEditText.setSelection(0, titleEditText.length());
+
+        AlertDialog dialog = builder.setTitle("Set title").setView(layout)
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        getSupportActionBar().setTitle(titleEditText.getText().toString());//TODO cap first letter to fix sorting
+                        setNoteTitle(titleEditText.getText().toString());
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -272,27 +415,101 @@ public class MainActivity extends AppCompatActivity
                         Utils.showToast(MainActivity.this, "Canceled");
                     }
                 }).create();
+		dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+		return dialog;
     }
 
-    @Override
-    public void onItemClicked(int position) {
+    private Dialog addFolderDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
+        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
+        titleEditText.setText("New folder");
+        titleEditText.setSelection(0, titleEditText.length());
 
-        cursor.moveToPosition(position);
-        fragmentManager.beginTransaction().
-                replace(R.id.container, NoteFragment.newInstance(false), Constants.FRAGMENT_NOTE).commit();
-        getSupportActionBar().setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
-        getSupportActionBar().setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
-        noteId = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL));
+        AlertDialog dialog = builder.setTitle("Add folder").setView(layout)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        addFolderToDb(titleEditText.getText().toString());
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Utils.showToast(MainActivity.this, "Canceled");
+                    }
+                }).create();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        return dialog;
     }
 
-    public Cursor getCursor() {
-        return cursor;
+    private void addFolderToNavView(int id, String name, int icon){
+
+        Menu menu = navigationView.getMenu();
+        addMenuItem(menu, id, 11, name, icon);
+
+        openFolderWithNotes(id);
     }
 
-    public FloatingActionButton getFab() {
-        return fab;
+    private void addFolderToNavView(Cursor cursor){
+        Menu menu = navigationView.getMenu();
+
+        if(menu.size()!=0)
+            Utils.removeAllMenuItems(menu);
+
+        navigationView.inflateMenu(R.menu.activity_main_drawer);
+
+        for (int i =0; i<cursor.getCount(); i++){
+            Log.e(TAG, " " + cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL))
+                    + ",  " + cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
+
+            int id = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL));
+            int order = 11;
+            if(id == myNotesNavId)
+                order = 10;
+            else if (id == trashNavId)
+                order = 10000;
+
+            addMenuItem(menu, id, order,
+                    cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)),
+                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
+            cursor.moveToNext();
+        }
+
+        navigationView.setCheckedItem(folderId);
+    }
+
+    private void addMenuItem(Menu m, int id, int order, String name, int icon){
+        MenuItem newItem = m.add(R.id.nav_group_notes, id, order, name);
+        newItem.setIcon(icon);
+        newItem.setCheckable(true);
+    }
+
+    private void removeMenuItem(Menu m, int id){
+        m.removeItem(id);
+    }
+
+    private void addFolderToDb(String name){
+        new PutFolderInTable().execute(name);
+    }
+	
+	private void setNoteTitle(String title){
+		title = setTitle(title);
+
+        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null) // Note fragment is displayed
+            ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).titleChanged(title);
+	}
+
+    private String setTitle(String title){
+        if(title.equals(""))
+            title = "Untitled";
+        else
+            title = Utils.capitalizeFirstLetter(title);
+        getSupportActionBar().setTitle(title);
+        Log.e(TAG, "setToolbarTitle "+title);
+
+        return title;
     }
 
     @Override
@@ -301,13 +518,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.fab:
                 switch (fragmentManager.findFragmentById(R.id.container).getTag()){
                     case Constants.FRAGMENT_LIST:
-                        fragmentManager.beginTransaction().
-                                replace(R.id.container, NoteFragment.newInstance(true), Constants.FRAGMENT_NOTE).commit();
-                        getSupportActionBar().setTitle("Untitled");
-                        Calendar calendar = Calendar.getInstance();
-                        creationTimeMillis = calendar.getTimeInMillis();
-                        Log.e(TAG, "millis "+ creationTimeMillis);
-                        getSupportActionBar().setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+                        attachFragment(Constants.FRAGMENT_NOTE, true, true);
                         noteId = -1;
                         break;
                     case Constants.FRAGMENT_NOTE:
@@ -318,47 +529,276 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private class LoadDatabase extends AsyncTask<Void, Integer, Boolean> {
+    private void attachFragment (String fragment){
+        attachFragment(fragment, false, false);
+    }
+
+    private void attachFragment (String fragment, boolean isNew){
+        attachFragment(fragment, isNew, false);
+    }
+
+    private void attachFragment (String fragment, boolean isNew, boolean moveToEnd){
+        Fragment fragmentToAttach = null;
+        switch (fragment){
+            case Constants.FRAGMENT_LIST:
+                textToFind = "";
+                noteId = -1;
+                setOnTitleClickListener(true);
+                fragmentToAttach = NoteListFragment.newInstance(folderId, folder);
+
+                Log.e(TAG, "FOLDER = "+folder);
+                if(folderId != 2) { //Folder list
+                    fab.setVisibility(View.VISIBLE);
+                    fab.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_add_white));
+                } else { //Trash list
+                    fab.setVisibility(View.GONE);
+                }
+                break;
+            case Constants.FRAGMENT_NOTE:
+                Log.e(TAG, "NOTE FRAGMENT");
+                setOnTitleClickListener(true);
+                fragmentToAttach = NoteFragment.newInstance(isNew, noteId, moveToEnd, folderId);
+                fab.setVisibility(View.VISIBLE);
+                fab.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_create_white));
+                break;
+            case Constants.FRAGMENT_TRASH_NOTE:
+                setOnTitleClickListener(false);
+                fragmentToAttach = TrashNoteFragment.newInstance(noteId);
+                fab.setVisibility(View.INVISIBLE);
+                break;
+            case Constants.FRAGMENT_SEARCH:
+                setOnTitleClickListener(false);
+                fragmentToAttach = SearchFragment.newInstance(textToFind);
+                getSupportActionBar().setTitle("Search");
+                fab.setVisibility(View.INVISIBLE);
+                break;
+        }
+        fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).commit();
+    }
+
+    //Interface from NoteListFragment
+    @Override
+    public void onItemClicked(int noteId) {
+        this.noteId = noteId;
+        if(folderId != trashNavId)
+            attachFragment(Constants.FRAGMENT_NOTE, false);
+        else
+            attachFragment(Constants.FRAGMENT_TRASH_NOTE);
+    }
+
+    @Override
+    public void onItemClicked(int noteId, boolean deleted, String textToFind) {
+        this.textToFind = textToFind;
+        this.noteId = noteId;
+        if(deleted)
+            attachFragment(Constants.FRAGMENT_TRASH_NOTE, false);
+        else
+            attachFragment(Constants.FRAGMENT_NOTE);
+    }
+
+    //Interface from NoteFragment
+    @Override
+    public void databaseUpdated() {
+        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
+            ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+    }
+
+
+    private class LoadNavViewItems extends AsyncTask<Void, Integer, Boolean>
+    {
+        Cursor cursor;
+
         @Override
         protected Boolean doInBackground(Void... params) {
-            try {
-                if(db == null){
-                    Log.e(TAG, "Database is not exist");
-                    SQLiteOpenHelper helper = new DatabaseHelper(MainActivity.this);
-                    db = helper.getWritableDatabase();
-                }
-                String orderColumn = sortByDate? Constants.MILLIS_COL : Constants.NOTE_TITLE_COL;
-                Log.e(TAG, orderColumn);
-                cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL, Constants.MILLIS_COL,
-                                Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
-                        null, null, null, null, "LOWER(" + orderColumn + ") ASC");
+            if((db = Utils.getDb(MainActivity.this)) != null) {
 
-                return true;
+                String query ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
+                        + ", f." + Constants.FOLDER_ICON_COL
+                        + ", COUNT(n." + Constants.ID_COL + ") AS " + Constants.NOTES_COUNT_COL
+                        + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
+                        + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
+                        + Constants.FOLDER_ID_COL + " GROUP BY f." + Constants.ID_COL;
 
-            } catch(SQLiteException e) {
+                cursor = db.rawQuery(query, null);
+                return (cursor.getCount()>0);
+            } else
                 return false;
 
-            }
         }
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
             if(aBoolean){
-                Log.e(TAG, "database Loaded");
                 cursor.moveToFirst();
+                Log.e(TAG, " count " + cursor.getCount());
+                addFolderToNavView(cursor);
+            }
+        }
+    }
 
-                fragmentManager.beginTransaction()
-                        .replace(R.id.container, new NoteListFragment(), Constants.FRAGMENT_LIST).commit();
-            }
-            else {
-                Toast.makeText(MainActivity.this, "Database unavailable", Toast.LENGTH_SHORT).show();
-            }
+    private class PutFolderInTable extends AsyncTask<String, Void, Boolean>
+    {   private ContentValues contentValues;
+        private int id;
+        private String name;
+
+        @Override
+        protected void onPreExecute()
+        {
+            contentValues = new ContentValues();
+            contentValues.put(Constants.FOLDER_ICON_COL, R.drawable.ic_nav_black_folder);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... p1)
+        {
+            if((db = Utils.getDb(MainActivity.this)) != null) {
+                name = p1[0];
+                if(name.equals(""))
+                    name = "New folder";
+                else
+                    name = Utils.capitalizeFirstLetter(name);
+                contentValues.put(Constants.FOLDER_NAME_COL, name);
+                id = (int) db.insert(Constants.FOLDER_TABLE, null, contentValues);
+                return true;
+
+            } else
+                return false;
 
         }
 
         @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
+        protected void onPostExecute(Boolean result)
+        {
+            if(result){
+                addFolderToNavView(id, name, R.drawable.ic_nav_black_folder);
+                Utils.showToast(MainActivity.this, "Folder was added");
+            }
+            super.onPostExecute(result);
+        }
+    }
+
+    private class RestoreOrRemoveAllNotesFromTrash extends AsyncTask<Integer,Void,Boolean>
+    {
+        int action;
+        @Override
+        protected Boolean doInBackground(Integer[] p1)
+        {
+            SQLiteDatabase db;
+            action = p1[0];
+
+            if((db = Utils.getDb(MainActivity.this)) != null) {
+                if(action == R.id.action_delete_all){ //remove all
+                    db.delete(Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(1)});
+                    Log.e(TAG, "delete all");
+                    return true;
+                } else { //restore all
+                    Log.e(TAG, "restore all");
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(Constants.DELETED_COL, 0);
+                    db.update(Constants.NOTES_TABLE, contentValues, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(1)});
+                    return true;
+                }
+            } else
+                return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result)
+        {
+            super.onPostExecute(result);
+            if(result){
+                if(action == R.id.action_delete_all) {
+                    Utils.showToast(MainActivity.this, "All notes were removed");
+                    Utils.updateAllWidgets(MainActivity.this);
+                } else {
+                    Utils.showToast(MainActivity.this, "All notes were restored");
+                }
+                ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+            }
+        }
+    }
+
+    private class RemoveFolderAndAllNotes extends AsyncTask<Void,Void,Boolean>
+    {
+        @Override
+        protected Boolean doInBackground(Void... voids)
+        {
+            SQLiteDatabase db;
+
+            if((db = Utils.getDb(MainActivity.this)) != null) {
+
+                //Delete folder
+                Log.e(TAG, "deleted folders " + db.delete(Constants.FOLDER_TABLE, Constants.ID_COL + " = ?", new String[]{Integer.toString(folderId)}));
+                //Delete all associated notes which are not in trash
+                Log.e(TAG, "deleted  notes " + db.delete(Constants.NOTES_TABLE, Constants.FOLDER_ID_COL + " = ? AND " +
+                        Constants.DELETED_COL + " = ?", new String[]{Integer.toString(folderId), Integer.toString(0)}));
+                //Change associated folder to My Notes for all notes associated with deleted folder
+                //which are currently in trash and can be restored
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(Constants.FOLDER_ID_COL, myNotesNavId);
+                Log.e(TAG, "updated trash notes " + db.update(Constants.NOTES_TABLE, contentValues, Constants.FOLDER_ID_COL + " = ? AND " +
+                        Constants.DELETED_COL + " = ?", new String[]{Integer.toString(folderId), Integer.toString(1)}));
+                return true;
+
+            } else
+                return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result)
+        {
+            super.onPostExecute(result);
+            if(result){
+                Utils.showToast(MainActivity.this, "Folder and all associated notes were removed");
+                Utils.updateAllWidgets(MainActivity.this);
+                removeMenuItem(navigationView.getMenu(), folderId);
+                openFolderWithNotes(myNotesNavId);
+            }
+        }
+    }
+
+    private class MoveNoteToOtherFolder extends AsyncTask<Integer,Void,Boolean>
+    {
+        private int newFolderId;
+        @Override
+        protected Boolean doInBackground(Integer... integers)
+        {
+            SQLiteDatabase db;
+            newFolderId = integers[0];
+
+            if((db = Utils.getDb(MainActivity.this)) != null) {
+
+                //Update folder id for current note
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(Constants.FOLDER_ID_COL, newFolderId);
+                db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
+                        new String[]{Long.toString(noteId)});
+                return true;
+
+            } else
+                return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result)
+        {
+            super.onPostExecute(result);
+            if(result){
+                Utils.showToast(MainActivity.this, "Note has been moved");
+
+                //Change folder id for note which is currently visible
+                Fragment fragment = fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE);
+                if(fragment != null)
+                    ((NoteFragment)fragment).setFolderId(newFolderId);
+
+                //Update current folderId for folder fragment displayed onBackPressed
+                folderId = newFolderId;
+                folder = navigationView.getMenu().findItem(folderId).getTitle().toString();
+
+                //Load NavView items again to refresh count number
+                new LoadNavViewItems().execute();
+            }
         }
     }
 }
