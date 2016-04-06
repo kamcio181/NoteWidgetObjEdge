@@ -231,10 +231,6 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.action_share:
                 sendShareIntent();
-                //TODO share + export to txt
-                break;
-            case R.id.action_exp:
-                startActivity(new Intent(this, ExportActivity.class));
                 break;
         }
 
@@ -253,8 +249,9 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");
             intent.putExtra(Intent.EXTRA_TEXT, textToShare);
-            startActivity(Intent.createChooser(intent, "Share via")); // TODO own export to file activity
-        }
+            startActivity(Intent.createChooser(intent, "Share via"));
+        } else
+            Utils.showToast(this, "Note is empty");
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -397,7 +394,7 @@ public class MainActivity extends AppCompatActivity
     private Dialog setNoteTitleDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null, false);
+        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
         final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
         titleEditText.setText(getSupportActionBar().getTitle().toString());
         titleEditText.setSelection(0, titleEditText.length());

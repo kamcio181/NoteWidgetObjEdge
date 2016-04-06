@@ -29,9 +29,4 @@
         android:icon="@drawable/ic_search_white"
         android:title="Search"
         app:showAsAction="always" />
-    <item
-        android:id="@+id/action_exp"
-        android:orderInCategory="500"
-        android:title="Exp"
-        app:showAsAction="never" />
 </menu>
