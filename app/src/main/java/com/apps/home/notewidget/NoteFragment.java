@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.Html;
@@ -16,7 +17,6 @@ import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -118,15 +118,21 @@ public class NoteFragment extends Fragment {
         if(!isNewNote)
             new LoadNote().execute();
         else {
-            ((AppCompatActivity) context).getSupportActionBar().setTitle("Untitled");
-            Calendar calendar = Calendar.getInstance();
-            creationTimeMillis = calendar.getTimeInMillis();
-            Log.e(TAG, "millis " + creationTimeMillis);
-            ((AppCompatActivity) context).getSupportActionBar().setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+            setTitleAndSubtitle("Untitled", 0);
             showSoftKeyboard(0);
         }
+    }
 
+    private void setTitleAndSubtitle(String title, long millis){
+        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
+        if(actionBar !=null){
+            actionBar.setTitle(title);
+            Calendar calendar = Calendar.getInstance();
 
+            creationTimeMillis = millis == 0? calendar.getTimeInMillis() : millis;
+            Log.e(TAG, "millis " + creationTimeMillis);
+            actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+        }
     }
 
     private void setTextWatcher(){
@@ -266,12 +272,8 @@ public class NoteFragment extends Fragment {
 
                 noteEditText.setText(Html.fromHtml(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL))));
                 title = cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL));
-                ((AppCompatActivity)context).getSupportActionBar().setTitle(title);
 
-                Calendar calendar = Calendar.getInstance();
-                creationTimeMillis = cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL));
-                calendar.setTimeInMillis(creationTimeMillis);
-                ((AppCompatActivity)context).getSupportActionBar().setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+                setTitleAndSubtitle(title, cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
 
                 if(moveToEnd) {
                     int index = noteEditText.getText().length() < 0 ? 0 : noteEditText.getText().length();
