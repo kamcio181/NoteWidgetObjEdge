@@ -44,8 +44,9 @@
         <activity
             android:name=".widget.WidgetConfigActivity"
             android:excludeFromRecents="true"
-            android:label="Choose note"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
+            android:label="@string/title_activity_widget_config">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
@@ -53,11 +54,16 @@
         <activity
             android:name=".widget.WidgetEditNoteActivity"
             android:label="@string/title_activity_widget_edit_note"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ExportActivity"
             android:label="@string/title_activity_export"
             android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>

@@ -29,8 +29,6 @@ public interface Constants {
     String CONFIGURED_KEY = "configured";
     String SORT_BY_DATE_KEY = "sortByDate";
     String CURRENT_WIDGET_THEME_KEY = "currentWidgetTheme";
-	String LEAVE_MAIN_ACTIVITY_KEY = "leaveActivity";
-    String REMOVE_NOTE_FRAGMENT_KEY = "removeNoteFragment";
     String MY_NOTES_ID_KEY = "myNotesId";
     String TRASH_ID_KEY = "trashId";
     String TITLE_KEY = "title";

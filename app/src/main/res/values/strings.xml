@@ -11,4 +11,5 @@
     <string name="title_activity_widget_edit_note">WidgetEditNoteActivity</string>
     <string name="title_activity_export">ExportActivity</string>
     <string name="new_file">New file</string>
+    <string name="title_activity_widget_config">Choose note</string>
 </resources>

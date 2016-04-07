@@ -20,11 +20,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -71,7 +69,6 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
-        preferences.edit().putBoolean(Constants.REMOVE_NOTE_FRAGMENT_KEY, false).apply();
         Log.e(TAG, "ONCREATE remove false");
         setResetExitFlagRunnable();
 
@@ -281,36 +278,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        if(preferences.getBoolean(Constants.REMOVE_NOTE_FRAGMENT_KEY, false)){
-            preferences.edit().putBoolean(Constants.REMOVE_NOTE_FRAGMENT_KEY, false).apply();
-            Log.e(TAG, "ONSTART remove false");
-            if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).reloadNote();
-            attachFragment(Constants.FRAGMENT_LIST);
-        }
-    }
-
-	@Override
-	protected void onRestart() {
-        Log.e(TAG, "onRestart " + preferences.getBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false));
-		super.onRestart();
-        //Leave main activity
-		if(preferences.getBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false)){
-            preferences.edit().putBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false).apply();
-
-            preferences.edit().putBoolean(Constants.REMOVE_NOTE_FRAGMENT_KEY, true).apply();
-            Log.e(TAG, "ONRESTART remove true");
-            //Do not save changes in note
-            if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null) {
-                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).reloadNote();
-            }
-            moveTaskToBack(true);
-        }
-	}
-
-    @Override
     protected void onStop() {
         super.onStop();
         exit = false;
@@ -320,7 +287,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        preferences.edit().putBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false).apply();
         Utils.closeDb();
     }
 

@@ -3,7 +3,6 @@ package com.apps.home.notewidget.widget;
 import android.appwidget.AppWidgetManager;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -15,8 +14,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
-import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
 
 public class WidgetConfigActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
@@ -27,14 +26,12 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
     private SQLiteDatabase db;
     private Cursor cursor;
     private int noteId;
-    private SharedPreferences preferences;
 
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_widget_config);
         setResult(RESULT_CANCELED);
-        preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
 
         notesListView = (ListView) findViewById(R.id.notesListView);
         new LoadNotes().execute();
@@ -96,8 +93,6 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
 
     @Override
     public void onBackPressed() {
-        preferences.edit().
-                putBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, true).apply();
         finish();
     }
 
@@ -131,9 +126,10 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        cursor.close();
-        Utils.getDb(this);
+    protected void onStop() {
+        super.onStop();
+        if(cursor!=null && !cursor.isClosed())
+            cursor.close();
+        Utils.closeDb();
     }
 }
