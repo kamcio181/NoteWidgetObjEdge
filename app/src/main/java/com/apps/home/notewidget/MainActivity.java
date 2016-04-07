@@ -33,6 +33,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
+import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
 import com.apps.home.notewidget.widget.WidgetProvider;
@@ -262,6 +263,7 @@ public class MainActivity extends AppCompatActivity
         if(id == R.id.nav_settings){
             //TODO open settings activity
             Log.e(TAG, "NAV clicked - Settings");
+            startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_about) {
             //TODO open about activity
             Log.e(TAG, "NAV clicked - About Activity");

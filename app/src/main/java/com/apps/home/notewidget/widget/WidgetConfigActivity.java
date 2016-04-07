@@ -114,7 +114,7 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
             if(aBoolean){
                 cursor.moveToFirst();
                 notesListView.setAdapter(new SimpleCursorAdapter(WidgetConfigActivity.this,
-                        android.R.layout.simple_expandable_list_item_1, cursor,
+                        android.R.layout.simple_list_item_1, cursor,
                         new String[]{Constants.NOTE_TITLE_COL}, new int[]{android.R.id.text1}, 0));
                 notesListView.setOnItemClickListener(WidgetConfigActivity.this);
             }

@@ -15,4 +15,11 @@
     <string name="saving_changes">Saving changes</string>
     <string name="note_moved_to_trash">Note moved to trash</string>
     <string name="closed_without_saving">Closed without saving</string>
+
+
+    <string-array name="settings_items">
+        <item>Widget configuration</item>
+        <item>Note text size</item>
+        <item>Backup and restore</item>
+    </string-array>
 </resources>
