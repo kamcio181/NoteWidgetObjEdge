@@ -77,8 +77,6 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
             cursor.close();
             db.update(Constants.WIDGETS_TABLE, contentValues, Constants.WIDGET_ID_COL + " = ?",
                     new String[]{Integer.toString(widgetID)});
-            getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().
-                    putBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, true).apply();
             Log.e("config", "item updated " + contentValues.toString());
         } else {
             contentValues.put(Constants.WIDGET_ID_COL, widgetID);

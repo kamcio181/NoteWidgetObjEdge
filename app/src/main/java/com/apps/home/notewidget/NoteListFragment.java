@@ -66,7 +66,6 @@ public class NoteListFragment extends Fragment {
         ((AppCompatActivity)context).invalidateOptionsMenu();
 
         preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-        preferences.edit().putBoolean(Constants.LEAVE_MAIN_ACTIVITY_KEY, false).apply();
         sortByDate = preferences.getBoolean(Constants.SORT_BY_DATE_KEY, false);
 
         return inflater.inflate(R.layout.fragment_note_list, container, false);
