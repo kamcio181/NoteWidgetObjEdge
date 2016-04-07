@@ -42,7 +42,7 @@ import java.lang.reflect.Field;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener,
-        View.OnClickListener, NoteFragment.DatabaseUpdated, SearchFragment.OnItemClickListener{
+        View.OnClickListener, SearchFragment.OnItemClickListener{
     private static final String TAG = "MainActivity";
 
     private long noteId = -1;
@@ -77,10 +77,9 @@ public class MainActivity extends AppCompatActivity
         trashNavId = preferences.getInt(Constants.TRASH_ID_KEY, 2);
         Log.e(TAG, "trash id " + trashNavId);
         folderId = myNotesNavId;
+        preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();//reset flag
 
-        if(Build.VERSION.SDK_INT >= 21)
-            findViewById(R.id.shadowImageView).setVisibility(View.GONE);
-
+        Utils.hideShadowSinceLollipop(this);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
@@ -560,13 +559,19 @@ public class MainActivity extends AppCompatActivity
             attachFragment(Constants.FRAGMENT_NOTE);
     }
 
-    //Interface from NoteFragment
     @Override
-    public void databaseUpdated() {
-        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
-            ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+    protected void onRestart() {
+        super.onRestart();
+        if(preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
+            if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).reloadNote();
+            else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
+                ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+            else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE) != null)
+                ((TrashNoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE)).reloadNote();
+            preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();
+        }
     }
-
 
     private class LoadNavViewItems extends AsyncTask<Void, Integer, Boolean>
     {

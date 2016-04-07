@@ -71,7 +71,10 @@ public class TrashNoteFragment extends Fragment {
         noteTextView = (RobotoTextView) view.findViewById(R.id.noteEditText);
 
         new LoadNote().execute();
+    }
 
+    public void reloadNote(){
+        new LoadNote().execute();
     }
 
     private void updateConnectedWidgets(){

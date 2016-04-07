@@ -45,10 +45,13 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
+        setContentView(R.layout.activity_export);
+
+        Utils.hideShadowSinceLollipop(this);
+
         note = getIntent().getStringExtra(Intent.EXTRA_TEXT);
         title = getIntent().getStringExtra(Constants.TITLE_KEY);
 
-        setContentView(R.layout.activity_export);
         setupToolbarAndFab();
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
@@ -65,7 +68,8 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(this);
+        if(fab!=null)
+            fab.setOnClickListener(this);
     }
 
     @Override
@@ -138,8 +142,6 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            /*if(path.equals(""))
-                path="/";*/
             path = path+"/";
             setTitle(path);
         }
@@ -151,15 +153,14 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
             dirs = new ArrayList<>();
             files = new ArrayList<>();
             if(items != null) {
-                //Log.e(TAG, "item " + items[0]);
                 for (String i : items) {
                     if (new File(path+i).isDirectory())
                         dirs.add(i);
                     else if (i.endsWith(".txt"))
                         files.add(i.substring(0, i.lastIndexOf(".")));
                 }
-                Collections.sort(dirs);
-                Collections.sort(files);
+                Collections.sort(dirs, String.CASE_INSENSITIVE_ORDER);
+                Collections.sort(files, String.CASE_INSENSITIVE_ORDER);
                 return true;
             }
             return false;

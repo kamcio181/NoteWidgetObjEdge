@@ -240,7 +240,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
             } else {
                 recyclerView.setAdapter(null);
                 if (skipSearch)
-                    Utils.showToast(context, "Choose search mode"); //TODO searched text should be bold - send text to adapter and bold proper fragment, show <number> characters before and after
+                    Utils.showToast(context, "Choose search mode");
             }
         }
     }
@@ -326,15 +326,21 @@ class SearchCursorRecyclerAdapter extends CursorRecyclerAdapter<SearchCursorRecy
     private String trimmedText(String text){
         int beginIndex = text.toLowerCase().indexOf(textToFind);
         int endIndex = beginIndex + textToFind.length();
-        int midIndex = beginIndex+ textToFind.length()/2;
         int offset = 0;
         String prefix = "";
-        String suffix = "";
 
-        if(midIndex > 12 && text.length() > 24){
+        if(beginIndex>13) {
+            prefix = "...";
+            offset = beginIndex-10;
+        }
+        return prefix + text.substring(offset, beginIndex) + "<b><u>" + text.substring(beginIndex, endIndex)
+                + "</b></u>" + text.substring(endIndex);
+
+/*
+        if(midIndex > 15 && text.length() > 24){
             offset = midIndex - 12;
             prefix = "...";
-            if(text.length() - midIndex > 12)
+            if(text.length() - midIndex > 15)
                 suffix = "...";
             else{
                 Log.e("ada ", text+" off "+offset);
@@ -348,6 +354,6 @@ class SearchCursorRecyclerAdapter extends CursorRecyclerAdapter<SearchCursorRecy
         }
 
         return prefix + text.substring(offset, beginIndex) + "<b><u>" + text.substring(beginIndex, endIndex)
-                + "</b></u>" + text.substring(endIndex) + suffix;
+                + "</b></u>" + text.substring(endIndex) + suffix;*/
     }
 }

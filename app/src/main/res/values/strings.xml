@@ -12,4 +12,7 @@
     <string name="title_activity_export">ExportActivity</string>
     <string name="new_file">New file</string>
     <string name="title_activity_widget_config">Choose note</string>
+    <string name="saving_changes">Saving changes</string>
+    <string name="note_moved_to_trash">Note moved to trash</string>
+    <string name="closed_without_saving">Closed without saving</string>
 </resources>

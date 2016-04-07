@@ -1,22 +1,33 @@
 package com.apps.home.notewidget.widget;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.apps.home.notewidget.NoteFragment;
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
 
-public class WidgetEditNoteActivity extends AppCompatActivity implements View.OnClickListener,
-    NoteFragment.DatabaseUpdated{ //TODO if title was edited widget does not update it
-    //private static final String TAG = "WidgetEditNoteActivity";
+import java.lang.reflect.Field;
+
+public class WidgetEditNoteActivity extends AppCompatActivity implements View.OnClickListener{
+    private static final String TAG = "WidgetEditNoteActivity";
+    private Context context;
     private long noteId = -1;
     private FloatingActionButton fab;
     private FragmentManager fragmentManager;
@@ -26,10 +37,14 @@ public class WidgetEditNoteActivity extends AppCompatActivity implements View.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_widget_edit_note);
+        context = this;
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         fragmentManager = getSupportFragmentManager();
 
+        setOnTitleClickListener();
+
+        Utils.hideShadowSinceLollipop(this);
 
         if(getIntent().getExtras()!=null){
             noteId = getIntent().getLongExtra(Constants.ID_COL, -1);
@@ -45,6 +60,67 @@ public class WidgetEditNoteActivity extends AppCompatActivity implements View.On
         }
     }
 
+    public void setOnTitleClickListener(){
+        try {
+            Field titleField = Toolbar.class.getDeclaredField("mTitleTextView");
+            titleField.setAccessible(true);
+            TextView barTitleView = (TextView) titleField.get(toolbar);
+            barTitleView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setNoteTitleDialog().show();
+
+                }
+            });
+        } catch (NoSuchFieldException e){
+            Log.e(TAG, "" + e);
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, " " + e);
+        }
+    }
+
+    private Dialog setNoteTitleDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
+        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
+        titleEditText.setText(getSupportActionBar().getTitle().toString());
+        titleEditText.setSelection(0, titleEditText.length());
+
+        AlertDialog dialog = builder.setTitle("Set title").setView(layout)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setNoteTitle(titleEditText.getText().toString());
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Utils.showToast(context, "Canceled");
+                    }
+                }).create();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        return dialog;
+    }
+
+    private void setNoteTitle(String title){
+        title = setTitle(title);
+
+        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null) // Note fragment is displayed
+            ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).titleChanged(title);
+    }
+
+    private String setTitle(String title){
+        if(title.equals(""))
+            title = "Untitled";
+        else
+            title = Utils.capitalizeFirstLetter(title);
+        getSupportActionBar().setTitle(title);
+
+        return title;
+    }
+
     @Override
     public void onBackPressed() {
         finish();
@@ -54,6 +130,7 @@ public class WidgetEditNoteActivity extends AppCompatActivity implements View.On
     protected void onStop() {
         super.onStop();
         Utils.closeDb();
+        getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, true).apply();
     }
 
     @Override
@@ -89,9 +166,5 @@ public class WidgetEditNoteActivity extends AppCompatActivity implements View.On
                 finish();
                 break;
         }
-    }
-
-    @Override
-    public void databaseUpdated() {
     }
 }

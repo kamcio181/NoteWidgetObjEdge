@@ -34,6 +34,7 @@ public interface Constants {
     String TITLE_KEY = "title";
     String SEARCH_IN_TITLE = "titleSearch";
     String SEARCH_IN_CONTENT = "contentSearch";
+    String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";
 
 
     String FRAGMENT_LIST = "ListFragment";

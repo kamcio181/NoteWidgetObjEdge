@@ -1,5 +1,6 @@
 package com.apps.home.notewidget.utils;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
@@ -11,8 +12,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -136,6 +139,12 @@ public class Utils {
         else
             return text.substring(0, 1).toUpperCase() + text.substring(1);
 
+    }
+
+    public static void hideShadowSinceLollipop(Context context){
+        if(Build.VERSION.SDK_INT >= 21){
+            ((Activity)context).findViewById(R.id.shadowImageView).setVisibility(View.GONE);
+        }
     }
 
 }

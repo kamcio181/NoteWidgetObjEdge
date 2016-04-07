@@ -35,7 +35,6 @@ public class NoteFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
     private static final String ARG_PARAM4 = "param4";
-    private DatabaseUpdated mListener;
     private Cursor cursor;
     private RobotoEditText noteEditText;
     private boolean deleteNote = false;
@@ -46,12 +45,11 @@ public class NoteFragment extends Fragment {
     private SQLiteDatabase db;
     private long noteId;
     private AppWidgetManager mgr;
-    private boolean reloadNote = false;
     private Context context;
     private int folderId;
     private String title = "Untitled";
     private TextWatcher textWatcher;
-    private boolean skipTextCheck = true;
+    private boolean skipTextCheck = false;
     private int editTextSelection;
     private String newLine;
 
@@ -123,6 +121,10 @@ public class NoteFragment extends Fragment {
         }
     }
 
+    public void reloadNote(){
+        new LoadNote().execute();
+    }
+
     private void setTitleAndSubtitle(String title, long millis){
         ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
         if(actionBar !=null){
@@ -176,41 +178,22 @@ public class NoteFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        if(!reloadNote) {
-            if (!deleteNote) {
-                Utils.showToast(context, "Saving");
-                new PutNoteInTable().execute();
-            } else if (!isNewNote) {
-                Utils.showToast(context, "Note moved to trash");
-                new RemoveNoteFromTable().execute();
-            } else {
-                Utils.showToast(context, "Closed without saving");
-            }
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof DatabaseUpdated) {
-            mListener = (DatabaseUpdated) context;
+        if (!deleteNote) {
+            Utils.showToast(context, context.getString(R.string.saving_changes));
+            new PutNoteInTable().execute();
+        } else if (!isNewNote) {
+            Utils.showToast(context, context.getString(R.string.note_moved_to_trash));
+            new RemoveNoteFromTable().execute();
         } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnItemClickListener");
+            Utils.showToast(context, context.getString(R.string.closed_without_saving));
         }
     }
-
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
         if(cursor!=null && !cursor.isClosed())
             cursor.close();
-    }
-
-    public interface DatabaseUpdated {
-        void databaseUpdated();
     }
 
     public void setFolderId(int folderId) {
@@ -237,9 +220,6 @@ public class NoteFragment extends Fragment {
         return noteEditText.getText().toString();
     }
 
-    public void reloadNote(){
-        this.reloadNote = true;
-    }
 
     private void showSoftKeyboard(int index){
         noteEditText.requestFocus();
@@ -325,9 +305,6 @@ public class NoteFragment extends Fragment {
             if(result)
                 updateConnectedWidgets();
 
-            if(mListener != null)
-                mListener.databaseUpdated();
-
             super.onPostExecute(result);
         }
     }
@@ -353,8 +330,6 @@ public class NoteFragment extends Fragment {
         {
             if(result){
                 updateConnectedWidgets();
-                if(mListener != null)
-                    mListener.databaseUpdated();
             }
             super.onPostExecute(result);
         }

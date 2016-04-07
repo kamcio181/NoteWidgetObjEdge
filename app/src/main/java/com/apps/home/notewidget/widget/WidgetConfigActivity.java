@@ -33,6 +33,8 @@ public class WidgetConfigActivity extends AppCompatActivity implements AdapterVi
         setContentView(R.layout.activity_widget_config);
         setResult(RESULT_CANCELED);
 
+        Utils.hideShadowSinceLollipop(this);
+
         notesListView = (ListView) findViewById(R.id.notesListView);
         new LoadNotes().execute();
 
