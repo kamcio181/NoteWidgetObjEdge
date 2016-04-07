@@ -10,6 +10,7 @@
         android:layout_height="wrap_content"
         android:text="Medium Text"
         android:id="@+id/textView2"
+        android:clickable="true"
         android:textSize="16sp"
         android:textColor="#DD000000"
         android:singleLine="true"

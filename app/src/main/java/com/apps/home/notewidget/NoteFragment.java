@@ -113,9 +113,10 @@ public class NoteFragment extends Fragment {
         noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);//TODO change size from settings inc to 20
         newLine = System.getProperty("line.separator");
 
-        if(!isNewNote)
+        if(!isNewNote) {
+            skipTextCheck = true;
             new LoadNote().execute();
-        else {
+        } else {
             setTitleAndSubtitle("Untitled", 0);
             showSoftKeyboard(0);
         }
@@ -151,15 +152,17 @@ public class NoteFragment extends Fragment {
                 if(!skipTextCheck && (start+count) <= s.length()){
                     String newText = start>0? s.subSequence(start-1, (start + count)).toString() : s.subSequence(start, (start + count)).toString();
                     Log.e(TAG, "newText "+newText);
-                    if((start > 0 && (newText.contains(newLine+"-") || newText.contains(newLine+"+")))
-                            || start == 0 && (newText.contains("-") || newText.contains("+"))) {
+                    if((start > 0 && (newText.contains(newLine+"-") || newText.contains(newLine+"+")
+                            || newText.contains(newLine+"*"))) || start == 0 && (newText.contains("-")
+                            || newText.contains("+") || newText.contains("*"))) {
                         Log.e(TAG, "contains ");
                         skipTextCheck = true;
-                        editTextSelection = newText.contains("-") ? start+count + 2 : start+count + 3;
+                        editTextSelection = newText.contains("-") ? start+count + 2 : newText.contains("+")?
+                                start+count + 3 : start+count + 4;
                         if(start>0)
                             newText = newText.substring(1);
-                        newText = newText.contains("-") ? newText.replace("-", "\u0009- ") :
-                                newText.replace("+", "\u0009\u0009+ ");
+                        newText = newText.contains("-") ? newText.replace("-", "\u0009- ") :  newText.contains("+")?
+                                newText.replace("+", "\u0009\u0009+ ") : newText.replace("*", "\u0009\u0009\u0009* ");
                         String fullText = s.subSequence(0, start) + newText + s.subSequence(start + count, s.length());
                         noteEditText.setText(fullText);
                     }
