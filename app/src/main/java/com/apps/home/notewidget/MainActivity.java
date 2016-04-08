@@ -229,6 +229,9 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_share:
                 sendShareIntent();
                 break;
+            case R.id.action_save:
+                onBackPressed();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -486,9 +489,6 @@ public class MainActivity extends AppCompatActivity
                         attachFragment(Constants.FRAGMENT_NOTE, true, true);
                         noteId = -1;
                         break;
-                    case Constants.FRAGMENT_NOTE:
-                        onBackPressed();
-                        break;
                 }
                 break;
         }
@@ -514,7 +514,7 @@ public class MainActivity extends AppCompatActivity
                 Log.e(TAG, "FOLDER = "+folder);
                 if(folderId != 2) { //Folder list
                     fab.setVisibility(View.VISIBLE);
-                    fab.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_add_white));
+                    //fab.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_add_white));
                 } else { //Trash list
                     fab.setVisibility(View.GONE);
                 }
@@ -523,8 +523,8 @@ public class MainActivity extends AppCompatActivity
                 Log.e(TAG, "NOTE FRAGMENT");
                 setOnTitleClickListener(true);
                 fragmentToAttach = NoteFragment.newInstance(isNew, noteId, moveToEnd, folderId);
-                fab.setVisibility(View.VISIBLE);
-                fab.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_create_white));
+                fab.setVisibility(View.GONE);
+                //fab.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_create_white));
                 break;
             case Constants.FRAGMENT_TRASH_NOTE:
                 setOnTitleClickListener(false);

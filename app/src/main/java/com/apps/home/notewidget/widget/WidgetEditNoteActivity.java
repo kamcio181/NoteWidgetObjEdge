@@ -25,11 +25,10 @@ import com.apps.home.notewidget.utils.Utils;
 
 import java.lang.reflect.Field;
 
-public class WidgetEditNoteActivity extends AppCompatActivity implements View.OnClickListener{
+public class WidgetEditNoteActivity extends AppCompatActivity{
     private static final String TAG = "WidgetEditNoteActivity";
     private Context context;
     private long noteId = -1;
-    private FloatingActionButton fab;
     private FragmentManager fragmentManager;
     private Toolbar toolbar;
 
@@ -49,10 +48,6 @@ public class WidgetEditNoteActivity extends AppCompatActivity implements View.On
         if(getIntent().getExtras()!=null){
             noteId = getIntent().getLongExtra(Constants.ID_COL, -1);
         }
-
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        if(fab!=null)
-            fab.setOnClickListener(this);
 
         if(noteId>0) {
             fragmentManager.beginTransaction().replace(R.id.container,
@@ -153,18 +148,11 @@ public class WidgetEditNoteActivity extends AppCompatActivity implements View.On
                 ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
                 finish();
                 break;
-
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch(v.getId()){
-            case R.id.fab:
+            case R.id.action_save:
                 finish();
                 break;
         }
+
+        return super.onOptionsItemSelected(item);
     }
 }

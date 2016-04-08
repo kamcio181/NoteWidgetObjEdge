@@ -4,9 +4,9 @@
     <item name="ic_menu_folder" type="drawable">@android:drawable/ic_menu_slideshow</item>
     <item name="ic_menu_setting" type="drawable">@android:drawable/ic_menu_manage</item>
     <item name="ic_menu_about" type="drawable">@android:drawable/ic_menu_share</item>
-    <item name="ic_add_white" type="drawable">@mipmap/ic_add_white_18dp</item>
-    <item name="ic_create_white" type="drawable">@mipmap/ic_create_white_18dp</item>
-    <item name="ic_save_white" type="drawable">@mipmap/ic_save_white_18dp</item>
+    <item name="ic_fab_add_white" type="drawable">@mipmap/ic_add_white_18dp</item>
+    <item name="ic_fab_save_white" type="drawable">@mipmap/ic_save_white_18dp</item>
+    <item name="ic_save_white" type="drawable">@mipmap/ic_content_save_white_24dp</item>
     <item name="ic_search_white" type="drawable">@mipmap/ic_search_white_24dp</item>
     <item name="ic_share_white" type="drawable">@mipmap/ic_share_white_24dp</item>
     <item name="ic_menu_white" type="drawable">@mipmap/ic_menu_white_18dp</item>

@@ -108,15 +108,16 @@ public class NoteFragment extends Fragment {
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        noteEditText = (RobotoEditText) view.findViewById(R.id.noteEditText);
+        noteEditText = (RobotoEditText) view;//view.findViewById(R.id.noteEditText);
         noteEditText.addTextChangedListener(textWatcher);
         noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);//TODO change size from settings inc to 20
         newLine = System.getProperty("line.separator");
-
+        Log.e(TAG, "skip start " +skipTextCheck);
         if(!isNewNote) {
-            skipTextCheck = true;
+            Log.e(TAG, "skip old " +skipTextCheck);
             new LoadNote().execute();
         } else {
+            Log.e(TAG, "skip new " +skipTextCheck);
             setTitleAndSubtitle("Untitled", 0);
             showSoftKeyboard(0);
         }
@@ -234,7 +235,7 @@ public class NoteFragment extends Fragment {
     private class LoadNote extends AsyncTask<Void, Integer, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
-
+            skipTextCheck = true;
             Log.e(TAG, "LOADING NOTE");
             if((db = Utils.getDb(context)) != null) {
                 cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.MILLIS_COL,
@@ -252,7 +253,7 @@ public class NoteFragment extends Fragment {
         protected void onPostExecute(Boolean aBoolean) {
             if(aBoolean){
                 cursor.moveToFirst();
-
+                Log.e(TAG, "skip load " + skipTextCheck);
                 noteEditText.setText(Html.fromHtml(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL))));
                 title = cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL));
 
