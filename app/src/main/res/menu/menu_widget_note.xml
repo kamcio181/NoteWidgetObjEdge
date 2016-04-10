@@ -7,16 +7,15 @@
         android:title="Discard changes"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_save"
-        android:orderInCategory="400"
-        android:icon="@drawable/ic_save_white"
-        android:title="Save"
-        app:showAsAction="ifRoom" />
-    <item
         android:id="@+id/action_share"
-        android:orderInCategory="500"
+        android:orderInCategory="400"
         android:icon="@drawable/ic_share_white"
         android:title="Share"
         app:showAsAction="ifRoom" />
-
+    <item
+        android:id="@+id/action_save"
+        android:orderInCategory="500"
+        android:icon="@drawable/ic_save_white"
+        android:title="Save"
+        app:showAsAction="always" />
 </menu>
