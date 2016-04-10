@@ -5,22 +5,19 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.apps.home.notewidget.R;
-import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
 public class Utils {
@@ -40,14 +37,14 @@ public class Utils {
     public static int getLayoutFile(Context context, int themeMode, int widgetMode){
         if(widgetLayouts==null) {
             widgetLayouts = new int[3][2][2];
-            widgetLayouts[0][0][0] = R.layout.appwidget_title_lollipop_light;
-            widgetLayouts[0][0][1] = R.layout.appwidget_config_lollipop_light;
-            widgetLayouts[0][1][0] = R.layout.appwidget_title_lollipop_dark;
-            widgetLayouts[0][1][1] = R.layout.appwidget_config_lollipop_dark;
-            widgetLayouts[1][0][0] = R.layout.appwidget_title_miui_light;
-            widgetLayouts[1][0][1] = R.layout.appwidget_config_miui_light;
-            widgetLayouts[1][1][0] = R.layout.appwidget_title_miui_dark;
-            widgetLayouts[1][1][1] = R.layout.appwidget_config_miui_dark;
+            widgetLayouts[0][0][0] = R.layout.appwidget_title_miui_light;
+            widgetLayouts[0][0][1] = R.layout.appwidget_config_miui_light;
+            widgetLayouts[0][1][0] = R.layout.appwidget_title_miui_dark;
+            widgetLayouts[0][1][1] = R.layout.appwidget_config_miui_dark;
+            widgetLayouts[1][0][0] = R.layout.appwidget_title_lollipop_light;
+            widgetLayouts[1][0][1] = R.layout.appwidget_config_lollipop_light;
+            widgetLayouts[1][1][0] = R.layout.appwidget_title_lollipop_dark;
+            widgetLayouts[1][1][1] = R.layout.appwidget_config_lollipop_dark;
             widgetLayouts[2][0][0] = R.layout.appwidget_title_simple_light;
             widgetLayouts[2][0][1] = R.layout.appwidget_config_simple_light;
             widgetLayouts[2][1][0] = R.layout.appwidget_title_simple_dark;
@@ -55,7 +52,7 @@ public class Utils {
         }
 
         return widgetLayouts[context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).
-                getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0)][themeMode][widgetMode];
+                getInt(Constants.WIDGET_THEME_KEY, 0)][themeMode][widgetMode];
     }
 
     public static int switchWidgetMode(int currentMode){
@@ -146,5 +143,14 @@ public class Utils {
             ((Activity)context).findViewById(R.id.shadowImageView).setVisibility(View.GONE);
         }
     }
-
+    public static void sendShareIntent(Context context, String text, String title) {
+        if(text.length()!=0) {
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_TEXT, text);
+            intent.putExtra(Constants.TITLE_KEY, title);
+            context.startActivity(Intent.createChooser(intent, "Share via"));
+        } else
+            Utils.showToast(context, "Note is empty");
+    }
 }

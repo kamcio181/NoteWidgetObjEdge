@@ -131,7 +131,7 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_note, menu);
+        getMenuInflater().inflate(R.menu.menu_widget_note, menu);
         return true;
     }
 
@@ -144,12 +144,17 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
 
         //noinspection SimplifiableIfStatement
         switch (id){
-            case R.id.action_delete:
-                ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
+            case R.id.action_discard_changes:
+                ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
                 finish();
                 break;
             case R.id.action_save:
                 finish();
+                break;
+            case R.id.action_share:
+                Utils.sendShareIntent(this, ((NoteFragment) fragmentManager.
+                                findFragmentByTag(Constants.FRAGMENT_NOTE)).getNoteText(),
+                        getSupportActionBar().getTitle().toString());
                 break;
         }
 

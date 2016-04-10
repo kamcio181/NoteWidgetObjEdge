@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -30,6 +31,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
@@ -45,7 +48,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener,
         View.OnClickListener, SearchFragment.OnItemClickListener{
     private static final String TAG = "MainActivity";
-
+    private Context context;
     private long noteId = -1;
     private Toolbar toolbar;
     private FloatingActionButton fab;
@@ -66,6 +69,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context = this;
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         fragmentManager = getSupportFragmentManager();
@@ -93,7 +97,6 @@ public class MainActivity extends AppCompatActivity
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
 
         attachFragment(Constants.FRAGMENT_LIST);
 
@@ -183,7 +186,11 @@ public class MainActivity extends AppCompatActivity
                 setOrderType(false);
                 break;
             case R.id.action_delete:
-                ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
+            case R.id.action_discard_changes:
+                if(id == R.id.action_delete)
+                    ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
+                else
+                    ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
                 if(textToFind.length()==0)
                     attachFragment(Constants.FRAGMENT_LIST);
                 else
@@ -201,18 +208,6 @@ public class MainActivity extends AppCompatActivity
                         "Do you want to restore this note from trash?";
                 Utils.getConfirmationDialog(this, confirmationTitle, getRestoreOrRemoveNoteFromTrashAction(id)).show();
                 break;
-
-            case R.id.action_change_widget_theme:
-                if(preferences.getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0) == 0)
-                    preferences.edit().putInt(Constants.CURRENT_WIDGET_THEME_KEY, 1).apply();
-                else if(preferences.getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0) == 1)
-                    preferences.edit().putInt(Constants.CURRENT_WIDGET_THEME_KEY, 2).apply();
-                else if(preferences.getInt(Constants.CURRENT_WIDGET_THEME_KEY, 0) == 2)
-                    preferences.edit().putInt(Constants.CURRENT_WIDGET_THEME_KEY, 0).apply();
-                int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(),WidgetProvider.class));
-                WidgetProvider widgetProvider = new WidgetProvider();
-                widgetProvider.onUpdate(this, AppWidgetManager.getInstance(this), ids);
-                break;
             case R.id.action_add_nav_folder:
                 addFolderDialog().show();
                 break;
@@ -227,7 +222,9 @@ public class MainActivity extends AppCompatActivity
                 attachFragment(Constants.FRAGMENT_SEARCH);
                 break;
             case R.id.action_share:
-                sendShareIntent();
+                Utils.sendShareIntent(this, ((NoteFragment) fragmentManager.
+                        findFragmentByTag(Constants.FRAGMENT_NOTE)).getNoteText(),
+                        getSupportActionBar().getTitle().toString());
                 break;
             case R.id.action_save:
                 onBackPressed();
@@ -241,19 +238,7 @@ public class MainActivity extends AppCompatActivity
         ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).setSortByDate(orderByDate);
     }
 
-    private void sendShareIntent(){
-        Log.e(TAG, "SHARE IS NOT NULL");
-        String textToShare = ((NoteFragment) fragmentManager.
-                findFragmentByTag(Constants.FRAGMENT_NOTE)).getNoteText();
-        if(textToShare.length()!=0) {
-            Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType("text/plain");
-            intent.putExtra(Intent.EXTRA_TEXT, textToShare);
-            intent.putExtra(Constants.TITLE_KEY, getSupportActionBar().getTitle());
-            startActivity(Intent.createChooser(intent, "Share via"));
-        } else
-            Utils.showToast(this, "Note is empty");
-    }
+
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -380,7 +365,7 @@ public class MainActivity extends AppCompatActivity
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(MainActivity.this, "Canceled");
+                        Utils.showToast(context, "Canceled");
                     }
                 }).create();
 		dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -405,7 +390,7 @@ public class MainActivity extends AppCompatActivity
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(MainActivity.this, "Canceled");
+                        Utils.showToast(context, "Canceled");
                     }
                 }).create();
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -504,6 +489,7 @@ public class MainActivity extends AppCompatActivity
 
     private void attachFragment (String fragment, boolean isNew, boolean moveToEnd){
         Fragment fragmentToAttach = null;
+        boolean fabVisible = false;
         switch (fragment){
             case Constants.FRAGMENT_LIST:
                 textToFind = "";
@@ -513,32 +499,29 @@ public class MainActivity extends AppCompatActivity
 
                 Log.e(TAG, "FOLDER = "+folder);
                 if(folderId != 2) { //Folder list
-                    fab.setVisibility(View.VISIBLE);
-                    //fab.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_add_white));
-                } else { //Trash list
-                    fab.setVisibility(View.GONE);
+                    fabVisible = true;
                 }
                 break;
             case Constants.FRAGMENT_NOTE:
                 Log.e(TAG, "NOTE FRAGMENT");
                 setOnTitleClickListener(true);
                 fragmentToAttach = NoteFragment.newInstance(isNew, noteId, moveToEnd, folderId);
-                fab.setVisibility(View.GONE);
-                //fab.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_create_white));
                 break;
             case Constants.FRAGMENT_TRASH_NOTE:
                 setOnTitleClickListener(false);
                 fragmentToAttach = TrashNoteFragment.newInstance(noteId);
-                fab.setVisibility(View.INVISIBLE);
                 break;
             case Constants.FRAGMENT_SEARCH:
                 setOnTitleClickListener(false);
                 fragmentToAttach = SearchFragment.newInstance(textToFind);
                 getSupportActionBar().setTitle("Search");
-                fab.setVisibility(View.INVISIBLE);
                 break;
         }
         fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).commit();
+        if(fabVisible)
+            fab.show();
+        else
+            fab.hide();
     }
 
     //Interface from NoteListFragment
@@ -573,6 +556,11 @@ public class MainActivity extends AppCompatActivity
                 ((TrashNoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE)).reloadNote();
             preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();
         }
+        if(preferences.getBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false)){
+            if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).updateNoteTextSize();
+            preferences.edit().putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false).apply();
+        }
     }
 
     private class LoadNavViewItems extends AsyncTask<Void, Integer, Boolean>
@@ -581,7 +569,7 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            if((db = Utils.getDb(MainActivity.this)) != null) {
+            if((db = Utils.getDb(context)) != null) {
 
                 String query ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
                         + ", f." + Constants.FOLDER_ICON_COL
@@ -623,7 +611,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected Boolean doInBackground(String... p1)
         {
-            if((db = Utils.getDb(MainActivity.this)) != null) {
+            if((db = Utils.getDb(context)) != null) {
                 name = p1[0];
                 if(name.equals(""))
                     name = "New folder";
@@ -643,7 +631,7 @@ public class MainActivity extends AppCompatActivity
         {
             if(result){
                 addFolderToNavView(id, name, R.drawable.ic_nav_black_folder);
-                Utils.showToast(MainActivity.this, "Folder was added");
+                Utils.showToast(context, "Folder was added");
             }
             super.onPostExecute(result);
         }
@@ -658,7 +646,7 @@ public class MainActivity extends AppCompatActivity
             SQLiteDatabase db;
             action = p1[0];
 
-            if((db = Utils.getDb(MainActivity.this)) != null) {
+            if((db = Utils.getDb(context)) != null) {
                 if(action == R.id.action_delete_all){ //remove all
                     db.delete(Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(1)});
                     Log.e(TAG, "delete all");
@@ -680,10 +668,10 @@ public class MainActivity extends AppCompatActivity
             super.onPostExecute(result);
             if(result){
                 if(action == R.id.action_delete_all) {
-                    Utils.showToast(MainActivity.this, "All notes were removed");
-                    Utils.updateAllWidgets(MainActivity.this);
+                    Utils.showToast(context, "All notes were removed");
+                    Utils.updateAllWidgets(context);
                 } else {
-                    Utils.showToast(MainActivity.this, "All notes were restored");
+                    Utils.showToast(context, "All notes were restored");
                 }
                 ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
             }
@@ -697,7 +685,7 @@ public class MainActivity extends AppCompatActivity
         {
             SQLiteDatabase db;
 
-            if((db = Utils.getDb(MainActivity.this)) != null) {
+            if((db = Utils.getDb(context)) != null) {
 
                 //Delete folder
                 Log.e(TAG, "deleted folders " + db.delete(Constants.FOLDER_TABLE, Constants.ID_COL + " = ?", new String[]{Integer.toString(folderId)}));
@@ -721,8 +709,8 @@ public class MainActivity extends AppCompatActivity
         {
             super.onPostExecute(result);
             if(result){
-                Utils.showToast(MainActivity.this, "Folder and all associated notes were removed");
-                Utils.updateAllWidgets(MainActivity.this);
+                Utils.showToast(context, "Folder and all associated notes were removed");
+                Utils.updateAllWidgets(context);
                 removeMenuItem(navigationView.getMenu(), folderId);
                 openFolderWithNotes(myNotesNavId);
             }
@@ -738,7 +726,7 @@ public class MainActivity extends AppCompatActivity
             SQLiteDatabase db;
             newFolderId = integers[0];
 
-            if((db = Utils.getDb(MainActivity.this)) != null) {
+            if((db = Utils.getDb(context)) != null) {
 
                 //Update folder id for current note
                 ContentValues contentValues = new ContentValues();
@@ -756,7 +744,7 @@ public class MainActivity extends AppCompatActivity
         {
             super.onPostExecute(result);
             if(result){
-                Utils.showToast(MainActivity.this, "Note has been moved");
+                Utils.showToast(context, "Note has been moved");
 
                 //Change folder id for note which is currently visible
                 Fragment fragment = fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE);

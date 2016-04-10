@@ -8,18 +8,14 @@ import android.util.Log;
 
 import com.apps.home.notewidget.R;
 
-/**
- * Created by k.kaszubski on 1/20/16.
- */
 public class DatabaseHelper extends SQLiteOpenHelper {
-    private static final String DB_NAME = "database";
     private static final int DB_VERSION = 1;
     private static DatabaseHelper dHInstance;
     private static Context context;
 
 
     public DatabaseHelper(Context context) {
-        super(context, DB_NAME, null, DB_VERSION);
+        super(context, Constants.DB_NAME, null, DB_VERSION);
         DatabaseHelper.context = context;
     }
 
@@ -75,9 +71,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).edit().
                     putInt(Constants.MY_NOTES_ID_KEY, myNotesId).putInt(Constants.TRASH_ID_KEY, trashId).apply();
 
-            long folder = insertItem(db, "Folder 1", R.drawable.ic_nav_black_folder);
+            //long folder = insertItem(db, "Folder 1", R.drawable.ic_nav_black_folder);
 
-            for(int i = 0; i < 5; i++){
+            /*for(int i = 0; i < 5; i++){
                 ContentValues cv = new ContentValues();
                 cv.put(Constants.MILLIS_COL, 165165654);
                 cv.put(Constants.NOTE_TITLE_COL, "title my notes"+i);
@@ -92,7 +88,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     db.insert(Constants.NOTES_TABLE, null, cv);
                 Log.e("helper", "Note " + cv);
 
-            }
+            }*/
         }
     }
 

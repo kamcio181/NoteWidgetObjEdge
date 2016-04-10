@@ -8,17 +8,21 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
@@ -30,16 +34,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class ExportActivity extends AppCompatActivity implements View.OnClickListener{
-    //private static final String TAG = "ExportActivity";
+    private static final String TAG = "ExportActivity";
     private Context context;
     private RecyclerView recyclerView;
     private String path;
     private String note;
     private String title;
+    private boolean exit = false;
+    private Handler handler = new Handler();
+    private Runnable exitRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +56,8 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(R.layout.activity_export);
 
         Utils.hideShadowSinceLollipop(this);
+
+        setResetExitFlagRunnable();
 
         note = getIntent().getStringExtra(Intent.EXTRA_TEXT);
         title = getIntent().getStringExtra(Constants.TITLE_KEY);
@@ -67,6 +77,25 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
+        try {
+            Field titleField = Toolbar.class.getDeclaredField("mTitleTextView");
+            titleField.setAccessible(true);
+            TextView barTitleView = (TextView) titleField.get(toolbar);
+            barTitleView.setEllipsize(TextUtils.TruncateAt.START);
+            barTitleView.setFocusable(true);
+            barTitleView.setFocusableInTouchMode(true);
+            barTitleView.requestFocus();
+            barTitleView.setSingleLine(true);
+            barTitleView.setSelected(true);
+            //barTitleView.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            //barTitleView.setMarqueeRepeatLimit(-1);
+
+        } catch (NoSuchFieldException e){
+            Log.e(TAG, "" + e);
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, " " + e);
+        }
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if(fab!=null)
             fab.setOnClickListener(this);
@@ -75,10 +104,25 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            if(!exit){
+                exit = true;
+                handler.postDelayed(exitRunnable, 5000);
+                Utils.showToast(this, "Press back button again to exit");
+            } else {
+                finish();
+            }
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setResetExitFlagRunnable(){
+        exitRunnable = new Runnable() {
+            @Override
+            public void run() {
+                exit = false;
+            }
+        };
     }
 
     private DialogInterface.OnClickListener getFileOverrideAction(final String name){

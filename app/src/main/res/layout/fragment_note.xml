@@ -1,8 +1,10 @@
-<com.apps.home.notewidget.customviews.RobotoEditText xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+<com.apps.home.notewidget.customviews.RobotoEditText
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="@dimen/note_text_padding"
     android:id="@+id/noteEditText"
-    android:inputType="textMultiLine"
     android:gravity="top"
-    android:scrollbars="vertical" />
+    android:padding="@dimen/note_text_padding" />
+</ScrollView>

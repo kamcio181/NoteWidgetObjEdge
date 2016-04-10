@@ -5,7 +5,10 @@
     android:paddingLeft="16dp"
     android:paddingRight="16dp"
     android:paddingBottom="16dp"
-    android:paddingTop="16dp">
+    android:paddingTop="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?android:attr/selectableItemBackground" >
 
     <com.apps.home.notewidget.customviews.RobotoTextView
         android:layout_width="wrap_content"

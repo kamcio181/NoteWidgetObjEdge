@@ -28,6 +28,7 @@ import com.apps.home.notewidget.utils.Utils;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
 import java.util.Calendar;
+import java.util.regex.Pattern;
 
 public class NoteFragment extends Fragment {
     private static final String TAG = "NoteFragment";
@@ -38,6 +39,7 @@ public class NoteFragment extends Fragment {
     private Cursor cursor;
     private RobotoEditText noteEditText;
     private boolean deleteNote = false;
+    private boolean discardChanges = false;
     private boolean titleChanged = false;
     private long creationTimeMillis;
     private boolean isNewNote;
@@ -108,11 +110,12 @@ public class NoteFragment extends Fragment {
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        noteEditText = (RobotoEditText) view;//view.findViewById(R.id.noteEditText);
+        noteEditText = (RobotoEditText) view.findViewById(R.id.noteEditText);
         noteEditText.addTextChangedListener(textWatcher);
-        noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);//TODO change size from settings inc to 20
+        noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
+                context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
         newLine = System.getProperty("line.separator");
-        Log.e(TAG, "skip start " +skipTextCheck);
+        Log.e(TAG, "skip start " + skipTextCheck);
         if(!isNewNote) {
             Log.e(TAG, "skip old " +skipTextCheck);
             new LoadNote().execute();
@@ -121,6 +124,11 @@ public class NoteFragment extends Fragment {
             setTitleAndSubtitle("Untitled", 0);
             showSoftKeyboard(0);
         }
+    }
+
+    public void updateNoteTextSize(){
+        noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
+                context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
     }
 
     public void reloadNote(){
@@ -132,8 +140,8 @@ public class NoteFragment extends Fragment {
         if(actionBar !=null){
             actionBar.setTitle(title);
             Calendar calendar = Calendar.getInstance();
-
             creationTimeMillis = millis == 0? calendar.getTimeInMillis() : millis;
+            calendar.setTimeInMillis(creationTimeMillis);
             Log.e(TAG, "millis " + creationTimeMillis);
             actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
         }
@@ -151,21 +159,21 @@ public class NoteFragment extends Fragment {
                 Log.e(TAG, "after " + s.toString() + " start " + start + " count " + count + " skip "+skipTextCheck);
 
                 if(!skipTextCheck && (start+count) <= s.length()){
-                    String newText = start>0? s.subSequence(start-1, (start + count)).toString() : s.subSequence(start, (start + count)).toString();
-                    Log.e(TAG, "newText "+newText);
-                    if((start > 0 && (newText.contains(newLine+"-") || newText.contains(newLine+"+")
-                            || newText.contains(newLine+"*"))) || start == 0 && (newText.contains("-")
-                            || newText.contains("+") || newText.contains("*"))) {
-                        Log.e(TAG, "contains ");
+                    boolean isFirstLine = start == 0;
+                    String newText = isFirstLine ? s.subSequence(0, count).toString() : s.subSequence(start - 1, start + count).toString();
+                    if((!isFirstLine && (newText.startsWith(newLine + "-") || newText.startsWith(newLine + "+")
+                            || newText.startsWith(newLine + "*"))) || (isFirstLine && (newText.startsWith("-")
+                            || newText.startsWith("+") || newText.startsWith("*")))) {
                         skipTextCheck = true;
                         editTextSelection = newText.contains("-") ? start+count + 2 : newText.contains("+")?
                                 start+count + 3 : start+count + 4;
-                        if(start>0)
+                        if(!isFirstLine)
                             newText = newText.substring(1);
-                        newText = newText.contains("-") ? newText.replace("-", "\u0009- ") :  newText.contains("+")?
-                                newText.replace("+", "\u0009\u0009+ ") : newText.replace("*", "\u0009\u0009\u0009* ");
-                        String fullText = s.subSequence(0, start) + newText + s.subSequence(start + count, s.length());
+                        newText = newText.startsWith("-") ? newText.replaceFirst("-", "\u0009- ") :  newText.startsWith("+")?
+                                newText.replaceFirst(Pattern.quote("+"), "\u0009\u0009+ ") : newText.replaceFirst(Pattern.quote("*"), "\u0009\u0009\u0009* ");
+                        String fullText = s.subSequence(0,start) + newText +s.subSequence(start+count, s.length());
                         noteEditText.setText(fullText);
+
                     }
                 } else if (skipTextCheck) {
                     skipTextCheck = false;
@@ -182,10 +190,10 @@ public class NoteFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        if (!deleteNote) {
+        if (!deleteNote && !discardChanges) {
             Utils.showToast(context, context.getString(R.string.saving_changes));
             new PutNoteInTable().execute();
-        } else if (!isNewNote) {
+        } else if (deleteNote && !isNewNote) {
             Utils.showToast(context, context.getString(R.string.note_moved_to_trash));
             new RemoveNoteFromTable().execute();
         } else {
@@ -211,6 +219,8 @@ public class NoteFragment extends Fragment {
     public void deleteNote() {
         this.deleteNote = true;
     }
+
+    public void discardChanges(){ this.discardChanges = true; }
 
     public void titleChanged(String title) {
         this.titleChanged = true;
@@ -323,7 +333,6 @@ public class NoteFragment extends Fragment {
                 ContentValues contentValues = new ContentValues();
                 contentValues.put(Constants.DELETED_COL, 1);
                 db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-                //db.delete(Constants.NOTES_TABLE, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
                 return true;
             } else
                 return false;

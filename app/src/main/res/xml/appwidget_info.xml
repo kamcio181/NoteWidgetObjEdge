@@ -6,5 +6,5 @@
     android:configure="com.apps.home.notewidget.widget.WidgetConfigActivity"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen|keyguard"
-    android:previewImage="@drawable/ic_menu_camera">
+    android:previewImage="@mipmap/widget_preview">
 </appwidget-provider>

@@ -69,7 +69,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
 
         if(!noteText.trim().equals("")){
             //Set note text
-            boolean skipTabs = false; //TODO skipTabs in settings
+            boolean skipTabs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getBoolean(Constants.IGNORE_TABS_IN_WIDGETS_KEY, false);
             remoteView.setTextViewText(R.id.noteTextView, Html.fromHtml(skipTabs? noteText.replace("\u0009", "") : noteText));
         } else {
             remoteView.setTextViewText(R.id.noteTextView, "Note is empty, click here to edit");

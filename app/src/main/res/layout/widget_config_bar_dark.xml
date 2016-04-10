@@ -17,7 +17,7 @@
         android:layout_width="@dimen/app_widget_action_width"
         android:layout_height="@dimen/app_widget_action_height"
         android:id="@+id/increaseTextSizeImageView"
-        android:src="@drawable/ic_font_size_inc_black"
+        android:src="@drawable/ic_inc_font_size_black"
         android:scaleType="center" />
 
     <ImageView
@@ -25,7 +25,7 @@
         android:layout_height="@dimen/app_widget_action_height"
         android:id="@+id/decreaseTextSizeImageView"
         android:scaleType="center"
-        android:src="@drawable/ic_font_size_dec_black" />
+        android:src="@drawable/ic_dec_font_size_black" />
 
     <ImageView
         android:layout_width="@dimen/app_widget_action_width"
