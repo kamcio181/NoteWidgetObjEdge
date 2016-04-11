@@ -326,18 +326,17 @@ public class MainActivity extends AppCompatActivity
     public void setOnTitleClickListener(boolean enable){
         try {
             Field titleField = Toolbar.class.getDeclaredField("mTitleTextView");
+            Field subtitleField = Toolbar.class.getDeclaredField("mSubtitleTextView");
             titleField.setAccessible(true);
+            //subtitleField.setAccessible(true);
             TextView barTitleView = (TextView) titleField.get(toolbar);
+            //TextView barSubtitleView = (TextView) subtitleField.get(toolbar);
             if(enable){
-                barTitleView.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        setNoteTitleDialog().show();
-                    }
-                });
+                barTitleView.setOnClickListener(noteTitleChangeOrFolderNameListener());
+//                barSubtitleView.setOnClickListener(noteChangeListener());
             } else {
                 barTitleView.setOnClickListener(null);
+//                barSubtitleView.setOnClickListener(null);
             }
 
         } catch (NoSuchFieldException e){
@@ -347,19 +346,28 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private Dialog setNoteTitleDialog(){
+    private View.OnClickListener noteTitleChangeOrFolderNameListener(){
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setNoteTitleOrFolderNameDialog().show();
+            }
+        };
+    }
+
+    private Dialog setNoteTitleOrFolderNameDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
         final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
         titleEditText.setText(getSupportActionBar().getTitle().toString());
         titleEditText.setSelection(0, titleEditText.length());
-
-        AlertDialog dialog = builder.setTitle("Set title").setView(layout)
+        final boolean isNoteTitleEdition = fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)!=null;
+        AlertDialog dialog = builder.setTitle(isNoteTitleEdition? "Set note title" : "Set folder name").setView(layout)
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        setNoteTitle(titleEditText.getText().toString());
+                        setNoteTitleOrFolderName(titleEditText.getText().toString());
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -447,11 +455,15 @@ public class MainActivity extends AppCompatActivity
         new PutFolderInTable().execute(name);
     }
 	
-	private void setNoteTitle(String title){
+	private void setNoteTitleOrFolderName(String title){
 		title = setTitle(title);
 
         if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null) // Note fragment is displayed
             ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).titleChanged(title);
+        else if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null){
+            ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).titleChanged(title);
+            navigationView.getMenu().findItem(folderId).setTitle(title);
+        }
 	}
 
     private String setTitle(String title){
@@ -494,13 +506,15 @@ public class MainActivity extends AppCompatActivity
             case Constants.FRAGMENT_LIST:
                 textToFind = "";
                 noteId = -1;
-                setOnTitleClickListener(true);
                 fragmentToAttach = NoteListFragment.newInstance(folderId, folder);
 
                 Log.e(TAG, "FOLDER = "+folder);
-                if(folderId != 2) { //Folder list
+                if(folderId != 2)  //Folder list
                     fabVisible = true;
-                }
+                if(folderId != 2 && folderId != 1)
+                    setOnTitleClickListener(true);
+                else
+                    setOnTitleClickListener(false);
                 break;
             case Constants.FRAGMENT_NOTE:
                 Log.e(TAG, "NOTE FRAGMENT");

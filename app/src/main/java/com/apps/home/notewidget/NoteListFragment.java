@@ -1,5 +1,6 @@
 package com.apps.home.notewidget;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -82,7 +83,10 @@ public class NoteListFragment extends Fragment {
         ((AppCompatActivity)context).getSupportActionBar().setSubtitle("");
     }
 
-
+    public void titleChanged(String title){
+        this.folderName = title;
+        new UpdateFolderNameInTable().execute();
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -164,6 +168,31 @@ public class NoteListFragment extends Fragment {
                     ((CursorRecyclerAdapter)recyclerView.getAdapter()).changeCursor(cursor);
                 }
             }
+        }
+    }
+
+    private class UpdateFolderNameInTable extends AsyncTask<Void, Void, Boolean>
+    {   private ContentValues contentValues;
+
+        @Override
+        protected void onPreExecute()
+        {
+            contentValues = new ContentValues();
+            contentValues.put(Constants.FOLDER_NAME_COL, folderName);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... p1)
+        {
+            if((db = Utils.getDb(context)) != null) {
+                db.update(Constants.FOLDER_TABLE, contentValues, Constants.ID_COL + " = ?",
+                        new String[]{Long.toString(folderId)});
+                Log.e(TAG, "update " + contentValues.toString());
+                return true;
+            } else
+                return false;
+
         }
     }
 }

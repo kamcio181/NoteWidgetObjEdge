@@ -58,15 +58,14 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
     public void setOnTitleClickListener(){
         try {
             Field titleField = Toolbar.class.getDeclaredField("mTitleTextView");
+            //Field subtitleField = Toolbar.class.getDeclaredField("mSubtitleTextView");
             titleField.setAccessible(true);
+            //subtitleField.setAccessible(true);
             TextView barTitleView = (TextView) titleField.get(toolbar);
-            barTitleView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setNoteTitleDialog().show();
+            //TextView barSubtitleView = (TextView) subtitleField.get(toolbar);
+            barTitleView.setOnClickListener(noteTitleChangeOrFolderNameListener());
+            //barSubtitleView.setOnClickListener(noteChangeListener());
 
-                }
-            });
         } catch (NoSuchFieldException e){
             Log.e(TAG, "" + e);
         } catch (IllegalAccessException e) {
@@ -74,7 +73,16 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
         }
     }
 
-    private Dialog setNoteTitleDialog(){
+    private View.OnClickListener noteTitleChangeOrFolderNameListener(){
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setNoteTitleOrFolderNameDialog().show();
+            }
+        };
+    }
+
+    private Dialog setNoteTitleOrFolderNameDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
