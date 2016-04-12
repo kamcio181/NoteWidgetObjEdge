@@ -578,7 +578,7 @@ public class MainActivity extends AppCompatActivity
     public void onNoteAdded(int folderId) { //TODO test and finish this, delete note
         MenuItem item = navigationView.getMenu().getItem(folderId);
         RobotoTextView count = (RobotoTextView) item.getActionView();
-        count.setText(String.valueOf(Integer.parseInt(count.getText().toString())+1));
+        count.setText(String.valueOf(Integer.parseInt(count.getText().toString())+1));//
         item.setActionView(count);
     }
 
