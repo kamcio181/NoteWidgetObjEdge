@@ -21,6 +21,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -33,9 +34,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
+import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
@@ -46,7 +49,7 @@ import java.lang.reflect.Field;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener,
-        View.OnClickListener, SearchFragment.OnItemClickListener{
+        View.OnClickListener, SearchFragment.OnItemClickListener, NoteFragment.OnNoteAddListener{
     private static final String TAG = "MainActivity";
     private Context context;
     private long noteId = -1;
@@ -74,7 +77,6 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
-        Log.e(TAG, "ONCREATE remove false");
         setResetExitFlagRunnable();
 
         myNotesNavId = preferences.getInt(Constants.MY_NOTES_ID_KEY, 1);
@@ -324,26 +326,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void setOnTitleClickListener(boolean enable){
-        try {
-            Field titleField = Toolbar.class.getDeclaredField("mTitleTextView");
-            Field subtitleField = Toolbar.class.getDeclaredField("mSubtitleTextView");
-            titleField.setAccessible(true);
-            //subtitleField.setAccessible(true);
-            TextView barTitleView = (TextView) titleField.get(toolbar);
-            //TextView barSubtitleView = (TextView) subtitleField.get(toolbar);
-            if(enable){
-                barTitleView.setOnClickListener(noteTitleChangeOrFolderNameListener());
-//                barSubtitleView.setOnClickListener(noteChangeListener());
-            } else {
-                barTitleView.setOnClickListener(null);
-//                barSubtitleView.setOnClickListener(null);
-            }
-
-        } catch (NoSuchFieldException e){
-            Log.e(TAG, "" + e);
-        } catch (IllegalAccessException e) {
-            Log.e(TAG, " " + e);
-        }
+        if(enable)
+            toolbar.setOnClickListener(noteTitleChangeOrFolderNameListener());
+        else
+            toolbar.setOnClickListener(null);
     }
 
     private View.OnClickListener noteTitleChangeOrFolderNameListener(){
@@ -408,7 +394,7 @@ public class MainActivity extends AppCompatActivity
     private void addFolderToNavView(int id, String name, int icon){
 
         Menu menu = navigationView.getMenu();
-        addMenuItem(menu, id, 11, name, icon);
+        addMenuCustomItem(menu, id, 11, name, icon, 0);
 
         openFolderWithNotes(id);
     }
@@ -432,18 +418,29 @@ public class MainActivity extends AppCompatActivity
             else if (id == trashNavId)
                 order = 10000;
 
-            addMenuItem(menu, id, order,
+            addMenuCustomItem(menu, id, order,
                     cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)),
-                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
+                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)),
+                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
             cursor.moveToNext();
         }
 
         navigationView.setCheckedItem(folderId);
     }
 
-    private void addMenuItem(Menu m, int id, int order, String name, int icon){
+    /*private void addMenuItem(Menu m, int id, int order, String name, int icon){
         MenuItem newItem = m.add(R.id.nav_group_notes, id, order, name);
         newItem.setIcon(icon);
+        newItem.setCheckable(true);
+    }*/
+
+    private void addMenuCustomItem(Menu m, int id, int order, String name, int icon, int count){
+        MenuItem newItem = m.add(R.id.nav_group_notes, id, order, name);
+        newItem.setIcon(icon);
+        LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        RobotoTextView countTextView = (RobotoTextView) inflater.inflate(R.layout.nav_folder_item, null);
+        countTextView.setText(String.valueOf(count));
+        newItem.setActionView(countTextView);
         newItem.setCheckable(true);
     }
 
@@ -575,6 +572,14 @@ public class MainActivity extends AppCompatActivity
                 ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).updateNoteTextSize();
             preferences.edit().putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false).apply();
         }
+    }
+
+    @Override
+    public void onNoteAdded(int folderId) { //TODO test and finish this, delete note
+        MenuItem item = navigationView.getMenu().getItem(folderId);
+        RobotoTextView count = (RobotoTextView) item.getActionView();
+        count.setText(String.valueOf(Integer.parseInt(count.getText().toString())+1));
+        item.setActionView(count);
     }
 
     private class LoadNavViewItems extends AsyncTask<Void, Integer, Boolean>

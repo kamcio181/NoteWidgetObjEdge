@@ -56,21 +56,7 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
     }
 
     public void setOnTitleClickListener(){
-        try {
-            Field titleField = Toolbar.class.getDeclaredField("mTitleTextView");
-            //Field subtitleField = Toolbar.class.getDeclaredField("mSubtitleTextView");
-            titleField.setAccessible(true);
-            //subtitleField.setAccessible(true);
-            TextView barTitleView = (TextView) titleField.get(toolbar);
-            //TextView barSubtitleView = (TextView) subtitleField.get(toolbar);
-            barTitleView.setOnClickListener(noteTitleChangeOrFolderNameListener());
-            //barSubtitleView.setOnClickListener(noteChangeListener());
-
-        } catch (NoSuchFieldException e){
-            Log.e(TAG, "" + e);
-        } catch (IllegalAccessException e) {
-            Log.e(TAG, " " + e);
-        }
+        toolbar.setOnClickListener(noteTitleChangeOrFolderNameListener());
     }
 
     private View.OnClickListener noteTitleChangeOrFolderNameListener(){
