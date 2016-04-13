@@ -36,7 +36,6 @@ public class NoteFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
     private static final String ARG_PARAM4 = "param4";
-    private OnNoteAddListener mListener;
     private Cursor cursor;
     private RobotoEditText noteEditText;
     private boolean deleteNote = false;
@@ -80,17 +79,6 @@ public class NoteFragment extends Fragment {
         args.putBoolean(ARG_PARAM3, moveToEnd);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnNoteAddListener) {
-            mListener = (OnNoteAddListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnItemClickListener");
-        }
     }
 
     @Override
@@ -213,14 +201,6 @@ public class NoteFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-        if(cursor!=null && !cursor.isClosed())
-            cursor.close();
-    }
-
     public void setFolderId(int folderId) {
         this.folderId = folderId;
     }
@@ -245,10 +225,6 @@ public class NoteFragment extends Fragment {
             Utils.showToast(context, "Note is empty or was not loaded yet");
         }
         return noteEditText.getText().toString();
-    }
-
-    public interface OnNoteAddListener {
-        void onNoteAdded(int folderId);
     }
 
 
@@ -312,19 +288,18 @@ public class NoteFragment extends Fragment {
         protected Boolean doInBackground(Void... p1)
         {
             if((db = Utils.getDb(context)) != null) {
-                if (noteId < 0) {
+                if (isNewNote) {
                     contentValues.put(Constants.MILLIS_COL, creationTimeMillis);
                     contentValues.put(Constants.FOLDER_ID_COL, folderId);
                     contentValues.put(Constants.DELETED_COL, 0);
                     noteId = db.insert(Constants.NOTES_TABLE, null, contentValues);
                     Log.e(TAG, "insert " + contentValues.toString());
-                    return false;
                 } else {
                     db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
                             new String[]{Long.toString(noteId)});
                     Log.e(TAG, "update " + contentValues.toString());
-                    return true;
                 }
+                return true;
             } else
                 return false;
 
@@ -333,12 +308,13 @@ public class NoteFragment extends Fragment {
         @Override
         protected void onPostExecute(Boolean result)
         {
-            if(result)
-                updateConnectedWidgets();
-            else if(mListener != null)
-                mListener.onNoteAdded(folderId);
-
-
+            if(result){
+                if(isNewNote){
+                    ((MainActivity)context).reloadNavViewItems();
+                }
+                else
+                    updateConnectedWidgets();
+            }
             super.onPostExecute(result);
         }
     }
@@ -363,6 +339,8 @@ public class NoteFragment extends Fragment {
         {
             if(result){
                 updateConnectedWidgets();
+                ((MainActivity)context).reloadNavViewItems(); //TODO check if it can be handled better
+                //TODO create count up/ count down functions for better optimization
             }
             super.onPostExecute(result);
         }

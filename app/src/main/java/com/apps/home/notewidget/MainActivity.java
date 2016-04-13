@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -49,7 +50,7 @@ import java.lang.reflect.Field;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener,
-        View.OnClickListener, SearchFragment.OnItemClickListener, NoteFragment.OnNoteAddListener{
+        View.OnClickListener, SearchFragment.OnItemClickListener{
     private static final String TAG = "MainActivity";
     private Context context;
     private long noteId = -1;
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity
     private boolean exit = false;
     private Handler handler = new Handler();
     private Runnable exitRunnable;
+    int deletedCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +104,7 @@ public class MainActivity extends AppCompatActivity
 
         attachFragment(Constants.FRAGMENT_LIST);
 
-        new LoadNavViewItems().execute();
+        reloadNavViewItems();
     }
 
     @Override
@@ -119,6 +121,7 @@ public class MainActivity extends AppCompatActivity
                         attachFragment(Constants.FRAGMENT_LIST);
                     else
                         attachFragment(Constants.FRAGMENT_SEARCH);
+                    reloadNavViewItems();
                     break;
                 case Constants.FRAGMENT_SEARCH:
                     attachFragment(Constants.FRAGMENT_LIST);
@@ -189,8 +192,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.action_delete:
             case R.id.action_discard_changes:
-                if(id == R.id.action_delete)
+                if(id == R.id.action_delete){
                     ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
+                }
                 else
                     ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
                 if(textToFind.length()==0)
@@ -413,15 +417,18 @@ public class MainActivity extends AppCompatActivity
 
             int id = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL));
             int order = 11;
+            int count = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL));
             if(id == myNotesNavId)
                 order = 10;
-            else if (id == trashNavId)
+            else if (id == trashNavId) {
                 order = 10000;
+                count = deletedCount;
+            }
 
             addMenuCustomItem(menu, id, order,
                     cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)),
                     cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)),
-                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
+                    count);
             cursor.moveToNext();
         }
 
@@ -506,9 +513,9 @@ public class MainActivity extends AppCompatActivity
                 fragmentToAttach = NoteListFragment.newInstance(folderId, folder);
 
                 Log.e(TAG, "FOLDER = "+folder);
-                if(folderId != 2)  //Folder list
+                if(folderId != trashNavId)  //Folder list
                     fabVisible = true;
-                if(folderId != 2 && folderId != 1)
+                if(folderId != trashNavId && folderId != myNotesNavId)
                     setOnTitleClickListener(true);
                 else
                     setOnTitleClickListener(false);
@@ -574,14 +581,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onNoteAdded(int folderId) { //TODO test and finish this, delete note
-        MenuItem item = navigationView.getMenu().getItem(folderId);
-        RobotoTextView count = (RobotoTextView) item.getActionView();
-        count.setText(String.valueOf(Integer.parseInt(count.getText().toString())+1));//
-        item.setActionView(count);
-    }
-
     private class LoadNavViewItems extends AsyncTask<Void, Integer, Boolean>
     {
         Cursor cursor;
@@ -592,11 +591,12 @@ public class MainActivity extends AppCompatActivity
 
                 String query ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
                         + ", f." + Constants.FOLDER_ICON_COL
-                        + ", COUNT(n." + Constants.ID_COL + ") AS " + Constants.NOTES_COUNT_COL
+                        + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
                         + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
                         + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
-                        + Constants.FOLDER_ID_COL + " GROUP BY f." + Constants.ID_COL;
-
+                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = 0"
+                        +  " GROUP BY f." + Constants.ID_COL;
+                deletedCount = (int) DatabaseUtils.queryNumEntries(db, Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{"1"});
                 cursor = db.rawQuery(query, null);
                 return (cursor.getCount()>0);
             } else
@@ -612,6 +612,10 @@ public class MainActivity extends AppCompatActivity
                 addFolderToNavView(cursor);
             }
         }
+    }
+
+    public void reloadNavViewItems(){
+        new LoadNavViewItems().execute();
     }
 
     private class PutFolderInTable extends AsyncTask<String, Void, Boolean>
@@ -693,6 +697,7 @@ public class MainActivity extends AppCompatActivity
                     Utils.showToast(context, "All notes were restored");
                 }
                 ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                reloadNavViewItems();
             }
         }
     }
@@ -775,7 +780,7 @@ public class MainActivity extends AppCompatActivity
                 folder = navigationView.getMenu().findItem(folderId).getTitle().toString();
 
                 //Load NavView items again to refresh count number
-                new LoadNavViewItems().execute();
+                reloadNavViewItems();
             }
         }
     }
