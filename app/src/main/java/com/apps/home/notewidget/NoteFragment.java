@@ -309,7 +309,7 @@ public class NoteFragment extends Fragment {
         protected void onPostExecute(Boolean result)
         {
             if(result){
-                if(isNewNote){
+                if(isNewNote && context instanceof MainActivity){
                     ((MainActivity)context).reloadNavViewItems();
                 }
                 else
