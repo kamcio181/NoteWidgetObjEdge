@@ -81,9 +81,9 @@ public class MainActivity extends AppCompatActivity
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
         setResetExitFlagRunnable();
 
-        myNotesNavId = preferences.getInt(Constants.MY_NOTES_ID_KEY, 1);
+        myNotesNavId = Utils.getMyNotesNavId(this);
         Log.e(TAG, "my notes id " + myNotesNavId);
-        trashNavId = preferences.getInt(Constants.TRASH_ID_KEY, 2);
+        trashNavId = Utils.getTrashNavId(this);
         Log.e(TAG, "trash id " + trashNavId);
         folderId = myNotesNavId;
         preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();//reset flag
@@ -266,7 +266,7 @@ public class MainActivity extends AppCompatActivity
             openFolderWithNotes(id);
         }
         
-        Log.e(TAG, "FOLDER after click = "+folder);
+        Log.e(TAG, "FOLDER after click = " + folder);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -579,6 +579,10 @@ public class MainActivity extends AppCompatActivity
                 ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).updateNoteTextSize();
             preferences.edit().putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false).apply();
         }
+    }
+
+    public Menu getNavigationViewMenu() {
+        return navigationView.getMenu();
     }
 
     private class LoadNavViewItems extends AsyncTask<Void, Integer, Boolean>

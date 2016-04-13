@@ -18,6 +18,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -310,7 +311,8 @@ public class NoteFragment extends Fragment {
         {
             if(result){
                 if(isNewNote && context instanceof MainActivity){
-                    ((MainActivity)context).reloadNavViewItems();
+                    //((MainActivity)context).reloadNavViewItems();
+                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId);
                 }
                 else
                     updateConnectedWidgets();
@@ -339,7 +341,10 @@ public class NoteFragment extends Fragment {
         {
             if(result){
                 updateConnectedWidgets();
-                ((MainActivity)context).reloadNavViewItems(); //TODO check if it can be handled better
+                Menu menu = ((MainActivity)context).getNavigationViewMenu();
+                Utils.incrementFolderCount(menu, Utils.getTrashNavId(context));
+                Utils.decrementFolderCount(menu, folderId);
+                //((MainActivity)context).reloadNavViewItems(); //TODO check if it can be handled better
                 //TODO create count up/ count down functions for better optimization
             }
             super.onPostExecute(result);

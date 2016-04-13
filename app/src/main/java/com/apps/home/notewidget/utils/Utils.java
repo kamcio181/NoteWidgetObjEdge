@@ -8,16 +8,19 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
 public class Utils {
@@ -26,6 +29,9 @@ public class Utils {
     private static int[][][] widgetLayouts;
     private static SQLiteDatabase db;
     private static int idArray[];
+    private static SharedPreferences preferences;
+    private static int myNotesNavId = -1;
+    private static int trashNavId = -1;
 
     public static void showToast(Context context, String message){
         if(toast!=null)
@@ -152,5 +158,37 @@ public class Utils {
             context.startActivity(Intent.createChooser(intent, "Share via"));
         } else
             Utils.showToast(context, "Note is empty");
+    }
+
+    public static int getMyNotesNavId(Context context){
+        if(myNotesNavId > 0)
+            return myNotesNavId;
+        else {
+            if(preferences == null)
+                preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+            return (myNotesNavId = preferences.getInt(Constants.MY_NOTES_ID_KEY, 1));
+        }
+    }
+
+    public static int getTrashNavId(Context context){
+        if(trashNavId > 0)
+            return trashNavId;
+        else {
+            if(preferences == null)
+                preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+            return (trashNavId = preferences.getInt(Constants.TRASH_ID_KEY, 2));
+        }
+    }
+
+    public static void incrementFolderCount(Menu m, int folderId){
+        MenuItem menuItem = m.findItem(folderId);
+        RobotoTextView view = (RobotoTextView) menuItem.getActionView();
+        view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) + 1));
+    }
+
+    public static void decrementFolderCount(Menu m, int folderId){
+        MenuItem menuItem = m.findItem(folderId);
+        RobotoTextView view = (RobotoTextView) menuItem.getActionView();
+        view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) - 1));
     }
 }
