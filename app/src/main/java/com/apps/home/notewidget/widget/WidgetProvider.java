@@ -206,7 +206,6 @@ public class WidgetProvider extends AppWidgetProvider {
 
                 //Reconfigure intent
                 views.setOnClickPendingIntent(R.id.titleTextView, getConfigPendingIntent(context, appWidgetId));
-
             }
             else {
                 //Set intent for increase text size
@@ -233,14 +232,16 @@ public class WidgetProvider extends AppWidgetProvider {
             //don't know its purpose to me right now
             svcIntent.setData(Uri.parse(
                     svcIntent.toUri(Intent.URI_INTENT_SCHEME)));
-            //setting adapter to listview of the widget
+            //setting adapter to listView of the widget
             views.setRemoteAdapter(R.id.noteListView, svcIntent);
             views.setPendingIntentTemplate(R.id.noteListView, getNoteEditPendingIntent(context));
 
             //setting an empty view in case of no data
             views.setEmptyView(R.id.noteListView, R.id.noteTextView);
         } else {
-            views = new RemoteViews(context.getPackageName(), R.layout.appwidget_deleted_note);
+            views = new RemoteViews(context.getPackageName(),
+                    currentThemeMode == Constants.WIDGET_THEME_LIGHT? R.layout.appwidget_deleted_note_light
+                    : R.layout.appwidget_deleted_note_dark);
             views.setTextViewText(R.id.noteTextView, "Note was deleted, click here to pick new one");
             views.setOnClickPendingIntent(R.id.container, getConfigPendingIntent(context, appWidgetId));
 
