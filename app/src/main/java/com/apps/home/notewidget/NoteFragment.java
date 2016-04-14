@@ -312,7 +312,7 @@ public class NoteFragment extends Fragment {
             if(result){
                 if(isNewNote && context instanceof MainActivity){
                     //((MainActivity)context).reloadNavViewItems();
-                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId);
+                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId, 1);
                 }
                 else
                     updateConnectedWidgets();
@@ -341,9 +341,11 @@ public class NoteFragment extends Fragment {
         {
             if(result){
                 updateConnectedWidgets();
+                if(context instanceof MainActivity){
                 Menu menu = ((MainActivity)context).getNavigationViewMenu();
-                Utils.incrementFolderCount(menu, Utils.getTrashNavId(context));
-                Utils.decrementFolderCount(menu, folderId);
+                Utils.incrementFolderCount(menu, Utils.getTrashNavId(context), 1);
+                Utils.decrementFolderCount(menu, folderId, 1);
+                }
                 //((MainActivity)context).reloadNavViewItems(); //TODO check if it can be handled better
                 //TODO create count up/ count down functions for better optimization
             }

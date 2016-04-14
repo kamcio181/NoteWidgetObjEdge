@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity
 
         attachFragment(Constants.FRAGMENT_LIST);
 
-        reloadNavViewItems();
+        loadNavViewItems();
     }
 
     @Override
@@ -121,7 +121,6 @@ public class MainActivity extends AppCompatActivity
                         attachFragment(Constants.FRAGMENT_LIST);
                     else
                         attachFragment(Constants.FRAGMENT_SEARCH);
-                    reloadNavViewItems();
                     break;
                 case Constants.FRAGMENT_SEARCH:
                     attachFragment(Constants.FRAGMENT_LIST);
@@ -244,7 +243,9 @@ public class MainActivity extends AppCompatActivity
         ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).setSortByDate(orderByDate);
     }
 
-
+    public void loadNavViewItems(){
+        new LoadNavViewItems().execute();
+    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -435,12 +436,6 @@ public class MainActivity extends AppCompatActivity
         navigationView.setCheckedItem(folderId);
     }
 
-    /*private void addMenuItem(Menu m, int id, int order, String name, int icon){
-        MenuItem newItem = m.add(R.id.nav_group_notes, id, order, name);
-        newItem.setIcon(icon);
-        newItem.setCheckable(true);
-    }*/
-
     private void addMenuCustomItem(Menu m, int id, int order, String name, int icon, int count){
         MenuItem newItem = m.add(R.id.nav_group_notes, id, order, name);
         newItem.setIcon(icon);
@@ -618,10 +613,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void reloadNavViewItems(){
-        new LoadNavViewItems().execute();
-    }
-
     private class PutFolderInTable extends AsyncTask<String, Void, Boolean>
     {   private ContentValues contentValues;
         private int id;
@@ -666,23 +657,32 @@ public class MainActivity extends AppCompatActivity
 
     private class RestoreOrRemoveAllNotesFromTrash extends AsyncTask<Integer,Void,Boolean>
     {
+        Cursor cursor;
         int action;
         @Override
         protected Boolean doInBackground(Integer[] p1)
         {
             SQLiteDatabase db;
-            action = p1[0];
-
             if((db = Utils.getDb(context)) != null) {
+                action = p1[0];
                 if(action == R.id.action_delete_all){ //remove all
-                    db.delete(Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(1)});
+                    db.delete(Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{"1"});
                     Log.e(TAG, "delete all");
                     return true;
                 } else { //restore all
                     Log.e(TAG, "restore all");
+
+                    String query ="SELECT f." + Constants.ID_COL + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
+                            + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
+                            + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
+                            + Constants.FOLDER_ID_COL +  " GROUP BY f." + Constants.ID_COL
+                            + " HAVING n." + Constants.DELETED_COL + " = 1";
+
+                    cursor = db.rawQuery(query, null);
+                    cursor.moveToFirst();
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(Constants.DELETED_COL, 0);
-                    db.update(Constants.NOTES_TABLE, contentValues, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(1)});
+                    db.update(Constants.NOTES_TABLE, contentValues, Constants.DELETED_COL + " = ?", new String[]{"1"});
                     return true;
                 }
             } else
@@ -694,14 +694,22 @@ public class MainActivity extends AppCompatActivity
         {
             super.onPostExecute(result);
             if(result){
+                Utils.setFolderCount(getNavigationViewMenu(), Utils.getTrashNavId(context), 0); //Set count to 0 for trash
                 if(action == R.id.action_delete_all) {
                     Utils.showToast(context, "All notes were removed");
                     Utils.updateAllWidgets(context);
                 } else {
+                    if(cursor.getCount()>0) { //check if trash is empty
+                        do {
+                            Utils.incrementFolderCount(getNavigationViewMenu(),
+                                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)),
+                                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
+                        } while (cursor.moveToNext());
+                    }
+                    cursor.close();
                     Utils.showToast(context, "All notes were restored");
                 }
                 ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-                reloadNavViewItems();
             }
         }
     }
@@ -779,12 +787,12 @@ public class MainActivity extends AppCompatActivity
                 if(fragment != null)
                     ((NoteFragment)fragment).setFolderId(newFolderId);
 
+                Utils.incrementFolderCount(getNavigationViewMenu(), newFolderId, 1);
+                Utils.decrementFolderCount(getNavigationViewMenu(), folderId, 1);
+
                 //Update current folderId for folder fragment displayed onBackPressed
                 folderId = newFolderId;
                 folder = navigationView.getMenu().findItem(folderId).getTitle().toString();
-
-                //Load NavView items again to refresh count number
-                reloadNavViewItems();
             }
         }
     }

@@ -180,15 +180,21 @@ public class Utils {
         }
     }
 
-    public static void incrementFolderCount(Menu m, int folderId){
+    public static void incrementFolderCount(Menu m, int folderId, int inc){
         MenuItem menuItem = m.findItem(folderId);
         RobotoTextView view = (RobotoTextView) menuItem.getActionView();
-        view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) + 1));
+        view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) + inc));
     }
 
-    public static void decrementFolderCount(Menu m, int folderId){
+    public static void decrementFolderCount(Menu m, int folderId, int dec){
         MenuItem menuItem = m.findItem(folderId);
         RobotoTextView view = (RobotoTextView) menuItem.getActionView();
-        view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) - 1));
+        view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) - dec));
+    }
+
+    public static void setFolderCount(Menu m, int folderId, int count){
+        MenuItem menuItem = m.findItem(folderId);
+        RobotoTextView view = (RobotoTextView) menuItem.getActionView();
+        view.setText(Integer.toString(count));
     }
 }

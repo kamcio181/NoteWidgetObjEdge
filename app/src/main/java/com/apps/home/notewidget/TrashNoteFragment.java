@@ -13,6 +13,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -119,43 +121,54 @@ public class TrashNoteFragment extends Fragment {
         new RestoreOrRemoveNoteFromTrash().execute(action);
     }
 
-    private class RestoreOrRemoveNoteFromTrash extends AsyncTask<Integer,Void,Boolean[]>
+    private class RestoreOrRemoveNoteFromTrash extends AsyncTask<Integer,Void,Boolean>
     {
-
+        int action;
+        int folderId;
+        Menu menu;
         @Override
-        protected Boolean[] doInBackground(Integer[] p1)
+        protected Boolean doInBackground(Integer[] p1)
         {
             if((db = Utils.getDb(context)) != null) {
-                if (p1[0] == R.id.action_delete_from_trash) { //remove note
+                action = p1[0];
+                menu = ((MainActivity)context).getNavigationViewMenu();
+                Utils.decrementFolderCount(menu, Utils.getTrashNavId(context), 1);
+                if (action == R.id.action_delete_from_trash) { //remove note
                     db.delete(Constants.NOTES_TABLE, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
                     Log.e(TAG, "delete all");
-                    return new Boolean[]{true, true};
+                    return true;
                 } else { //restore note
                     Log.e(TAG, "restore");
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(Constants.DELETED_COL, 0);
+                    Cursor cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.FOLDER_ID_COL},
+                            Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
+                    cursor.moveToFirst();
+                    folderId = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL));
+                    cursor.close();
                     db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-                    return new Boolean[]{true, false};
+                    return true;
                 }
             } else
-                return new Boolean[]{false};
+                return false;
         }
 
         @Override
-        protected void onPostExecute(Boolean[] result)
+        protected void onPostExecute(Boolean result)
         {
             super.onPostExecute(result);
-            if(!result[0]){
+            if(result){
+                if(action == R.id.action_delete_from_trash) {
+                    Utils.showToast(context, "Note was removed");
+                    updateConnectedWidgets();
+                } else {
+                    Utils.showToast(context, "Notes was restored");
+                    Utils.incrementFolderCount(menu, folderId, 1);
+                    ((AppCompatActivity) context).onBackPressed();
+                }
+            } else
                 ((AppCompatActivity) context).onBackPressed();
-            }
-            else if(result[1]) {
-                Utils.showToast(context, "Note was removed");
-                updateConnectedWidgets();
-            }
-            else {
-                Utils.showToast(context, "Notes was restored");
-                ((AppCompatActivity) context).onBackPressed();
-            }
+
         }
     }
 
