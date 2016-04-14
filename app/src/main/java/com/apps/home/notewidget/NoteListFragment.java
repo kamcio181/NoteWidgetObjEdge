@@ -118,7 +118,7 @@ public class NoteListFragment extends Fragment {
     }
 
     public interface OnItemClickListener {
-        void onItemClicked(int noteId);
+        void onItemClicked(int noteId, boolean longClick);
     }
 
     private class LoadNoteList extends AsyncTask<Void, Void, Boolean> {
@@ -157,10 +157,10 @@ public class NoteListFragment extends Fragment {
                     recyclerView.setAdapter(new NotesCursorRecyclerAdapter(cursor,
                             new NotesCursorRecyclerAdapter.OnItemClickListener() {
                                 @Override
-                                public void onItemClick(View view, int position) {
-                                    if (mListener != null){
+                                public void onItemClick(View view, int position, boolean longClick) {
+                                    if (mListener != null) {
                                         cursor.moveToPosition(position);
-                                        mListener.onItemClicked(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                                        mListener.onItemClicked(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)), longClick);
                                     }
                                 }
                             }));
@@ -202,7 +202,7 @@ class NotesCursorRecyclerAdapter extends CursorRecyclerAdapter<NotesCursorRecycl
     private NotesCursorRecyclerAdapter.OnItemClickListener listener;
 
     public interface OnItemClickListener{
-        void onItemClick(View view, int position);
+        void onItemClick(View view, int position, boolean longClick);
     }
 
     public NotesCursorRecyclerAdapter (Cursor cursor, OnItemClickListener listener){
@@ -238,7 +238,15 @@ class NotesCursorRecyclerAdapter extends CursorRecyclerAdapter<NotesCursorRecycl
                 @Override
                 public void onClick(View v) {
                     if(listener != null)
-                        listener.onItemClick(itemView, getLayoutPosition());
+                        listener.onItemClick(itemView, getLayoutPosition(), false);
+                }
+            });
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if(listener != null)
+                        listener.onItemClick(itemView, getLayoutPosition(), true);
+                    return true;
                 }
             });
 

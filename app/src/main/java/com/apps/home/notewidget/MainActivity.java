@@ -346,6 +346,23 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
+    private Dialog getNoteActionDialog(){
+        final boolean trashFolder = folderId == Utils.getTrashNavId(context);
+        String[] items = trashFolder? new String[]{"Restore", "Delete"}
+                : new String[]{"Open", "Change title", "Share", "Move to other folder", "Move to trash"};
+
+        return new AlertDialog.Builder(this).setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(trashFolder){
+                    //perform action
+                } else {
+                    //perform action
+                }
+            }
+        }).create();
+    }
+
     private Dialog setNoteTitleOrFolderNameDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -471,7 +488,7 @@ public class MainActivity extends AppCompatActivity
         else
             title = Utils.capitalizeFirstLetter(title);
         getSupportActionBar().setTitle(title);
-        Log.e(TAG, "setToolbarTitle "+title);
+        Log.e(TAG, "setToolbarTitle " + title);
 
         return title;
     }
@@ -539,12 +556,17 @@ public class MainActivity extends AppCompatActivity
 
     //Interface from NoteListFragment
     @Override
-    public void onItemClicked(int noteId) {
+    public void onItemClicked(int noteId, boolean longClick) {
         this.noteId = noteId;
-        if(folderId != trashNavId)
-            attachFragment(Constants.FRAGMENT_NOTE, false);
-        else
-            attachFragment(Constants.FRAGMENT_TRASH_NOTE);
+        if(!longClick) {
+            if (folderId != trashNavId)
+                attachFragment(Constants.FRAGMENT_NOTE, false);
+            else
+                attachFragment(Constants.FRAGMENT_TRASH_NOTE);
+        } else {
+            getNoteActionDialog().show();
+        }
+        Log.e(TAG, "LONG CLICK " + longClick);
     }
 
     @Override
@@ -796,4 +818,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
+
+    //TODO try to optimize code to avoid code duplications
 }
