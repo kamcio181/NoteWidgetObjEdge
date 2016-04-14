@@ -221,7 +221,11 @@ public class MainActivity extends AppCompatActivity
                         getRemoveFolderAndAllNotesAction()).show();
                 break;
             case R.id.action_move_to_other_folder:
-                Utils.getFolderListDialog(this, navigationView.getMenu(), folderId, trashNavId, getMoveNoteToOtherFolderAction()).show();
+                Dialog dialog = Utils.getFolderListDialog(this, navigationView.getMenu(), folderId, trashNavId, getMoveNoteToOtherFolderAction());
+                if(dialog != null)
+                    dialog.show();
+                else
+                    Utils.showToast(this, "You have only one folder");
                 break;
             case R.id.action_search:
                 attachFragment(Constants.FRAGMENT_SEARCH);
@@ -354,6 +358,7 @@ public class MainActivity extends AppCompatActivity
         return new AlertDialog.Builder(this).setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                Utils.showToast(context, "The feature hasn't implemented yet");
                 if(trashFolder){
                     //perform action
                 } else {

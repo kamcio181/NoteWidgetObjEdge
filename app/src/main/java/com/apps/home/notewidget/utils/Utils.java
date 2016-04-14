@@ -115,8 +115,11 @@ public class Utils {
             }
         }
         Log.e(TAG, "after loop");
-        return new AlertDialog.Builder(context).setTitle("Choose new folder")
-                .setItems(nameArray, action).create();
+        if(nameArray.length > 0)
+            return new AlertDialog.Builder(context).setTitle("Choose new folder")
+                    .setItems(nameArray, action).create();
+        else
+            return null;
     }
 
     public static void removeAllMenuItems(Menu menu){
