@@ -50,7 +50,7 @@ import java.lang.reflect.Field;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener,
-        View.OnClickListener, SearchFragment.OnItemClickListener{
+        View.OnClickListener, SearchFragment.OnItemClickListener, Utils.FinishListener{
     private static final String TAG = "MainActivity";
     private Context context;
     private long noteId = -1;
@@ -260,7 +260,6 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG, "nav clicked " + id + " " + item.getTitle().toString());
 
         if(id == R.id.nav_settings){
-            //TODO open settings activity
             Log.e(TAG, "NAV clicked - Settings");
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_about) {
@@ -350,7 +349,7 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    private Dialog getNoteActionDialog(){
+    private Dialog getNoteActionDialog(final int noteId){
         final boolean trashFolder = folderId == Utils.getTrashNavId(context);
         String[] items = trashFolder? new String[]{"Restore", "Delete"}
                 : new String[]{"Open", "Change title", "Share", "Move to other folder", "Move to trash"};
@@ -358,14 +357,29 @@ public class MainActivity extends AppCompatActivity
         return new AlertDialog.Builder(this).setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Utils.showToast(context, "The feature hasn't implemented yet");
+
                 if(trashFolder){
-                    //perform action
+                    int id = which == 0?  R.id.action_restore_from_trash : R.id.action_delete_from_trash //TODO set properties
+                    String confirmationTitle = id == R.id.action_delete_from_trash ? "Do you want to delete this note from trash?" :
+                            "Do you want to restore this note from trash?";
+                    Utils.getConfirmationDialog(context, confirmationTitle, getRestoreOrRemoveNoteFromTrashAction(id)).show();
+
+                    Utils.restoreOrRemoveNoteFromTrash(context, noteId, , MainActivity.this);
                 } else {
-                    //perform action
+                    Utils.showToast(context, "The feature hasn't implemented yet");
                 }
             }
         }).create();
+    }
+
+    @Override
+    public void onFinished(int task, boolean result) {
+        switch (task) {
+            case Constants.RESTORE_OR_REMOVE_NOTE_FROM_TRASH:
+                if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
+                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                break;
+        }
     }
 
     private Dialog setNoteTitleOrFolderNameDialog(){
@@ -512,7 +526,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void attachFragment (String fragment){
+    private void attachFragment(String fragment) {
         attachFragment(fragment, false, false);
     }
 
@@ -569,7 +583,7 @@ public class MainActivity extends AppCompatActivity
             else
                 attachFragment(Constants.FRAGMENT_TRASH_NOTE);
         } else {
-            getNoteActionDialog().show();
+            getNoteActionDialog(noteId).show();
         }
         Log.e(TAG, "LONG CLICK " + longClick);
     }
@@ -606,6 +620,8 @@ public class MainActivity extends AppCompatActivity
     public Menu getNavigationViewMenu() {
         return navigationView.getMenu();
     }
+
+
 
     private class LoadNavViewItems extends AsyncTask<Void, Integer, Boolean>
     {

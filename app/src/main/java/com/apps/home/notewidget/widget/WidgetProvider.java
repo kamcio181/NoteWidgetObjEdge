@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.apps.home.notewidget.MainActivity;
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
@@ -176,6 +177,12 @@ public class WidgetProvider extends AppWidgetProvider {
         configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         return PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
+
+    private PendingIntent getOpenAppPendingIntent(Context context, int appWidgetId){
+        Intent configIntent = new Intent(context, MainActivity.class);
+        configIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+        return PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
 	
 	private PendingIntent getNoteEditPendingIntent(Context context){ //TODO
         Log.e("WidgetProvider", "edit intent");
@@ -205,7 +212,10 @@ public class WidgetProvider extends AppWidgetProvider {
                 Log.e("provider", "title "+noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
 
                 //Reconfigure intent
-                views.setOnClickPendingIntent(R.id.titleTextView, getConfigPendingIntent(context, appWidgetId));
+                //views.setOnClickPendingIntent(R.id.titleTextView, getConfigPendingIntent(context, appWidgetId));
+
+                //Open app intent
+                views.setOnClickPendingIntent(R.id.titleTextView, getOpenAppPendingIntent(context, appWidgetId));
             }
             else {
                 //Set intent for increase text size

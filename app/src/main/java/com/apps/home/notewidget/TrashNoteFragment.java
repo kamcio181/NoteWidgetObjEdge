@@ -25,15 +25,15 @@ import com.apps.home.notewidget.widget.WidgetProvider;
 
 import java.util.Calendar;
 
-public class TrashNoteFragment extends Fragment {
+public class TrashNoteFragment extends Fragment implements Utils.FinishListener{
     private static final String TAG = "TrashNoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private RobotoTextView noteTextView;
     private long creationTimeMillis;
     private SQLiteDatabase db;
     private long noteId;
-    private AppWidgetManager mgr;
     private Context context;
+    private int action;
 
 
     public TrashNoteFragment() {
@@ -69,7 +69,6 @@ public class TrashNoteFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mgr = AppWidgetManager.getInstance(context);
         noteTextView = (RobotoTextView) view.findViewById(R.id.noteEditText);
 
         new LoadNote().execute();
@@ -79,8 +78,10 @@ public class TrashNoteFragment extends Fragment {
         new LoadNote().execute();
     }
 
-    private void updateConnectedWidgets(){
-        new UpdateConnectedWidgets().execute();
+    @Override
+    public void onFinished(int task, boolean result) {
+        ((AppCompatActivity) context).onBackPressed();
+
     }
 
     private class LoadNote extends AsyncTask<Void, Integer, Boolean> {
@@ -118,91 +119,8 @@ public class TrashNoteFragment extends Fragment {
     }
 
     public void removeOrRestoreFromTrash(int action){
-        new RestoreOrRemoveNoteFromTrash().execute(action);
-    }
-
-    private class RestoreOrRemoveNoteFromTrash extends AsyncTask<Integer,Void,Boolean>
-    {
-        int action;
-        int folderId;
-        Menu menu;
-        @Override
-        protected Boolean doInBackground(Integer[] p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                action = p1[0];
-                menu = ((MainActivity)context).getNavigationViewMenu();
-                Utils.decrementFolderCount(menu, Utils.getTrashNavId(context), 1);
-                if (action == R.id.action_delete_from_trash) { //remove note
-                    db.delete(Constants.NOTES_TABLE, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-                    Log.e(TAG, "delete all");
-                    return true;
-                } else { //restore note
-                    Log.e(TAG, "restore");
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(Constants.DELETED_COL, 0);
-                    Cursor cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.FOLDER_ID_COL},
-                            Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
-                    cursor.moveToFirst();
-                    folderId = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL));
-                    cursor.close();
-                    db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-                    return true;
-                }
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            super.onPostExecute(result);
-            if(result){
-                if(action == R.id.action_delete_from_trash) {
-                    Utils.showToast(context, "Note was removed");
-                    updateConnectedWidgets();
-                } else {
-                    Utils.showToast(context, "Notes was restored");
-                    Utils.incrementFolderCount(menu, folderId, 1);
-                    ((AppCompatActivity) context).onBackPressed();
-                }
-            } else
-                ((AppCompatActivity) context).onBackPressed();
-
-        }
-    }
-
-    private class UpdateConnectedWidgets extends AsyncTask<Void, Void, Boolean>
-    {
-        private int[] widgetIds;
-        @Override
-        protected Boolean doInBackground(Void[] p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                Cursor widgetCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.WIDGET_ID_COL},
-                        Constants.CONNECTED_NOTE_ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
-                widgetCursor.moveToFirst();
-                widgetIds = new int[widgetCursor.getCount()];
-                for (int i = 0; i < widgetCursor.getCount(); i++) {
-                    widgetIds[i] = widgetCursor.getInt(0);
-                    widgetCursor.moveToNext();
-                }
-                widgetCursor.close();
-                return true;
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            if(result){
-                WidgetProvider widgetProvider = new WidgetProvider();
-                widgetProvider.onUpdate(context, mgr, widgetIds);
-            }
-            ((AppCompatActivity)context).onBackPressed();
-            super.onPostExecute(result);
-        }
+        this.action = action;
+        Utils.restoreOrRemoveNoteFromTrash(context, noteId, action, this);
     }
 }
 
