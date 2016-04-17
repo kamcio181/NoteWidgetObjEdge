@@ -154,6 +154,17 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 getNoteSizeDialog().show();
                 break;
             case 2:
+                Dialog dialog = Utils.getAllFolderListDialog(context, "Choose starting folder", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        preferences.edit().putInt(Constants.STARTING_FOLDER, Utils.getFolderId(which)).apply();
+                        Utils.showToast(context, "Starting folder was set");
+                    }
+                });
+                if(dialog != null)
+                    dialog.show();
+                break;
+            case 3:
                 //getBackupOrRestoreDialog().show();
                 break;
         }

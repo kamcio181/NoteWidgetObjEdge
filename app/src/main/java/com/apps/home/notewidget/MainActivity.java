@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
     private NavigationView navigationView;
-    private String folder = "My Notes";
     private int folderId = 1;
     private SQLiteDatabase db;
     private int myNotesNavId;
@@ -86,7 +85,7 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG, "my notes id " + myNotesNavId);
         trashNavId = Utils.getTrashNavId(this);
         Log.e(TAG, "trash id " + trashNavId);
-        folderId = myNotesNavId;
+        folderId = preferences.getInt(Constants.STARTING_FOLDER, Utils.getMyNotesNavId(context));
         preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();//reset flag
 
         Utils.hideShadowSinceLollipop(this);
@@ -102,7 +101,6 @@ public class MainActivity extends AppCompatActivity
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
         attachFragment(Constants.FRAGMENT_LIST);
 
         loadNavViewItems();
@@ -264,8 +262,7 @@ public class MainActivity extends AppCompatActivity
             Log.e(TAG, "NAV clicked - Other");
             openFolderWithNotes(id);
         }
-        
-        Log.e(TAG, "FOLDER after click = " + folder);
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -285,10 +282,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void openFolderWithNotes(int id){
-        folder = navigationView.getMenu().findItem(id).getTitle().toString();
         folderId = id;
         attachFragment(Constants.FRAGMENT_LIST);
-        setTitle(folder);
         navigationView.setCheckedItem(folderId);
     }
 
@@ -344,7 +339,6 @@ public class MainActivity extends AppCompatActivity
 
                                     //Update current folderId for folder fragment displayed onBackPressed
                                     folderId = newFolderId;
-                                    folder = getNavigationViewMenu().findItem(folderId).getTitle().toString();
                                     navigationView.setCheckedItem(folderId);
                                 } else {
                                     if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
@@ -426,11 +420,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handleNoteMoveAction(boolean actionBarMenuItemClicked){
-        Dialog dialog = Utils.getFolderListDialog(this, navigationView.getMenu(), folderId, trashNavId, getMoveNoteToOtherFolderAction(actionBarMenuItemClicked));
+        Dialog dialog = Utils.getFolderListDialog(this, navigationView.getMenu(), new int[]{folderId, trashNavId}, "Choose new folder", getMoveNoteToOtherFolderAction(actionBarMenuItemClicked));
         if(dialog != null)
             dialog.show();
-        else
-            Utils.showToast(this, "You have only one folder");
     }
 
     private Dialog setNoteTitleOrFolderNameDialog(){
@@ -590,9 +582,8 @@ public class MainActivity extends AppCompatActivity
         switch (fragment){
             case Constants.FRAGMENT_LIST:
                 textToFind = "";
-                fragmentToAttach = NoteListFragment.newInstance(folderId, folder);
+                fragmentToAttach = NoteListFragment.newInstance(folderId);
 
-                Log.e(TAG, "FOLDER = "+folder);
                 if(folderId != trashNavId)  //Folder list
                     fabVisible = true;
                 if(folderId != trashNavId && folderId != myNotesNavId)

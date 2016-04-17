@@ -32,6 +32,7 @@ import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
 import java.util.Calendar;
+import java.util.concurrent.ExecutionException;
 
 public class Utils {
     private static final String TAG = "Utils";
@@ -108,16 +109,28 @@ public class Utils {
                 }).create();
     }
 
-    public static Dialog getFolderListDialog(Context context, Menu menu, int folderId, int trashNavId,
+    public static Dialog getFolderListDialog(Context context, Menu menu, int[] exclusions, String title,
                                              DialogInterface.OnClickListener action){
-        int size = menu.size()-4;
+        int menuSize = menu.size();
+        int size = menuSize - (exclusions == null? 0 : exclusions.length) - 2;
         CharSequence[] nameArray = new CharSequence[size];
         idArray = new int[size];
         int j = 0;
-        for(int i = 0; i<size+4; i++){
+        for(int i = 0; i<menuSize; i++){
             Log.e(TAG, "loop " + i);
+
             int id = menu.getItem(i).getItemId();
-            if(id != folderId && id != trashNavId && id != R.id.nav_settings && id != R.id.nav_about )
+            boolean excluded = false;
+
+            if(exclusions != null)
+            for(int excludedId : exclusions){
+                if(id == excludedId){
+                    excluded = true;
+                    break;
+                }
+            }
+
+            if(!excluded && id != R.id.nav_settings && id != R.id.nav_about)
             {
                 nameArray[j] = menu.getItem(i).getTitle().toString();
                 idArray[j] = menu.getItem(i).getItemId();
@@ -126,10 +139,43 @@ public class Utils {
         }
         Log.e(TAG, "after loop");
         if(nameArray.length > 0)
-            return new AlertDialog.Builder(context).setTitle("Choose new folder")
+            return new AlertDialog.Builder(context).setTitle(title)
                     .setItems(nameArray, action).create();
-        else
+        else{
+            showToast(context, "You have only one folder");
             return null;
+        }
+    }
+
+    public static Dialog getAllFolderListDialog(Context context, String title,
+                                             DialogInterface.OnClickListener action){
+        CharSequence[] folders = null;
+        try {
+            folders = new GetAllFolders(context).execute().get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        if(folders != null && folders.length > 0)
+            return new AlertDialog.Builder(context).setTitle(title)
+                    .setItems(folders, action).create();
+        else{
+            showToast(context, "Unable to load folders list. Try again later");
+            return null;
+        }
+    }
+
+    public static String getFolderName(Context context, int id){
+        String name = "";
+        try {
+            name = new GetFolderName(context, id).execute().get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        return name;
     }
 
     public static void removeAllMenuItems(Menu menu){
@@ -498,6 +544,67 @@ public class Utils {
             if(finishListener != null)
                 finishListener.onFinished(result);
             super.onPostExecute(result);
+        }
+    }
+
+    private static class GetAllFolders extends AsyncTask<Void, Void, CharSequence[]>{
+        private Context context;
+
+        private GetAllFolders(Context context){
+            this.context = context;
+        }
+
+        @Override
+        protected CharSequence[] doInBackground(Void... params) {
+
+            if((db = Utils.getDb(context)) != null) {
+                Cursor cursor = db.query(Constants.FOLDER_TABLE, new String[]{Constants.ID_COL,
+                Constants.FOLDER_NAME_COL}, null, null, null, null, null);
+
+                if(cursor.getCount()>0){
+                    int cursorCount = cursor.getCount();
+                    cursor.moveToFirst();
+                    CharSequence[] foldersNames = new CharSequence[cursorCount];
+                    idArray = new int[cursorCount];
+                    for (int i = 0; i<cursorCount; i++){
+
+                        idArray[i] = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL));
+                        foldersNames[i] = cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL));
+                        cursor.moveToNext();
+                    }
+                    cursor.close();
+                    return foldersNames;
+                }
+                return null;
+            } else
+                return null;
+        }
+    }
+
+    private static class GetFolderName extends AsyncTask<Void, Void, String>{
+        private Context context;
+        private int id;
+
+        private GetFolderName(Context context, int id){
+            this.context = context;
+            this.id = id;
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            if((db = Utils.getDb(context)) != null) {
+
+                Cursor cursor = db.query(Constants.FOLDER_TABLE, new String[]{Constants.FOLDER_NAME_COL},
+                        Constants.ID_COL + " = ?", new String[]{Integer.toString(id)}, null, null, null);
+                String name = "";
+                if(cursor.getCount()>0) {
+                    cursor.moveToFirst();
+                    name = cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL));
+                }
+                cursor.close();
+                return name;
+            } else
+                return null;
         }
     }
 }

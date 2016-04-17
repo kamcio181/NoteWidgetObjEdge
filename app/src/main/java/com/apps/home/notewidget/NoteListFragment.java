@@ -42,11 +42,10 @@ public class NoteListFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static NoteListFragment newInstance(int folderId, String folderName) {
+    public static NoteListFragment newInstance(int folderId) {
         NoteListFragment fragment = new NoteListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_PARAM1, folderId);
-        args.putString(ARG_PARAM2, folderName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -56,7 +55,6 @@ public class NoteListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             folderId = getArguments().getInt(ARG_PARAM1);
-            folderName = getArguments().getString(ARG_PARAM2);
         }
     }
 
@@ -79,7 +77,9 @@ public class NoteListFragment extends Fragment {
         recyclerView = (RecyclerView) view;
         new LoadNoteList().execute();
 
-        ((AppCompatActivity)context).getSupportActionBar().setTitle(folderName);
+        folderName = Utils.getFolderName(context, folderId);
+
+        ((AppCompatActivity) context).getSupportActionBar().setTitle(folderName);
         ((AppCompatActivity)context).getSupportActionBar().setSubtitle("");
     }
 

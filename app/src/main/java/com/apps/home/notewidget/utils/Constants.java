@@ -37,6 +37,7 @@ public interface Constants {
     String SEARCH_IN_CONTENT = "contentSearch";
     String IGNORE_TABS_IN_WIDGETS_KEY = "ignoreTabsInWidget";
     String NOTE_TEXT_SIZE_KEY = "noteTextSize";
+    String STARTING_FOLDER = "startingFolder";
 
     String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";
     String NOTE_TEXT_SIZE_UPDATED = "noteTextSizeUpdated";
