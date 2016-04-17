@@ -31,20 +31,19 @@ import com.apps.home.notewidget.widget.WidgetProvider;
 import java.util.Calendar;
 import java.util.regex.Pattern;
 
-public class NoteFragment extends Fragment {
+public class NoteFragment extends Fragment implements Utils.LoadListener{
     private static final String TAG = "NoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
     private static final String ARG_PARAM4 = "param4";
-    private Cursor cursor;
     private RobotoEditText noteEditText;
     private boolean deleteNote = false;
     private boolean discardChanges = false;
     private boolean titleChanged = false;
     private long creationTimeMillis;
     private boolean isNewNote;
-    private boolean moveToEnd;
+    //private boolean moveToEnd;
     private SQLiteDatabase db;
     private long noteId;
     private AppWidgetManager mgr;
@@ -88,7 +87,7 @@ public class NoteFragment extends Fragment {
         if (getArguments() != null) {
             isNewNote = getArguments().getBoolean(ARG_PARAM1);
             noteId = getArguments().getLong(ARG_PARAM2);
-            moveToEnd = getArguments().getBoolean(ARG_PARAM3);
+            //moveToEnd = getArguments().getBoolean(ARG_PARAM3);
             folderId = getArguments().getInt(ARG_PARAM4);
         }
     }
@@ -119,11 +118,11 @@ public class NoteFragment extends Fragment {
         Log.e(TAG, "skip start " + skipTextCheck);
         if(!isNewNote) {
             Log.e(TAG, "skip old " +skipTextCheck);
-            new LoadNote().execute();
+            reloadNote();
         } else {
             Log.e(TAG, "skip new " +skipTextCheck);
             setTitleAndSubtitle("Untitled", 0);
-            showSoftKeyboard(0);
+            //showSoftKeyboard(0);
         }
     }
 
@@ -133,7 +132,7 @@ public class NoteFragment extends Fragment {
     }
 
     public void reloadNote(){
-        new LoadNote().execute();
+        Utils.loadNote(context, noteId, this);
     }
 
     private void setTitleAndSubtitle(String title, long millis){
@@ -195,8 +194,9 @@ public class NoteFragment extends Fragment {
             Utils.showToast(context, context.getString(R.string.saving_changes));
             new PutNoteInTable().execute();
         } else if (deleteNote && !isNewNote) {
-            Utils.showToast(context, context.getString(R.string.note_moved_to_trash));
-            new RemoveNoteFromTable().execute();
+            Utils.moveToTrash(context, ((MainActivity)context).getNavigationViewMenu(),
+                    noteId, title, noteEditText.getText().toString().replace(newLine, "<br/>"),
+                    folderId);
         } else {
             Utils.showToast(context, context.getString(R.string.closed_without_saving));
         }
@@ -204,10 +204,6 @@ public class NoteFragment extends Fragment {
 
     public void setFolderId(int folderId) {
         this.folderId = folderId;
-    }
-
-    private void updateConnectedWidgets(){
-        new UpdateConnectedWidgets().execute();
     }
 
     public void deleteNote() {
@@ -229,47 +225,26 @@ public class NoteFragment extends Fragment {
     }
 
 
-    private void showSoftKeyboard(int index){
+    /*private void showSoftKeyboard(int index){
         noteEditText.requestFocus();
         noteEditText.setSelection(index);
         InputMethodManager inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-    }
+    }*/
 
-    private class LoadNote extends AsyncTask<Void, Integer, Boolean> {
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            skipTextCheck = true;
-            Log.e(TAG, "LOADING NOTE");
-            if((db = Utils.getDb(context)) != null) {
-                cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.MILLIS_COL,
-                                Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
-                        Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
-                Log.e(TAG, "cursor count "+cursor.getCount());
-                return (cursor.getCount()>0);
-            } else {
-                Log.e(TAG, "db error");
-                return false;
-            }
-        }
+    @Override
+    public void onLoad(String[] note) {
+        if(note != null){
+            noteEditText.setText(Html.fromHtml(note[1]));
+            title = note[0];
+            setTitleAndSubtitle(title, Long.parseLong(note[2]));
 
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            if(aBoolean){
-                cursor.moveToFirst();
-                Log.e(TAG, "skip load " + skipTextCheck);
-                noteEditText.setText(Html.fromHtml(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL))));
-                title = cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL));
-
-                setTitleAndSubtitle(title, cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
-
-                if(moveToEnd) {
-                    int index = noteEditText.getText().length() < 0 ? 0 : noteEditText.getText().length();
-                    showSoftKeyboard(index);
-                }
-            } else {
-                ((AppCompatActivity)context).onBackPressed();
-            }
+            /*if(moveToEnd) {
+                int index = noteEditText.getText().length() < 0 ? 0 : noteEditText.getText().length();
+                showSoftKeyboard(index);
+            }*/
+        } else {
+            ((AppCompatActivity)context).onBackPressed();
         }
     }
 
@@ -310,48 +285,18 @@ public class NoteFragment extends Fragment {
         protected void onPostExecute(Boolean result)
         {
             if(result){
-                if(isNewNote && context instanceof MainActivity){
+                if(isNewNote){
                     //((MainActivity)context).reloadNavViewItems();
                     Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId, 1);
                 }
                 else
-                    updateConnectedWidgets();
+                    Utils.updateConnectedWidgets(context, noteId);
             }
             super.onPostExecute(result);
         }
     }
 
-    private class RemoveNoteFromTable extends AsyncTask<Void,Void,Boolean>
-    {
-
-        @Override
-        protected Boolean doInBackground(Void[] p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(Constants.DELETED_COL, 1);
-                db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-                return true;
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            if(result){
-                updateConnectedWidgets();
-                if(context instanceof MainActivity){
-                    Menu menu = ((MainActivity)context).getNavigationViewMenu();
-                    Utils.incrementFolderCount(menu, Utils.getTrashNavId(context), 1);
-                    Utils.decrementFolderCount(menu, folderId, 1);
-                }
-            }
-            super.onPostExecute(result);
-        }
-    }
-
-    private class UpdateConnectedWidgets extends AsyncTask<Void, Void, Boolean>
+    /*private class UpdateConnectedWidgets extends AsyncTask<Void, Void, Boolean>
     {
         private int[] widgetIds;
         @Override
@@ -384,6 +329,6 @@ public class NoteFragment extends Fragment {
             }
             super.onPostExecute(result);
         }
-    }
+    }*/
 }
 

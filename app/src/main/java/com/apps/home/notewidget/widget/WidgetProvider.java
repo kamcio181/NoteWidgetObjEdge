@@ -126,9 +126,9 @@ public class WidgetProvider extends AppWidgetProvider {
             configCursor.moveToFirst();
 
             noteCursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.NOTE_TITLE_COL},
-                    Constants.ID_COL + " = ?", new String[]{Integer.toString(
+                    Constants.ID_COL + " = ? AND " + Constants.DELETED_COL + " = ?", new String[]{Integer.toString(
                             configCursor.getInt(configCursor.getColumnIndexOrThrow(
-                                    Constants.CONNECTED_NOTE_ID_COL)))}, null, null, null);
+                                    Constants.CONNECTED_NOTE_ID_COL))), "0"}, null, null, null);
             noteCursor.moveToFirst();
 
             currentTextSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL));

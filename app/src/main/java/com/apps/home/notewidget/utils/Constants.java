@@ -41,8 +41,6 @@ public interface Constants {
     String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";
     String NOTE_TEXT_SIZE_UPDATED = "noteTextSizeUpdated";
 
-    int RESTORE_OR_REMOVE_NOTE_FROM_TRASH = 0;
-
     String FRAGMENT_LIST = "ListFragment";
     String FRAGMENT_NOTE = "NoteFragment";
     String FRAGMENT_TRASH_NOTE = "TrashNoteFragment";

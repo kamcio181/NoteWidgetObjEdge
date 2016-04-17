@@ -118,7 +118,7 @@ public class NoteListFragment extends Fragment {
     }
 
     public interface OnItemClickListener {
-        void onItemClicked(int noteId, boolean longClick);
+        void onItemClicked(long noteId, boolean longClick);
     }
 
     private class LoadNoteList extends AsyncTask<Void, Void, Boolean> {
@@ -160,7 +160,7 @@ public class NoteListFragment extends Fragment {
                                 public void onItemClick(View view, int position, boolean longClick) {
                                     if (mListener != null) {
                                         cursor.moveToPosition(position);
-                                        mListener.onItemClicked(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)), longClick);
+                                        mListener.onItemClicked(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)), longClick);
                                     }
                                 }
                             }));

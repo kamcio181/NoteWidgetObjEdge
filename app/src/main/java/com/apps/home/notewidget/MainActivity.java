@@ -27,6 +27,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -50,10 +51,10 @@ import java.lang.reflect.Field;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener,
-        View.OnClickListener, SearchFragment.OnItemClickListener, Utils.FinishListener{
+        View.OnClickListener, SearchFragment.OnItemClickListener{
     private static final String TAG = "MainActivity";
     private Context context;
-    private long noteId = -1;
+    private long noteId;
     private Toolbar toolbar;
     private FloatingActionButton fab;
     private FragmentManager fragmentManager;
@@ -196,7 +197,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 else
                     ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
-                if(textToFind.length()==0)
+                if(textToFind.length() == 0)
                     attachFragment(Constants.FRAGMENT_LIST);
                 else
                     attachFragment(Constants.FRAGMENT_SEARCH);
@@ -209,9 +210,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.action_delete_from_trash:
             case R.id.action_restore_from_trash:
-                confirmationTitle = id == R.id.action_delete_from_trash ? "Do you want to delete this note from trash?" :
-                        "Do you want to restore this note from trash?";
-                Utils.getConfirmationDialog(this, confirmationTitle, getRestoreOrRemoveNoteFromTrashAction(id)).show();
+                handleRestoreOrRemoveFromTrashAction(id, true);
                 break;
             case R.id.action_add_nav_folder:
                 addFolderDialog().show();
@@ -221,11 +220,7 @@ public class MainActivity extends AppCompatActivity
                         getRemoveFolderAndAllNotesAction()).show();
                 break;
             case R.id.action_move_to_other_folder:
-                Dialog dialog = Utils.getFolderListDialog(this, navigationView.getMenu(), folderId, trashNavId, getMoveNoteToOtherFolderAction());
-                if(dialog != null)
-                    dialog.show();
-                else
-                    Utils.showToast(this, "You have only one folder");
+                handleNoteMoveAction(true);
                 break;
             case R.id.action_search:
                 attachFragment(Constants.FRAGMENT_SEARCH);
@@ -306,11 +301,21 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    private DialogInterface.OnClickListener getRestoreOrRemoveNoteFromTrashAction(final int action){
+    private DialogInterface.OnClickListener getRestoreOrRemoveNoteFromTrashAction(final int action,
+                                                                                  final boolean actionBarMenuItemClicked){
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ((TrashNoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE)).removeOrRestoreFromTrash(action);
+                Utils.restoreOrRemoveNoteFromTrash(context, noteId, action, new Utils.FinishListener() {
+                    @Override
+                    public void onFinished(boolean result) {
+                        if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
+                            ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                        } else if (actionBarMenuItemClicked) {
+                            onBackPressed();
+                        }
+                    }
+                });
             }
         };
     }
@@ -324,11 +329,29 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    private DialogInterface.OnClickListener getMoveNoteToOtherFolderAction(){
+    private DialogInterface.OnClickListener getMoveNoteToOtherFolderAction(final boolean actionBarMenuItemClicked){
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                new MoveNoteToOtherFolder().execute(Utils.getFolderId(which));
+                Utils.updateFolderId(context, getNavigationViewMenu(), noteId, Utils.getFolderId(which),
+                        folderId, new Utils.FolderIdUpdateListener() {
+                            @Override
+                            public void onUpdate(int newFolderId) {
+                                if (actionBarMenuItemClicked) {
+                                    //Change folder id for note which is currently visible
+                                    if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+                                        ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).setFolderId(newFolderId);
+
+                                    //Update current folderId for folder fragment displayed onBackPressed
+                                    folderId = newFolderId;
+                                    folder = getNavigationViewMenu().findItem(folderId).getTitle().toString();
+                                    navigationView.setCheckedItem(folderId);
+                                } else {
+                                    if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
+                                        ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                }
+                            }
+                        });
             }
         };
     }
@@ -349,37 +372,65 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    private Dialog getNoteActionDialog(final int noteId){
+    private Dialog getNoteActionDialog(){
         final boolean trashFolder = folderId == Utils.getTrashNavId(context);
         String[] items = trashFolder? new String[]{"Restore", "Delete"}
-                : new String[]{"Open", "Change title", "Share", "Move to other folder", "Move to trash"};
+                : new String[]{"Open", "Share", "Move to other folder", "Move to trash"};
 
         return new AlertDialog.Builder(this).setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
                 if(trashFolder){
-                    int id = which == 0?  R.id.action_restore_from_trash : R.id.action_delete_from_trash //TODO set properties
-                    String confirmationTitle = id == R.id.action_delete_from_trash ? "Do you want to delete this note from trash?" :
-                            "Do you want to restore this note from trash?";
-                    Utils.getConfirmationDialog(context, confirmationTitle, getRestoreOrRemoveNoteFromTrashAction(id)).show();
-
-                    Utils.restoreOrRemoveNoteFromTrash(context, noteId, , MainActivity.this);
+                    handleRestoreOrRemoveFromTrashAction(which == 0?  R.id.action_restore_from_trash : R.id.action_delete_from_trash,
+                            false);
                 } else {
-                    Utils.showToast(context, "The feature hasn't implemented yet");
+                    //Utils.showToast(context, "The feature hasn't implemented yet");
+                    switch (which){
+                        case 0:
+                            //open
+                            onItemClicked(noteId, false);
+                            break;
+                        case 1:
+                            //share
+                            Utils.loadNote(context, noteId, new Utils.LoadListener() {
+                                @Override
+                                public void onLoad(String[] note) {
+                                    Utils.sendShareIntent(context, Html.fromHtml(note[1]).toString(), note[0]);
+                                }
+                            });
+                            break;
+                        case 2:
+                            //move to other folder
+                            handleNoteMoveAction(false);
+                            break;
+                        case 3:
+                            //move to trash
+                            Utils.moveToTrash(context, getNavigationViewMenu(), noteId, folderId, new Utils.FinishListener() { //TODO handler
+                                @Override
+                                public void onFinished(boolean result) {
+                                    if(result && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
+                                        ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                }
+                            });
+                            break;
+                    }
                 }
             }
         }).create();
     }
 
-    @Override
-    public void onFinished(int task, boolean result) {
-        switch (task) {
-            case Constants.RESTORE_OR_REMOVE_NOTE_FROM_TRASH:
-                if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
-                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-                break;
-        }
+    private void handleRestoreOrRemoveFromTrashAction(int action, boolean actionBarMenuItemClicked){
+        String confirmationTitle = action == R.id.action_delete_from_trash ? "Do you want to delete this note from trash?" :
+                "Do you want to restore this note from trash?";
+        Utils.getConfirmationDialog(this, confirmationTitle, getRestoreOrRemoveNoteFromTrashAction(action, actionBarMenuItemClicked)).show();
+    }
+
+    private void handleNoteMoveAction(boolean actionBarMenuItemClicked){
+        Dialog dialog = Utils.getFolderListDialog(this, navigationView.getMenu(), folderId, trashNavId, getMoveNoteToOtherFolderAction(actionBarMenuItemClicked));
+        if(dialog != null)
+            dialog.show();
+        else
+            Utils.showToast(this, "You have only one folder");
     }
 
     private Dialog setNoteTitleOrFolderNameDialog(){
@@ -519,7 +570,6 @@ public class MainActivity extends AppCompatActivity
                 switch (fragmentManager.findFragmentById(R.id.container).getTag()){
                     case Constants.FRAGMENT_LIST:
                         attachFragment(Constants.FRAGMENT_NOTE, true, true);
-                        noteId = -1;
                         break;
                 }
                 break;
@@ -540,7 +590,6 @@ public class MainActivity extends AppCompatActivity
         switch (fragment){
             case Constants.FRAGMENT_LIST:
                 textToFind = "";
-                noteId = -1;
                 fragmentToAttach = NoteListFragment.newInstance(folderId, folder);
 
                 Log.e(TAG, "FOLDER = "+folder);
@@ -575,7 +624,7 @@ public class MainActivity extends AppCompatActivity
 
     //Interface from NoteListFragment
     @Override
-    public void onItemClicked(int noteId, boolean longClick) {
+    public void onItemClicked(long noteId, boolean longClick) {
         this.noteId = noteId;
         if(!longClick) {
             if (folderId != trashNavId)
@@ -583,7 +632,7 @@ public class MainActivity extends AppCompatActivity
             else
                 attachFragment(Constants.FRAGMENT_TRASH_NOTE);
         } else {
-            getNoteActionDialog(noteId).show();
+            getNoteActionDialog().show();
         }
         Log.e(TAG, "LONG CLICK " + longClick);
     }
@@ -740,8 +789,8 @@ public class MainActivity extends AppCompatActivity
                 Utils.setFolderCount(getNavigationViewMenu(), Utils.getTrashNavId(context), 0); //Set count to 0 for trash
                 if(action == R.id.action_delete_all) {
                     Utils.showToast(context, "All notes were removed");
-                    Utils.updateAllWidgets(context);
                 } else {
+                    Utils.updateAllWidgets(context);
                     if(cursor.getCount()>0) { //check if trash is empty
                         do {
                             Utils.incrementFolderCount(getNavigationViewMenu(),
@@ -795,50 +844,4 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-
-    private class MoveNoteToOtherFolder extends AsyncTask<Integer,Void,Boolean>
-    {
-        private int newFolderId;
-        @Override
-        protected Boolean doInBackground(Integer... integers)
-        {
-            SQLiteDatabase db;
-            newFolderId = integers[0];
-
-            if((db = Utils.getDb(context)) != null) {
-
-                //Update folder id for current note
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(Constants.FOLDER_ID_COL, newFolderId);
-                db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
-                        new String[]{Long.toString(noteId)});
-                return true;
-
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            super.onPostExecute(result);
-            if(result){
-                Utils.showToast(context, "Note has been moved");
-
-                //Change folder id for note which is currently visible
-                Fragment fragment = fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE);
-                if(fragment != null)
-                    ((NoteFragment)fragment).setFolderId(newFolderId);
-
-                Utils.incrementFolderCount(getNavigationViewMenu(), newFolderId, 1);
-                Utils.decrementFolderCount(getNavigationViewMenu(), folderId, 1);
-
-                //Update current folderId for folder fragment displayed onBackPressed
-                folderId = newFolderId;
-                folder = navigationView.getMenu().findItem(folderId).getTitle().toString();
-            }
-        }
-    }
-
-    //TODO try to optimize code to avoid code duplications
 }

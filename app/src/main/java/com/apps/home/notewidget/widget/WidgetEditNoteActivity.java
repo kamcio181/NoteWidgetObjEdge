@@ -51,7 +51,7 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
 
         if(noteId>0) {
             fragmentManager.beginTransaction().replace(R.id.container,
-                    NoteFragment.newInstance(false, noteId, true), Constants.FRAGMENT_NOTE).commit();
+                    NoteFragment.newInstance(false, noteId, false), Constants.FRAGMENT_NOTE).commit();
         }
     }
 
