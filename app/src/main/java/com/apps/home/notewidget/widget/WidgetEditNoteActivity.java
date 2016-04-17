@@ -5,25 +5,20 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.TextView;
-
 import com.apps.home.notewidget.NoteFragment;
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
 
-import java.lang.reflect.Field;
 
 public class WidgetEditNoteActivity extends AppCompatActivity{
     private static final String TAG = "WidgetEditNoteActivity";

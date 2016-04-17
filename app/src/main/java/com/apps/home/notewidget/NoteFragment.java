@@ -1,10 +1,8 @@
 package com.apps.home.notewidget;
 
 
-import android.appwidget.AppWidgetManager;
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -18,15 +16,12 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
-import com.apps.home.notewidget.widget.WidgetProvider;
 
 import java.util.Calendar;
 import java.util.regex.Pattern;
@@ -40,13 +35,9 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     private RobotoEditText noteEditText;
     private boolean deleteNote = false;
     private boolean discardChanges = false;
-    private boolean titleChanged = false;
     private long creationTimeMillis;
     private boolean isNewNote;
-    //private boolean moveToEnd;
-    private SQLiteDatabase db;
     private long noteId;
-    private AppWidgetManager mgr;
     private Context context;
     private int folderId;
     private String title = "Untitled";
@@ -106,7 +97,6 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mgr = AppWidgetManager.getInstance(context);
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
@@ -213,7 +203,6 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     public void discardChanges(){ this.discardChanges = true; }
 
     public void titleChanged(String title) {
-        this.titleChanged = true;
         this.title = title;
     }
 
@@ -224,25 +213,12 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         return noteEditText.getText().toString();
     }
 
-
-    /*private void showSoftKeyboard(int index){
-        noteEditText.requestFocus();
-        noteEditText.setSelection(index);
-        InputMethodManager inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-    }*/
-
     @Override
     public void onLoad(String[] note) {
         if(note != null){
             noteEditText.setText(Html.fromHtml(note[1]));
             title = note[0];
             setTitleAndSubtitle(title, Long.parseLong(note[2]));
-
-            /*if(moveToEnd) {
-                int index = noteEditText.getText().length() < 0 ? 0 : noteEditText.getText().length();
-                showSoftKeyboard(index);
-            }*/
         } else {
             ((AppCompatActivity)context).onBackPressed();
         }
@@ -263,6 +239,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         @Override
         protected Boolean doInBackground(Void... p1)
         {
+            SQLiteDatabase db;
             if((db = Utils.getDb(context)) != null) {
                 if (isNewNote) {
                     contentValues.put(Constants.MILLIS_COL, creationTimeMillis);
@@ -286,7 +263,6 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         {
             if(result){
                 if(isNewNote){
-                    //((MainActivity)context).reloadNavViewItems();
                     Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId, 1);
                 }
                 else
@@ -295,40 +271,5 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
             super.onPostExecute(result);
         }
     }
-
-    /*private class UpdateConnectedWidgets extends AsyncTask<Void, Void, Boolean>
-    {
-        private int[] widgetIds;
-        @Override
-        protected Boolean doInBackground(Void[] p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                Cursor widgetCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.WIDGET_ID_COL},
-                        Constants.CONNECTED_NOTE_ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
-                widgetCursor.moveToFirst();
-                widgetIds = new int[widgetCursor.getCount()];
-                for (int i = 0; i < widgetCursor.getCount(); i++) {
-                    widgetIds[i] = widgetCursor.getInt(0);
-                    widgetCursor.moveToNext();
-                }
-                widgetCursor.close();
-                return true;
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            if(result){
-                if(deleteNote || titleChanged){
-                    WidgetProvider widgetProvider = new WidgetProvider();
-                    widgetProvider.onUpdate(context, mgr, widgetIds);
-                } else
-                    mgr.notifyAppWidgetViewDataChanged(widgetIds, R.id.noteListView);
-            }
-            super.onPostExecute(result);
-        }
-    }*/
 }
 

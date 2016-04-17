@@ -184,7 +184,7 @@ public class WidgetProvider extends AppWidgetProvider {
         return PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 	
-	private PendingIntent getNoteEditPendingIntent(Context context){ //TODO
+	private PendingIntent getNoteEditPendingIntent(Context context){
         Log.e("WidgetProvider", "edit intent");
 		Intent startIntent = new Intent(context, WidgetEditNoteActivity.class);
         startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
