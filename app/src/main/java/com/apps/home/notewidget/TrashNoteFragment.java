@@ -2,7 +2,6 @@ package com.apps.home.notewidget;
 
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -21,7 +20,6 @@ public class TrashNoteFragment extends Fragment implements Utils.LoadListener{
     private static final String ARG_PARAM1 = "param1";
     private RobotoTextView noteTextView;
     private long creationTimeMillis;
-    private SQLiteDatabase db;
     private long noteId;
     private Context context;
 

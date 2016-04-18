@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
     private NavigationView navigationView;
-    private int folderId = 1;
+    private int folderId;
     private SQLiteDatabase db;
     private int myNotesNavId;
     private int trashNavId;
@@ -421,20 +421,23 @@ public class MainActivity extends AppCompatActivity
         titleEditText.setText(getSupportActionBar().getTitle().toString());
         titleEditText.setSelection(0, titleEditText.length());
         final boolean isNoteTitleEdition = fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)!=null;
-        AlertDialog dialog = builder.setTitle(isNoteTitleEdition? "Set note title" : "Set folder name").setView(layout)
+        AlertDialog dialog;
+        dialog = builder.setTitle(isNoteTitleEdition? "Set note title" : "Set folder name").setView(layout)
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         setNoteTitleOrFolderName(titleEditText.getText().toString());
+                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Utils.showToast(context, "Canceled");
+                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
                     }
                 }).create();
-		dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+		Utils.showOrHideKeyboard(dialog.getWindow(), true);
 		return dialog;
     }
 
