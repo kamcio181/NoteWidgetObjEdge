@@ -1,7 +1,6 @@
 package com.apps.home.notewidget.utils;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
@@ -16,22 +15,22 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Html;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.Toast;
 
 import com.apps.home.notewidget.MainActivity;
-import com.apps.home.notewidget.NoteFragment;
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
-import java.util.Calendar;
 import java.util.concurrent.ExecutionException;
 
 public class Utils {
@@ -96,6 +95,23 @@ public class Utils {
     public static void closeDb(){
         if(db != null && db.isOpen())
             db.close();
+    }
+
+    public static Dialog getMultilevelNoteManualDialog(final Context context){
+        LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
+        View layout = inflater.inflate(R.layout.dialog_multilevel_note_manual, null);
+        final CheckBox checkBox = (CheckBox) layout.findViewById(R.id.checkBox);
+        return new AlertDialog.Builder(context).setTitle("Tip").setView(layout).setCancelable(false).
+                setPositiveButton("I've got it!", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (checkBox.isChecked()) {
+                            if (preferences == null)
+                                preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+                            preferences.edit().putBoolean(Constants.SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG, true).apply();
+                        }
+                    }
+                }).create();
     }
 
     public static Dialog getConfirmationDialog(final Context context, String title, DialogInterface.OnClickListener action){

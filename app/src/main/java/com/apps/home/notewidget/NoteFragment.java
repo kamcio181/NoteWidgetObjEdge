@@ -97,6 +97,10 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        if(!context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).
+                getBoolean(Constants.SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG, false))
+            Utils.getMultilevelNoteManualDialog(context).show();
+
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 

@@ -10,4 +10,6 @@
     <dimen name="app_widget_action_width">24dp</dimen>
     <dimen name="app_widget_action_bar_padding_left">4dp</dimen>
     <dimen name="note_text_padding">10dp</dimen>
+    <dimen name="alert_dialog_horizontal_margin">24dp</dimen>
+    <dimen name="alert_dialog_vertical_margin">20dp</dimen>
 </resources>

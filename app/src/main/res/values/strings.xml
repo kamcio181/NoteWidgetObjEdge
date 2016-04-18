@@ -10,7 +10,10 @@
     <string name="saving_changes">Saving changes</string>
     <string name="note_moved_to_trash">Note moved to trash</string>
     <string name="closed_without_saving">Closed without saving</string>
-
+    <string name="multilevel_note_manual_text">You can use "-", "+" and "*" at beginning of line to
+        create multilevel notes.\nCheck the below example: \n\u0009- first level of note\n\u0009
+        \u0009+ second level of note\n\u0009\u0009\u0009* third level of note\nNote that you can
+        disable tabs in home widgets in Settings"</string>
 
     <string-array name="settings_items">
         <item>Widget configuration</item>
