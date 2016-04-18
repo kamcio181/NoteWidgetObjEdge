@@ -27,7 +27,6 @@ import android.widget.Toast;
 
 import com.apps.home.notewidget.MainActivity;
 import com.apps.home.notewidget.R;
-import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.widget.WidgetProvider;
 

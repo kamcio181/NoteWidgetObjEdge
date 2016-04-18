@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,7 +28,6 @@ import java.util.Calendar;
 public class NoteListFragment extends Fragment {
     private static final String TAG = "NoteListFragment";
     private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
     private RecyclerView recyclerView;
     private OnItemClickListener mListener;
     private SQLiteDatabase db;
@@ -79,8 +79,12 @@ public class NoteListFragment extends Fragment {
 
         folderName = Utils.getFolderName(context, folderId);
 
-        ((AppCompatActivity) context).getSupportActionBar().setTitle(folderName);
-        ((AppCompatActivity)context).getSupportActionBar().setSubtitle("");
+        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
+
+        if(actionBar!=null){
+            actionBar.setTitle(folderName);
+            actionBar.setSubtitle("");
+        }
     }
 
     public void titleChanged(String title){

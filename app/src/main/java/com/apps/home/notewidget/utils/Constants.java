@@ -1,8 +1,5 @@
 package com.apps.home.notewidget.utils;
 
-/**
- * Created by k.kaszubski on 1/20/16.
- */
 public interface Constants {
     String DB_NAME = "database";
     String NOTES_TABLE = "NOTES";

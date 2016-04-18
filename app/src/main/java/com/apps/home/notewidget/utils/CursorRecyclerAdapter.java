@@ -3,9 +3,6 @@ package com.apps.home.notewidget.utils;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 
-/**
- * Created by k.kaszubski on 1/12/16.
- */
 public abstract class CursorRecyclerAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
     protected boolean mDataValid;

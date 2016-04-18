@@ -13,15 +13,11 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Switch;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
 
-/**
- * A simple {@link Fragment} subclass.
- */
 public class SettingsWidgetConfigFragment extends Fragment implements CompoundButton.OnCheckedChangeListener,
         RadioGroup.OnCheckedChangeListener{
     private SharedPreferences preferences;

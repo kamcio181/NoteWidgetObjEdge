@@ -3,9 +3,6 @@ package com.apps.home.notewidget.widget;
 import android.content.Intent;
 import android.widget.RemoteViewsService;
 
-/**
- * Created by Kamil on 2016-01-23.
- */
 public class WidgetService extends RemoteViewsService {
 /**
 * So pretty simple just defining the Adapter of the listview
