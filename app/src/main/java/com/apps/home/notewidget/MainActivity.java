@@ -441,7 +441,7 @@ public class MainActivity extends AppCompatActivity
 		return dialog;
     }
 
-    private Dialog addFolderDialog(){
+    private Dialog addFolderDialog(){ //TODO unify those dialogs
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
@@ -454,15 +454,17 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         addFolderToDb(titleEditText.getText().toString());
+                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Utils.showToast(context, "Canceled");
+                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 }).create();
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        Utils.showOrHideKeyboard(dialog.getWindow(), true);
         return dialog;
     }
 

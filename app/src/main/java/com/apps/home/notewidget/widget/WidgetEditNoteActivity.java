@@ -76,15 +76,17 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         setNoteTitle(titleEditText.getText().toString());
+                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Utils.showToast(context, "Canceled");
+                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
                     }
                 }).create();
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        Utils.showOrHideKeyboard(dialog.getWindow(), true);
         return dialog;
     }
 

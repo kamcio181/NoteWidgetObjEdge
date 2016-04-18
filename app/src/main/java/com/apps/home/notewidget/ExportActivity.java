@@ -155,15 +155,17 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
                             suffix = Integer.toString(i);
                         }
                         new SaveToFile().execute(name + suffix + ".txt");
+                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Utils.showToast(context, "Canceled");
+                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 }).create();
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        Utils.showOrHideKeyboard(dialog.getWindow(), true);
         return dialog;
     }
 
