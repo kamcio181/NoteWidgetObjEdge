@@ -1,21 +1,16 @@
 package com.apps.home.notewidget.widget;
 
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
+
 import com.apps.home.notewidget.NoteFragment;
 import com.apps.home.notewidget.R;
-import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
 
@@ -58,36 +53,15 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setNoteTitleOrFolderNameDialog().show();
+                Utils.getNameDialog(context, getSupportActionBar().getTitle().toString(), "Set note title",
+                        new Utils.OnNameSet() {
+                            @Override
+                            public void onNameSet(String name) {
+                                setNoteTitle(name);
+                            }
+                        }).show();
             }
         };
-    }
-
-    private Dialog setNoteTitleOrFolderNameDialog(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
-        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
-        titleEditText.setText(getSupportActionBar().getTitle().toString());
-        titleEditText.setSelection(0, titleEditText.length());
-
-        AlertDialog dialog = builder.setTitle("Set title").setView(layout)
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setNoteTitle(titleEditText.getText().toString());
-                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(context, "Canceled");
-                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
-                    }
-                }).create();
-        Utils.showOrHideKeyboard(dialog.getWindow(), true);
-        return dialog;
     }
 
     private void setNoteTitle(String title){

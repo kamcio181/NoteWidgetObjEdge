@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.apps.home.notewidget.MainActivity;
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
@@ -131,6 +132,39 @@ public class Utils {
                         Utils.showToast(context, "Canceled");
                     }
                 }).create();
+    }
+
+    public interface OnNameSet {
+        void onNameSet(String name);
+    }
+
+    public static Dialog getNameDialog(final Context context, final String text, String title,
+                                       final OnNameSet action){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
+        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
+        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
+        titleEditText.setText(text);
+        titleEditText.setSelection(0, titleEditText.length());
+        AlertDialog dialog = builder.setTitle(title).setView(layout)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
+                        if(action != null)
+                            action.onNameSet(titleEditText.getText().toString());
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Utils.showToast(context, "Canceled");
+                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
+                    }
+                }).create();
+        Utils.showOrHideKeyboard(dialog.getWindow(), true);
+
+        return dialog;
     }
 
     public static Dialog getFolderListDialog(Context context, Menu menu, int[] exclusions, String title,

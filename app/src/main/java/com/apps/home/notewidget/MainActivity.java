@@ -28,7 +28,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
@@ -199,7 +198,7 @@ public class MainActivity extends AppCompatActivity
                 handleRestoreOrRemoveFromTrashAction(id, true);
                 break;
             case R.id.action_add_nav_folder:
-                addFolderDialog().show();
+                handleAddFolder();
                 break;
             case R.id.action_delete_nav_folder:
                 Utils.getConfirmationDialog(this, "Do you want to delete this folder and all associated notes?",
@@ -349,7 +348,14 @@ public class MainActivity extends AppCompatActivity
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setNoteTitleOrFolderNameDialog().show();
+                Utils.getNameDialog(context, getSupportActionBar().getTitle().toString(),
+                        fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null ? "Set note title" : "Set folder name",
+                        new Utils.OnNameSet() {
+                            @Override
+                            public void onNameSet(String name) {
+                                setNoteTitleOrFolderName(name);
+                            }
+                        }).show();
             }
         };
     }
@@ -401,6 +407,15 @@ public class MainActivity extends AppCompatActivity
         }).create();
     }
 
+    private void handleAddFolder(){
+        Utils.getNameDialog(context, "New folder", "Add folder", new Utils.OnNameSet() {
+            @Override
+            public void onNameSet(String name) {
+                addFolderToDb(name);
+            }
+        }).show();
+    }
+
     private void handleRestoreOrRemoveFromTrashAction(int action, boolean actionBarMenuItemClicked){
         String confirmationTitle = action == R.id.action_delete_from_trash ? "Do you want to delete this note from trash?" :
                 "Do you want to restore this note from trash?";
@@ -411,61 +426,6 @@ public class MainActivity extends AppCompatActivity
         Dialog dialog = Utils.getFolderListDialog(this, navigationView.getMenu(), new int[]{folderId, trashNavId}, "Choose new folder", getMoveNoteToOtherFolderAction(actionBarMenuItemClicked));
         if(dialog != null)
             dialog.show();
-    }
-
-    private Dialog setNoteTitleOrFolderNameDialog(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
-        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
-        titleEditText.setText(getSupportActionBar().getTitle().toString());
-        titleEditText.setSelection(0, titleEditText.length());
-        final boolean isNoteTitleEdition = fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)!=null;
-        AlertDialog dialog;
-        dialog = builder.setTitle(isNoteTitleEdition? "Set note title" : "Set folder name").setView(layout)
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setNoteTitleOrFolderName(titleEditText.getText().toString());
-                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(context, "Canceled");
-                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
-                    }
-                }).create();
-		Utils.showOrHideKeyboard(dialog.getWindow(), true);
-		return dialog;
-    }
-
-    private Dialog addFolderDialog(){ //TODO unify those dialogs
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
-        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
-        titleEditText.setText("New folder");
-        titleEditText.setSelection(0, titleEditText.length());
-
-        AlertDialog dialog = builder.setTitle("Add folder").setView(layout)
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        addFolderToDb(titleEditText.getText().toString());
-                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(context, "Canceled");
-                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
-                    }
-                }).create();
-        Utils.showOrHideKeyboard(dialog.getWindow(), true);
-        return dialog;
     }
 
     private void addFolderToNavView(int id, String name, int icon){
