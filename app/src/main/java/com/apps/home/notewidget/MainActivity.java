@@ -464,7 +464,7 @@ public class MainActivity extends AppCompatActivity
                     count);
             cursor.moveToNext();
         }
-
+        cursor.close();
         navigationView.setCheckedItem(folderId);
     }
 
