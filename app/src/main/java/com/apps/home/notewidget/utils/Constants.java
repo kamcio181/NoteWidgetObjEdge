@@ -34,8 +34,9 @@ public interface Constants {
     String SEARCH_IN_CONTENT = "contentSearch";
     String IGNORE_TABS_IN_WIDGETS_KEY = "ignoreTabsInWidget";
     String NOTE_TEXT_SIZE_KEY = "noteTextSize";
-    String STARTING_FOLDER = "startingFolder";
-    String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG = "skipMultilevelNoteManualDialog";
+    String STARTING_FOLDER_KEY = "startingFolder";
+    String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
+    String RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY = "reloadMainActivityAfterRestore";
 
     String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";
     String NOTE_TEXT_SIZE_UPDATED = "noteTextSizeUpdated";
@@ -45,7 +46,8 @@ public interface Constants {
     String FRAGMENT_TRASH_NOTE = "TrashNoteFragment";
     String FRAGMENT_SEARCH = "SearchFragment";
     String FRAGMENT_SETTINGS_LIST = "SettingsListFragment";
-    String FRAGMENT_SETTINGS_WIDGET_CONFIG = "SettingsWidgetConfig";
+    String FRAGMENT_SETTINGS_WIDGET_CONFIG = "SettingsWidgetConfigFragment";
+    String FRAGMENT_SETTINGS_RESTORE_LIST = "SettingsRestoreListFragment";
 
     int WIDGET_MODE_TITLE = 0;
     int WIDGET_MODE_CONFIG = 1;

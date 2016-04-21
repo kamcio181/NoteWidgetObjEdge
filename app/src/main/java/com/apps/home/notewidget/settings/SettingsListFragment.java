@@ -29,7 +29,7 @@ public class SettingsListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         context = getActivity();
-
+        ((AppCompatActivity)context).invalidateOptionsMenu();
         return inflater.inflate(R.layout.fragment_note_list, container, false);
     }
 

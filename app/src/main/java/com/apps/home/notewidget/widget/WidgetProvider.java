@@ -123,17 +123,19 @@ public class WidgetProvider extends AppWidgetProvider {
                             Constants.CURRENT_THEME_MODE_COL, Constants.CURRENT_TEXT_SIZE_COL},
                     Constants.WIDGET_ID_COL + " = ?", new String[]{Integer.toString(widgetId)},
                     null, null, null);
-            configCursor.moveToFirst();
+            if(configCursor.getCount()>0) {
+                configCursor.moveToFirst();
+                currentTextSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL));
+                currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL));
+                currentWidgetMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE_COL));
 
-            noteCursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.NOTE_TITLE_COL},
-                    Constants.ID_COL + " = ? AND " + Constants.DELETED_COL + " = ?", new String[]{Integer.toString(
-                            configCursor.getInt(configCursor.getColumnIndexOrThrow(
-                                    Constants.CONNECTED_NOTE_ID_COL))), "0"}, null, null, null);
-            noteCursor.moveToFirst();
-
-            currentTextSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL));
-            currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL));
-            currentWidgetMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE_COL));
+                noteCursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.NOTE_TITLE_COL},
+                        Constants.ID_COL + " = ? AND " + Constants.DELETED_COL + " = ?", new String[]{Integer.toString(
+                                configCursor.getInt(configCursor.getColumnIndexOrThrow(
+                                        Constants.CONNECTED_NOTE_ID_COL))), "0"}, null, null, null);
+                if (noteCursor.getCount() > 0)
+                    noteCursor.moveToFirst();
+            }
         }
     }
 
@@ -196,7 +198,7 @@ public class WidgetProvider extends AppWidgetProvider {
         getCursors(context, appWidgetId);
         RemoteViews views;
 
-        if(noteCursor.getCount()>0){
+        if(configCursor.getCount()>0 && noteCursor.getCount()>0){
             Log.e("provider", "themeMode " + currentThemeMode + " widgetMode "+currentWidgetMode);
             views = new RemoteViews(context.getPackageName(), Utils.getLayoutFile(context, currentThemeMode, currentWidgetMode));
 

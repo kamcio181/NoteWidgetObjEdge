@@ -203,7 +203,7 @@ public class NoteListFragment extends Fragment {
 
 class NotesCursorRecyclerAdapter extends CursorRecyclerAdapter<NotesCursorRecyclerAdapter.DoubleLineViewHolder>{
     private Calendar calendar;
-    private NotesCursorRecyclerAdapter.OnItemClickListener listener;
+    private static NotesCursorRecyclerAdapter.OnItemClickListener listener;
 
     public interface OnItemClickListener{
         void onItemClick(View view, int position, boolean longClick);
@@ -233,7 +233,7 @@ class NotesCursorRecyclerAdapter extends CursorRecyclerAdapter<NotesCursorRecycl
         return new DoubleLineViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_recycle_view_item, parent, false));
     }
 
-    class DoubleLineViewHolder extends RecyclerView.ViewHolder{
+    static class DoubleLineViewHolder extends RecyclerView.ViewHolder{
         public RobotoTextView titleTextView, subtitleTextView;
 
         public DoubleLineViewHolder(final View itemView){

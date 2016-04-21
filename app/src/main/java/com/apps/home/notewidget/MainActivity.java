@@ -29,7 +29,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
@@ -72,8 +71,9 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG, "my notes id " + myNotesNavId);
         trashNavId = Utils.getTrashNavId(this);
         Log.e(TAG, "trash id " + trashNavId);
-        folderId = preferences.getInt(Constants.STARTING_FOLDER, Utils.getMyNotesNavId(context));
-        preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();//reset flag
+        folderId = preferences.getInt(Constants.STARTING_FOLDER_KEY, Utils.getMyNotesNavId(context));
+        preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)
+        .putBoolean(Constants.RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY, false).apply();//reset flag
 
         Utils.hideShadowSinceLollipop(this);
 
@@ -88,8 +88,13 @@ public class MainActivity extends AppCompatActivity
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        attachFragment(Constants.FRAGMENT_LIST);
 
+        loadNavViewItems();
+    }
+
+    private void reloadMainActivityAfterRestore(){
+        folderId = myNotesNavId;
+        attachFragment(Constants.FRAGMENT_LIST);
         loadNavViewItems();
     }
 
@@ -137,24 +142,26 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        switch (fragmentManager.findFragmentById(R.id.container).getTag()){
-            case Constants.FRAGMENT_SEARCH:
-                getMenuInflater().inflate(R.menu.menu_empty, menu);
-                break;
-            case Constants.FRAGMENT_LIST:
-                if(folderId == myNotesNavId)
-                    getMenuInflater().inflate(R.menu.menu_my_notes_list, menu);
-                else if (folderId == trashNavId)
-                    getMenuInflater().inflate(R.menu.menu_trash, menu);
-                else
-                    getMenuInflater().inflate(R.menu.menu_folder_list, menu);
-                break;
-            case Constants.FRAGMENT_NOTE:
-                getMenuInflater().inflate(R.menu.menu_note, menu);
-                break;
-            case Constants.FRAGMENT_TRASH_NOTE:
-                getMenuInflater().inflate(R.menu.menu_note_trash, menu);
-                break;
+        if(fragmentManager.findFragmentById(R.id.container) != null) {
+            switch (fragmentManager.findFragmentById(R.id.container).getTag()) {
+                case Constants.FRAGMENT_SEARCH:
+                    getMenuInflater().inflate(R.menu.menu_empty, menu);
+                    break;
+                case Constants.FRAGMENT_LIST:
+                    if (folderId == myNotesNavId)
+                        getMenuInflater().inflate(R.menu.menu_my_notes_list, menu);
+                    else if (folderId == trashNavId)
+                        getMenuInflater().inflate(R.menu.menu_trash, menu);
+                    else
+                        getMenuInflater().inflate(R.menu.menu_folder_list, menu);
+                    break;
+                case Constants.FRAGMENT_NOTE:
+                    getMenuInflater().inflate(R.menu.menu_note, menu);
+                    break;
+                case Constants.FRAGMENT_TRASH_NOTE:
+                    getMenuInflater().inflate(R.menu.menu_note_trash, menu);
+                    break;
+            }
         }
         return true;
     }
@@ -465,7 +472,13 @@ public class MainActivity extends AppCompatActivity
             cursor.moveToNext();
         }
         cursor.close();
+
+        if(menu.findItem(folderId) == null)
+            folderId = myNotesNavId;
+
         navigationView.setCheckedItem(folderId);
+
+        attachFragment(Constants.FRAGMENT_LIST);
     }
 
     private void addMenuCustomItem(Menu m, int id, int order, String name, int icon, int count){
@@ -559,7 +572,7 @@ public class MainActivity extends AppCompatActivity
                 getSupportActionBar().setTitle("Search");
                 break;
         }
-        fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).commitAllowingStateLoss();
         if(fabVisible)
             fab.show();
         else
@@ -594,19 +607,23 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onRestart() {
         super.onRestart();
-        if(preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
-            if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).reloadNote();
-            else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
-                ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-            else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE) != null)
-                ((TrashNoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE)).reloadNote();
-            preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();
-        }
-        if(preferences.getBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false)){
-            if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).updateNoteTextSize();
-            preferences.edit().putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false).apply();
+        if(preferences.getBoolean(Constants.RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY, false))
+            reloadMainActivityAfterRestore();
+        else {
+            if (preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
+                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+                    ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).reloadNote();
+                else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
+                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE) != null)
+                    ((TrashNoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE)).reloadNote();
+                preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();
+            }
+            if (preferences.getBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false)) {
+                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+                    ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).updateNoteTextSize();
+                preferences.edit().putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false).apply();
+            }
         }
     }
 
@@ -784,6 +801,8 @@ public class MainActivity extends AppCompatActivity
                 Utils.showToast(context, "Folder and all associated notes were removed");
                 Utils.updateAllWidgets(context);
                 removeMenuItem(navigationView.getMenu(), folderId);
+                if(preferences.getInt(Constants.STARTING_FOLDER_KEY,-1) == folderId)
+                    preferences.edit().remove(Constants.STARTING_FOLDER_KEY).apply();
                 openFolderWithNotes(myNotesNavId);
             }
         }

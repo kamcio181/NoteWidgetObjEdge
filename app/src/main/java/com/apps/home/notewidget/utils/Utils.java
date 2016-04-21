@@ -15,6 +15,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -33,6 +34,7 @@ import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
+import java.io.File;
 import java.util.concurrent.ExecutionException;
 
 public class Utils {
@@ -106,6 +108,18 @@ public class Utils {
             db.close();
     }
 
+    public static File getBackupDir(Context context){
+        return new File(Environment.getExternalStorageDirectory() + "/backup/" + context.getPackageName());
+    }
+
+    public static File getPrefsFile(Context context){
+        return new File(context.getApplicationInfo().dataDir +"/shared_prefs/", Constants.PREFS_NAME + ".xml");
+    }
+
+    public static File getDbFile(Context context){
+        return context.getDatabasePath(Constants.DB_NAME);
+    }
+
     public static Dialog getMultilevelNoteManualDialog(final Context context){
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_multilevel_note_manual, null);
@@ -117,7 +131,7 @@ public class Utils {
                         if (checkBox.isChecked()) {
                             if (preferences == null)
                                 preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-                            preferences.edit().putBoolean(Constants.SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG, true).apply();
+                            preferences.edit().putBoolean(Constants.SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY, true).apply();
                         }
                     }
                 }).create();
@@ -246,6 +260,10 @@ public class Utils {
 
     public static int getFolderId(int which){
         return idArray[which];
+    }
+
+    public static void clearWidgetsTable(Context context, FinishListener finishListener){
+        new ClearWidgetsTable(context, finishListener).execute();
     }
 
     public static void updateAllWidgets(Context context){
@@ -450,6 +468,35 @@ public class Utils {
                     incrementFolderCount(menu, folderId, 1);
                 }
             }
+            if(finishListener!= null)
+                finishListener.onFinished(result);
+        }
+    }
+
+    private static class ClearWidgetsTable extends AsyncTask<Void,Void,Boolean>
+    {
+        private final FinishListener finishListener;
+        private Context context;
+
+        private ClearWidgetsTable(Context context, FinishListener finishListener) {
+            this.context = context;
+            this.finishListener = finishListener;
+        }
+        @Override
+        protected Boolean doInBackground(Void[] p1)
+        {
+            if((db = Utils.getDb(context)) != null) {
+                db.execSQL("delete from " + Constants.WIDGETS_TABLE);
+                return true;
+            } else
+                return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result)
+        {
+            super.onPostExecute(result);
+
             if(finishListener!= null)
                 finishListener.onFinished(result);
         }

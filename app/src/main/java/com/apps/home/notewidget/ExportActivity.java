@@ -290,9 +290,9 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
     }
 }
 class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>{
-    private RecyclerViewAdapter.OnItemClickListener listener;
-    private ArrayList<String> items;
-    private int dirsCount;
+    private static RecyclerViewAdapter.OnItemClickListener listener;
+    private static ArrayList<String> items;
+    private static int dirsCount;
 
     public interface OnItemClickListener{
         void onItemClick(boolean isDir, String item);
@@ -329,7 +329,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
         return items.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder{
+    static class ViewHolder extends RecyclerView.ViewHolder{
         public RobotoTextView titleTextView;
         public ImageView icon;
 

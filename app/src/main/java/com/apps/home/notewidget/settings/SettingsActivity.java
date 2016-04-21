@@ -4,15 +4,17 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.NumberPicker;
@@ -30,18 +32,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Calendar;
 
-public class SettingsActivity extends AppCompatActivity implements SettingsListFragment.OnItemClickListener { //TODO use empty layout as container for fragments
+public class SettingsActivity extends AppCompatActivity implements SettingsListFragment.OnItemClickListener,
+        SettingsRestoreListFragment.OnItemClickListener{ //TODO use empty layout as container for fragments
     private Context context;
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.content_main);
+        setContentView(R.layout.activity_settings);
         context = this;
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         Utils.hideShadowSinceLollipop(this);
 
@@ -56,7 +62,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
     @Override
     public void onBackPressed() {
-        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_WIDGET_CONFIG) != null)
+        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_WIDGET_CONFIG) != null
+                || fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_RESTORE_LIST) != null)
             fragmentManager.beginTransaction().replace(R.id.container,
                     new SettingsListFragment(), Constants.FRAGMENT_SETTINGS_LIST).commit();
         else
@@ -64,12 +71,36 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        switch (fragmentManager.findFragmentById(R.id.container).getTag()){
+            case Constants.FRAGMENT_SETTINGS_RESTORE_LIST:
+                getMenuInflater().inflate(R.menu.menu_settings_restore, menu);
+                break;
+            default:
+                getMenuInflater().inflate(R.menu.menu_empty, menu);
+                break;
+        }
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+        switch (item.getItemId()){
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            case R.id.action_help:
+                getRestoreHelpDialog().show();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private Dialog getRestoreHelpDialog(){
+        return new AlertDialog.Builder(context).setTitle("Help").setMessage("Backups have to be placed in below folder in internal memory\n"+
+        "backup/" + getPackageName() + "/").setPositiveButton("I've got it!", null).create();
     }
 
     private Dialog getNoteSizeDialog(){
@@ -116,7 +147,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                         getBackupDialog().show();
                         break;
                     case 1:
-                        //TODO restore dialog
+                        getRestoreDialog().show();
                         break;
                 }
             }
@@ -125,7 +156,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
     private Dialog getBackupDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        return builder.setItems(new CharSequence[]{"Data", "Settings", "Both"}, new DialogInterface.OnClickListener() {
+        return builder.setTitle("Backup").setItems(new CharSequence[]{"Data", "Settings", "Data and settings"}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
@@ -139,6 +170,17 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                         new BackupData().execute(2);
                         break;
                 }
+            }
+        }).create();
+    }
+
+    private Dialog getRestoreDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        return builder.setTitle("Restore").setItems(new CharSequence[]{"Data", "Settings"}, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                fragmentManager.beginTransaction().replace(R.id.container,
+                        SettingsRestoreListFragment.newInstance(which == 0), Constants.FRAGMENT_SETTINGS_RESTORE_LIST).commit();
             }
         }).create();
     }
@@ -157,7 +199,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 Dialog dialog = Utils.getAllFolderListDialog(context, "Choose starting folder", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        preferences.edit().putInt(Constants.STARTING_FOLDER, Utils.getFolderId(which)).apply();
+                        preferences.edit().putInt(Constants.STARTING_FOLDER_KEY, Utils.getFolderId(which)).apply();
                         Utils.showToast(context, "Starting folder was set");
                     }
                 });
@@ -165,10 +207,12 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                     dialog.show();
                 break;
             case 3:
-                //getBackupOrRestoreDialog().show();
+                getBackupOrRestoreDialog().show();
                 break;
         }
     }
+
+
 
     private void copy(File src, File dst) throws IOException{
         InputStream in = new FileInputStream(src);
@@ -184,6 +228,20 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
         out.close();
     }
 
+    @Override
+    public void onItemClicked(final boolean dbRestore, final File file) {
+        String message = dbRestore? "Warning! This action will replace your current database and all" +
+                " current notes and folders will be lost.\n" + "Do you want to continue?" :
+                "Warning! This action will replace your current settings and all current configuration will be lost.\n" +
+                        "Do you want to continue?";
+        Utils.getConfirmationDialog(context, message, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                new RestoreData(file, dbRestore).execute();
+            }
+        }).show();
+    }
+
     private class BackupData extends AsyncTask<Integer,Void, Boolean>{
 
         @Override
@@ -191,25 +249,29 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
             Calendar calendar = Calendar.getInstance();
 
-            File database = getDatabasePath(Constants.DB_NAME);
-            File backupDir = new File(Environment.getExternalStorageDirectory() + "/backup/" + getPackageName());
+            File database = Utils.getDbFile(context);
+            File backupDir = Utils.getBackupDir(context);
+            File config = Utils.getPrefsFile(context);
 
-            File config = new File(getApplicationInfo().dataDir +"/shared_prefs/", Constants.PREFS_NAME + ".xml");
+            boolean dirExists = true;
 
             if(!backupDir.exists())
-                backupDir.mkdirs();
+                dirExists = backupDir.mkdirs();
 
-            try{
-                if(params[0] == 0 || params[0] == 2)
-                    copy(database, new File(backupDir, calendar.getTimeInMillis() + "_db.bak"));
-                if(params[0] == 1 || params[0] == 2)
-                    copy(config, new File(backupDir, calendar.getTimeInMillis() + "_cfg.bak"));
+            if(dirExists) {
+                try {
+                    if (params[0] == 0 || params[0] == 2)
+                        copy(database, new File(backupDir, calendar.getTimeInMillis() + "_db.bak"));
+                    if (params[0] == 1 || params[0] == 2)
+                        copy(config, new File(backupDir, calendar.getTimeInMillis() + "_cfg.bak"));
 
-            } catch (IOException e){
-                Log.e("Setting", "" + e);
+                } catch (IOException e) {
+                    Log.e("Setting", "" + e);
+                    return false;
+                }
+                return true;
+            } else
                 return false;
-            }
-            return true;
         }
 
         @Override
@@ -217,8 +279,65 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
             super.onPostExecute(aBoolean);
 
             if(aBoolean)
-                Utils.showToast(context, "Backup finished");
+                Utils.showToast(context, "Backup saved to:\nbackup/" + getPackageName() + "/");
             else
+                Utils.showToast(context, "Failed");
+        }
+    }
+
+    private class RestoreData extends AsyncTask<Void,Void, Boolean>{
+        private File backupFile;
+        private boolean dbRestore;
+
+        public RestoreData(File backupFile, boolean dbRestore){
+            this.backupFile = backupFile;
+            this.dbRestore = dbRestore;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            File database = Utils.getDbFile(context);
+            File config = Utils.getPrefsFile(context);
+
+            try {
+                if (dbRestore)
+                    copy(backupFile, database);
+                else
+                    copy(backupFile, config);
+
+
+            } catch (IOException e) {
+                Log.e("Setting", "" + e);
+                return false;
+            }
+            return true;
+            }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+
+            if(aBoolean) {
+                if (dbRestore) {
+                    Utils.showToast(context, "Notes restored");
+                    Utils.clearWidgetsTable(context, new Utils.FinishListener() {
+                        @Override
+                        public void onFinished(boolean result) {
+                            preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
+                                    .putBoolean(Constants.RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY, true).apply();
+                            Utils.updateAllWidgets(context);
+                            onBackPressed();
+                        }
+                    });
+                } else {
+                    Utils.showToast(context, "Settings restored");
+                    preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
+                            .putBoolean(Constants.RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY, true).apply();
+                    Utils.updateAllWidgets(context);
+                    onBackPressed();
+                }
+            } else
                 Utils.showToast(context, "Failed");
         }
     }

@@ -246,7 +246,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
     }
 }
 class SearchCursorRecyclerAdapter extends CursorRecyclerAdapter<SearchCursorRecyclerAdapter.DoubleLineViewHolder> {
-    private SearchCursorRecyclerAdapter.OnItemClickListener listener;
+    private static SearchCursorRecyclerAdapter.OnItemClickListener listener;
     private boolean searchInTitle;
     private boolean searchInContent;
     private String textToFind;
@@ -293,7 +293,7 @@ class SearchCursorRecyclerAdapter extends CursorRecyclerAdapter<SearchCursorRecy
         return new DoubleLineViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_recycle_view_item, parent, false));
     }
 
-    class DoubleLineViewHolder extends RecyclerView.ViewHolder{
+    static class DoubleLineViewHolder extends RecyclerView.ViewHolder{
         public RobotoTextView titleTextView, subtitleTextView;
 
         public DoubleLineViewHolder(final View itemView){
