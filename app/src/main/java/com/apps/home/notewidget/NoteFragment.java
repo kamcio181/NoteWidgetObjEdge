@@ -112,7 +112,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
             reloadNote();
         } else {
             Log.e(TAG, "skip new " +skipTextCheck);
-            setTitleAndSubtitle("Untitled", 0);
+            setTitleAndSubtitle(getString(R.string.untitled), 0);
             //showSoftKeyboard(0);
         }
     }
@@ -212,7 +212,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
 
     public String getNoteText(){
         if(noteEditText.getText().length() == 0) {
-            Utils.showToast(context, "Note is empty or was not loaded yet");
+            Utils.showToast(context, context.getString(R.string.note_is_empty_or_was_not_loaded_yet));
         }
         return noteEditText.getText().toString();
     }

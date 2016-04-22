@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity
                     if(!exit){
                         exit = true;
                         handler.postDelayed(exitRunnable, 5000);
-                        Utils.showToast(this, "Press back button again to exit");
+                        Utils.showToast(this, getString(R.string.press_back_button_again_to_exit));
                     } else {
                         //Exit flag reset and canceling exit runnable in onStop method to handle home button presses
                         super.onBackPressed();
@@ -196,8 +196,8 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.action_delete_all:
             case R.id.action_restore_all:
-                confirmationTitle = id == R.id.action_delete_all ? "Do you want to delete all notes?" :
-                        "Do you want to restore all notes?";
+                confirmationTitle = id == R.id.action_delete_all ? getString(R.string.do_you_want_to_delete_all_notes) :
+                        getString(R.string.do_you_want_to_restore_all_notes);
                 Utils.getConfirmationDialog(this, confirmationTitle, getRestoreOrRemoveAllNotesFromTrashAction(id)).show();
                 break;
             case R.id.action_delete_from_trash:
@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity
                 handleAddFolder();
                 break;
             case R.id.action_delete_nav_folder:
-                Utils.getConfirmationDialog(this, "Do you want to delete this folder and all associated notes?",
+                Utils.getConfirmationDialog(this, getString(R.string.do_you_want_to_delete_this_folder_and_all_associated_notes),
                         getRemoveFolderAndAllNotesAction()).show();
                 break;
             case R.id.action_move_to_other_folder:
@@ -375,7 +375,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 Utils.getNameDialog(context, getSupportActionBar().getTitle().toString(),
-                        fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null ? "Set note title" : "Set folder name",
+                        fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null ? getString(R.string.set_note_title) : getString(R.string.set_folder_name),
                         new Utils.OnNameSet() {
                             @Override
                             public void onNameSet(String name) {
@@ -388,8 +388,8 @@ public class MainActivity extends AppCompatActivity
 
     private Dialog getNoteActionDialog(){
         final boolean trashFolder = folderId == Utils.getTrashNavId(context);
-        String[] items = trashFolder? new String[]{"Restore", "Delete"}
-                : new String[]{"Open", "Share", "Move to other folder", "Move to trash"};
+        String[] items = trashFolder? new String[]{getString(R.string.restore), getString(R.string.delete)}
+                : new String[]{getString(R.string.open), getString(R.string.share), getString(R.string.move_to_other_folder), getString(R.string.move_to_trash)};
 
         return new AlertDialog.Builder(this).setItems(items, new DialogInterface.OnClickListener() {
             @Override
@@ -434,7 +434,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handleAddFolder(){
-        Utils.getNameDialog(context, "New folder", "Add folder", new Utils.OnNameSet() {
+        Utils.getNameDialog(context, getString(R.string.new_folder), getString(R.string.add_folder), new Utils.OnNameSet() {
             @Override
             public void onNameSet(String name) {
                 addFolderToDb(name);
@@ -443,13 +443,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handleRestoreOrRemoveFromTrashAction(int action, boolean actionBarMenuItemClicked){
-        String confirmationTitle = action == R.id.action_delete_from_trash ? "Do you want to delete this note from trash?" :
-                "Do you want to restore this note from trash?";
+        String confirmationTitle = action == R.id.action_delete_from_trash ? getString(R.string.do_you_want_to_delete_this_note_from_trash) :
+                getString(R.string.do_you_want_to_restore_this_note_from_trash);
         Utils.getConfirmationDialog(this, confirmationTitle, getRestoreOrRemoveNoteFromTrashAction(action, actionBarMenuItemClicked)).show();
     }
 
     private void handleNoteMoveAction(boolean actionBarMenuItemClicked){
-        Dialog dialog = Utils.getFolderListDialog(this, navigationView.getMenu(), new int[]{folderId, trashNavId}, "Choose new folder", getMoveNoteToOtherFolderAction(actionBarMenuItemClicked));
+        Dialog dialog = Utils.getFolderListDialog(this, navigationView.getMenu(), new int[]{folderId, trashNavId}, getString(R.string.choose_new_folder), getMoveNoteToOtherFolderAction(actionBarMenuItemClicked));
         if(dialog != null)
             dialog.show();
     }
@@ -531,7 +531,7 @@ public class MainActivity extends AppCompatActivity
 
     private String setTitle(String title){
         if(title.equals(""))
-            title = "Untitled";
+            title = getString(R.string.untitled);
         else
             title = Utils.capitalizeFirstLetter(title);
         getSupportActionBar().setTitle(title);
@@ -588,7 +588,7 @@ public class MainActivity extends AppCompatActivity
             case Constants.FRAGMENT_SEARCH:
                 setOnTitleClickListener(false);
                 fragmentToAttach = SearchFragment.newInstance(textToFind);
-                getSupportActionBar().setTitle("Search");
+                getSupportActionBar().setTitle(R.string.search);
                 break;
         }
         fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).commitAllowingStateLoss();
@@ -704,7 +704,7 @@ public class MainActivity extends AppCompatActivity
             if((db = Utils.getDb(context)) != null) {
                 name = p1[0];
                 if(name.equals(""))
-                    name = "New folder";
+                    name = getString(R.string.new_folder);
                 else
                     name = Utils.capitalizeFirstLetter(name);
                 contentValues.put(Constants.FOLDER_NAME_COL, name);
@@ -721,7 +721,7 @@ public class MainActivity extends AppCompatActivity
         {
             if(result){
                 addFolderToNavView(id, name, R.drawable.ic_nav_black_folder);
-                Utils.showToast(context, "Folder was added");
+                Utils.showToast(context, getString(R.string.folder_was_added));
             }
             super.onPostExecute(result);
         }
@@ -768,7 +768,7 @@ public class MainActivity extends AppCompatActivity
             if(result){
                 Utils.setFolderCount(getNavigationViewMenu(), Utils.getTrashNavId(context), 0); //Set count to 0 for trash
                 if(action == R.id.action_delete_all) {
-                    Utils.showToast(context, "All notes were removed");
+                    Utils.showToast(context, getString(R.string.all_notes_were_removed));
                 } else {
                     Utils.updateAllWidgets(context);
                     if(cursor.getCount()>0) { //check if trash is empty
@@ -779,7 +779,7 @@ public class MainActivity extends AppCompatActivity
                         } while (cursor.moveToNext());
                     }
                     cursor.close();
-                    Utils.showToast(context, "All notes were restored");
+                    Utils.showToast(context, getString(R.string.all_notes_were_restored));
                 }
                 ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
             }
@@ -817,7 +817,7 @@ public class MainActivity extends AppCompatActivity
         {
             super.onPostExecute(result);
             if(result){
-                Utils.showToast(context, "Folder and all associated notes were removed");
+                Utils.showToast(context, getString(R.string.folder_and_all_associated_notes_were_removed));
                 Utils.updateAllWidgets(context);
                 removeMenuItem(navigationView.getMenu(), folderId);
                 if(preferences.getInt(Constants.STARTING_FOLDER_KEY,-1) == folderId)

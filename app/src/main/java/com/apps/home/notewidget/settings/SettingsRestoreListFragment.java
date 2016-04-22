@@ -67,7 +67,7 @@ public class SettingsRestoreListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        String title = dbRestore? "Restore data" : "Restore settings";
+        String title = dbRestore? context.getString(R.string.restore_data) : context.getString(R.string.restore_settings);
 
         ((AppCompatActivity)context).getSupportActionBar().setTitle(title);
         recyclerView = (RecyclerView) view;
@@ -173,8 +173,7 @@ public class SettingsRestoreListFragment extends Fragment {
                     (recyclerView.getAdapter()).notifyDataSetChanged();
                 }
             } else{
-                Utils.showToast(context, "Backup folder is empty. Please push question mark to check " +
-                        "where backup should be placed");
+                Utils.showToast(context, context.getString(R.string.backup_folder_is_empty_please_push_question_mark_to_check_where_backup_should_be_placed));
             }
         }
     }

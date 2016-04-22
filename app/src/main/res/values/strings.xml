@@ -14,6 +14,63 @@
         create multilevel notes.\nCheck the below example: \n\u0009- first level of note\n\u0009
         \u0009+ second level of note\n\u0009\u0009\u0009* third level of note\nNote that you can
         disable tabs in home widgets in Settings"</string>
+    <string name="press_back_button_again_to_exit">Press back button again to exit</string>
+    <string name="set_file_name">Set file name</string>
+    <string name="confirm">Confirm</string>
+    <string name="untitled">Untitled</string>
+    <string name="cancel">Cancel</string>
+    <string name="canceled">Canceled</string>
+    <string name="you_are_not_allowed_to_write_in_this_folder">You are not allowed to write in this folder</string>
+    <string name="do_you_want_to_override_this_file">Do you want to override this file?</string>
+    <string name="failed">Failed</string>
+    <string name="do_you_want_to_delete_all_notes">Do you want to delete all notes?</string>
+    <string name="do_you_want_to_restore_all_notes">Do you want to restore all notes?</string>
+    <string name="do_you_want_to_delete_this_folder_and_all_associated_notes">Do you want to delete this folder and all associated notes?</string>
+    <string name="set_note_title">Set note title</string>
+    <string name="set_folder_name">Set folder name</string>
+    <string name="restore">Restore</string>
+    <string name="delete">Delete</string>
+    <string name="open">Open</string>
+    <string name="share">Share</string>
+    <string name="move_to_other_folder">Move to other folder</string>
+    <string name="move_to_trash">Move to trash</string>
+    <string name="new_folder">New folder</string>
+    <string name="add_folder">Add folder</string>
+    <string name="do_you_want_to_delete_this_note_from_trash">Do you want to delete this note from trash?</string>
+    <string name="choose_new_folder">Choose new folder</string>
+    <string name="do_you_want_to_restore_this_note_from_trash">Do you want to restore this note from trash?</string>
+    <string name="search">Search</string>
+    <string name="folder_was_added">Folder was added</string>
+    <string name="all_notes_were_removed">All notes were removed</string>
+    <string name="all_notes_were_restored">All notes were restored</string>
+    <string name="folder_and_all_associated_notes_were_removed">Folder and all associated notes were removed</string>
+    <string name="note_is_empty_or_was_not_loaded_yet">Note is empty or was not loaded yet</string>
+    <string name="choose_search_mode">Choose search mode</string>
+    <string name="help">Help</string>
+    <string name="backups_have_to_be_placed_in_below_folder_in_internal_memory">Backups have to be placed in below folder in internal memory\n</string>
+    <string name="i_have_got_it">I\'ve got it!</string>
+    <string name="set_note_text_size">Set note text size</string>
+    <string name="text_size_changed">Text size changed</string>
+    <string name="backup">Backup</string>
+    <string name="data">Data</string>
+    <string name="settings">Settings</string>
+    <string name="data_and_settings">Data and settings</string>
+    <string name="choose_starting_folder">Choose starting folder</string>
+    <string name="starting_folder_was_set">Starting folder was set</string>
+    <string name="warning_this_action_will_replace_your_current_database_and_all_current_notes_and_folders_will_be_lost">Warning! This action will replace your current database and all notes and folders will be lost.\n</string>
+    <string name="warning_this_action_will_replace_your_current_settings_and_all_current_configuration_will_be_lost">Warning! This action will replace your current settings and all current configuration will be lost.\n</string>
+    <string name="do_you_want_to_continue">Do you want to continue?</string>
+    <string name="backup_saved_to">Backup saved to:\n</string>
+    <string name="notes_restored">Notes restored</string>
+    <string name="settings_restored">Settings restored</string>
+    <string name="restore_data">Restore data</string>
+    <string name="restore_settings">Restore settings</string>
+    <string name="backup_folder_is_empty_please_push_question_mark_to_check_where_backup_should_be_placed">Backup folder is empty. Please push question mark to check where backup should be placed</string>
+    <string name="widget_configuration">Widget configuration</string>
+    <string name="database_unavailable">Database unavailable</string>
+    <string name="tip">Tip</string>
+    <string name="put_password">Put password</string>
+    <string name="you_have_only_one_folder">You have only one folder</string>
 
     <string-array name="settings_items">
         <item>Widget configuration</item>

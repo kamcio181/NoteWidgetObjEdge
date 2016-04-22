@@ -37,7 +37,7 @@ public class SettingsListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ((AppCompatActivity)context).getSupportActionBar().setTitle("Settings");
+        ((AppCompatActivity)context).getSupportActionBar().setTitle(getString(R.string.settings));
         items = context.getResources().getStringArray(R.array.settings_items);
 
         recyclerView = (RecyclerView) view;

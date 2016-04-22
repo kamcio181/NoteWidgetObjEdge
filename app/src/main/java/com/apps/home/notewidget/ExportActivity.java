@@ -107,7 +107,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
             if(!exit){
                 exit = true;
                 handler.postDelayed(exitRunnable, 5000);
-                Utils.showToast(this, "Press back button again to exit");
+                Utils.showToast(this, getString(R.string.press_back_button_again_to_exit));
             } else {
                 finish();
             }
@@ -142,11 +142,11 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         titleEditText.setText(title);
         titleEditText.setSelection(0, titleEditText.length());
 
-        AlertDialog dialog = builder.setTitle("Set file name").setView(layout)
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+        AlertDialog dialog = builder.setTitle(getString(R.string.set_file_name)).setView(layout)
+                .setPositiveButton(getString(R.string.confirm), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String name = titleEditText.getText().toString().length() == 0 ? "Untitled"
+                        String name = titleEditText.getText().toString().length() == 0 ? getString(R.string.untitled)
                                 : titleEditText.getText().toString();
                         int i = 0;
                         String suffix = "";
@@ -158,10 +158,10 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
                         Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(context, "Canceled");
+                        Utils.showToast(context, getString(R.string.canceled));
                         Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 }).create();
@@ -176,7 +176,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
                 if(new File(path).canWrite())
                     setFileName().show();
                 else
-                    Utils.showToast(this, "You are not allowed to write in this folder");
+                    Utils.showToast(this, getString(R.string.you_are_not_allowed_to_write_in_this_folder));
                 break;
         }
     }
@@ -229,9 +229,9 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
                                     path = path + item;
                                     new GetFiles().execute();
                                 } else
-                                    Utils.showToast(context, "You are not allowed to view this folder");
+                                    Utils.showToast(context, getString(R.string.you_are_not_allowed_to_write_in_this_folder));
                             } else {
-                                Utils.getConfirmationDialog(context, "Do you want to override this file?",
+                                Utils.getConfirmationDialog(context, getString(R.string.do_you_want_to_override_this_file),
                                         getFileOverrideAction(item+".txt")).show();
                             }
                         }
@@ -270,11 +270,11 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
             super.onPostExecute(aBoolean);
 
             if(aBoolean) {
-                Utils.showToast(context, "Saved");
+                Utils.showToast(context, getString(R.string.saved));
                 finish();
             }
             else
-                Utils.showToast(context, "Failed");
+                Utils.showToast(context, getString(R.string.failed));
         }
     }
 

@@ -45,7 +45,7 @@ public class SettingsWidgetConfigFragment extends Fragment implements CompoundBu
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ((AppCompatActivity)context).getSupportActionBar().setTitle("Widget configuration");
+        ((AppCompatActivity)context).getSupportActionBar().setTitle(R.string.widget_configuration);
 
         ignoreTabsSwitch = (SwitchCompat) view.findViewById(R.id.switch1);
         miuiThemeRadioButton = (RadioButton) view.findViewById(R.id.radioButton);

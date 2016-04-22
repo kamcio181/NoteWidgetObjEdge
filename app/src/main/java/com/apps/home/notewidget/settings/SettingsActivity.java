@@ -98,8 +98,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
     }
 
     private Dialog getRestoreHelpDialog(){
-        return new AlertDialog.Builder(context).setTitle("Help").setMessage("Backups have to be placed in below folder in internal memory\n"+
-        "backup/" + getPackageName() + "/").setPositiveButton("I've got it!", null).create();
+        return new AlertDialog.Builder(context).setTitle(getString(R.string.help)).setMessage(getString(R.string.backups_have_to_be_placed_in_below_folder_in_internal_memory)+
+        "backup/" + getPackageName() + "/").setPositiveButton(getString(R.string.i_have_got_it), null).create();
     }
 
     private Dialog getNoteSizeDialog(){
@@ -120,25 +120,25 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
         });
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        return builder.setTitle("Set note text size").setView(layout).
-                setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+        return builder.setTitle(getString(R.string.set_note_text_size)).setView(layout).
+                setPositiveButton(getString(R.string.confirm), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.e("settings", "click "+picker.getValue());
                         preferences.edit().putInt(Constants.NOTE_TEXT_SIZE_KEY, picker.getValue()).putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, true).apply();
-                        Utils.showToast(context, "Text size changed");
+                        Utils.showToast(context, getString(R.string.text_size_changed));
                     }
-                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                }).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Utils.showToast(context, "Canceled");
+                Utils.showToast(context, getString(R.string.canceled));
             }
         }).create();
     }
 
     private Dialog getBackupOrRestoreDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        return builder.setItems(new CharSequence[]{"Backup", "Restore"}, new DialogInterface.OnClickListener() {
+        return builder.setItems(new CharSequence[]{getString(R.string.backup), getString(R.string.restore)}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
@@ -155,7 +155,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
     private Dialog getBackupDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        return builder.setTitle("Backup").setItems(new CharSequence[]{"Data", "Settings", "Data and settings"}, new DialogInterface.OnClickListener() {
+        return builder.setTitle(getString(R.string.backup)).setItems(new CharSequence[]{getString(R.string.data), getString(R.string.settings), getString(R.string.data_and_settings)}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
@@ -175,7 +175,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
     private Dialog getRestoreDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        return builder.setTitle("Restore").setItems(new CharSequence[]{"Data", "Settings"}, new DialogInterface.OnClickListener() {
+        return builder.setTitle(getString(R.string.restore)).setItems(new CharSequence[]{getString(R.string.data), getString(R.string.settings)}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 fragmentManager.beginTransaction().replace(R.id.container,
@@ -195,11 +195,11 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 getNoteSizeDialog().show();
                 break;
             case 2:
-                Dialog dialog = Utils.getAllFolderListDialog(context, "Choose starting folder", new DialogInterface.OnClickListener() {
+                Dialog dialog = Utils.getAllFolderListDialog(context, getString(R.string.choose_starting_folder), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         preferences.edit().putInt(Constants.STARTING_FOLDER_KEY, Utils.getFolderId(which)).apply();
-                        Utils.showToast(context, "Starting folder was set");
+                        Utils.showToast(context, getString(R.string.starting_folder_was_set));
                     }
                 });
                 if(dialog != null)
@@ -229,10 +229,9 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
     @Override
     public void onItemClicked(final boolean dbRestore, final File file) {
-        String message = dbRestore? "Warning! This action will replace your current database and all" +
-                " current notes and folders will be lost.\n" + "Do you want to continue?" :
-                "Warning! This action will replace your current settings and all current configuration will be lost.\n" +
-                        "Do you want to continue?";
+        String message = dbRestore? getString(R.string.warning_this_action_will_replace_your_current_database_and_all_current_notes_and_folders_will_be_lost) + getString(R.string.do_you_want_to_continue):
+                getString(R.string.warning_this_action_will_replace_your_current_settings_and_all_current_configuration_will_be_lost) +
+                        getString(R.string.do_you_want_to_continue);
         Utils.getConfirmationDialog(context, message, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -278,9 +277,9 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
             super.onPostExecute(aBoolean);
 
             if(aBoolean)
-                Utils.showToast(context, "Backup saved to:\nbackup/" + getPackageName() + "/");
+                Utils.showToast(context, getString(R.string.backup_saved_to)+"backup/" + getPackageName() + "/");
             else
-                Utils.showToast(context, "Failed");
+                Utils.showToast(context, getString(R.string.failed));
         }
     }
 
@@ -319,7 +318,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
             if(aBoolean) {
                 if (dbRestore) {
-                    Utils.showToast(context, "Notes restored");
+                    Utils.showToast(context, getString(R.string.notes_restored));
                     Utils.clearWidgetsTable(context, new Utils.FinishListener() {
                         @Override
                         public void onFinished(boolean result) {
@@ -330,14 +329,14 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                         }
                     });
                 } else {
-                    Utils.showToast(context, "Settings restored");
+                    Utils.showToast(context, getString(R.string.settings_restored));
                     preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
                             .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
                     Utils.updateAllWidgets(context);
                     onBackPressed();
                 }
             } else
-                Utils.showToast(context, "Failed");
+                Utils.showToast(context, getString(R.string.failed));
         }
     }
 }

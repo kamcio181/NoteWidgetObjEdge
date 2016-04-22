@@ -99,7 +99,7 @@ public class Utils {
             }
             return db;
         }catch (SQLiteException e){
-            Toast.makeText(context, "Database unavailable", Toast.LENGTH_SHORT).show();
+            showToast(context, context.getString(R.string.database_unavailable));
             return null;
         }
     }
@@ -125,8 +125,8 @@ public class Utils {
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_multilevel_note_manual, null);
         final CheckBox checkBox = (CheckBox) layout.findViewById(R.id.checkBox);
-        return new AlertDialog.Builder(context).setTitle("Tip").setView(layout).setCancelable(false).
-                setPositiveButton("I've got it!", new DialogInterface.OnClickListener() {
+        return new AlertDialog.Builder(context).setTitle(context.getString(R.string.tip)).setView(layout).setCancelable(false).
+                setPositiveButton(context.getString(R.string.i_have_got_it), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (checkBox.isChecked()) {
@@ -140,11 +140,11 @@ public class Utils {
 
     public static Dialog getConfirmationDialog(final Context context, String title, DialogInterface.OnClickListener action){
         return new AlertDialog.Builder(context).setMessage(title)
-                .setPositiveButton("Confirm", action)
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setPositiveButton(context.getString(R.string.confirm), action)
+                .setNegativeButton(context.getString(R.string.cancel), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(context, "Canceled");
+                        Utils.showToast(context, context.getString(R.string.canceled));
                     }
                 }).create();
     }
@@ -164,7 +164,7 @@ public class Utils {
             titleEditText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
         titleEditText.setSelection(0, titleEditText.length());
         AlertDialog dialog = builder.setTitle(title).setView(layout)
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                .setPositiveButton(context.getString(R.string.confirm), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
@@ -172,10 +172,10 @@ public class Utils {
                             action.onNameSet(titleEditText.getText().toString());
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton(context.getString(R.string.cancel), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        showToast(context, "Canceled");
+                        showToast(context, context.getString(R.string.canceled));
                         showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 }).create();
@@ -193,7 +193,7 @@ public class Utils {
     public static Dialog getPasswordDialog(final Context context,
                                            final OnNameSet action){
 
-        return getEdiTextDialog(context, "", "Put password", action, true);
+        return getEdiTextDialog(context, "", context.getString(R.string.put_password), action, true);
     }
 
     public static Dialog getFolderListDialog(Context context, Menu menu, int[] exclusions, String title,
@@ -229,7 +229,7 @@ public class Utils {
             return new AlertDialog.Builder(context).setTitle(title)
                     .setItems(nameArray, action).create();
         else{
-            showToast(context, "You have only one folder");
+            showToast(context, context.getString(R.string.you_have_only_one_folder));
             return null;
         }
     }

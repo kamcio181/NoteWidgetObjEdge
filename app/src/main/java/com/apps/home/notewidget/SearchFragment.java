@@ -240,7 +240,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
             } else {
                 recyclerView.setAdapter(null);
                 if (skipSearch)
-                    Utils.showToast(context, "Choose search mode");
+                    Utils.showToast(context, context.getString(R.string.choose_search_mode));
             }
         }
     }
