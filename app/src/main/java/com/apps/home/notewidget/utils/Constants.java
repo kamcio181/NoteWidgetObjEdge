@@ -10,6 +10,7 @@ public interface Constants {
     String FOLDER_ID_COL = "folderId";
     String DELETED_COL = "deleted";
     String ENCRYPTED_COL = "encrypted";
+    String SALT_COL = "salt";
 
     String WIDGETS_TABLE = "WIDGETS";
     String WIDGET_ID_COL = "widgetId";
@@ -36,7 +37,7 @@ public interface Constants {
     String NOTE_TEXT_SIZE_KEY = "noteTextSize";
     String STARTING_FOLDER_KEY = "startingFolder";
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
-    String RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY = "reloadMainActivityAfterRestore";
+    String RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY = "reloadMainActivityAfterRestore";
 
     String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";
     String NOTE_TEXT_SIZE_UPDATED = "noteTextSizeUpdated";

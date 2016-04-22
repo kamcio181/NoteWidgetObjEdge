@@ -1,10 +1,7 @@
 package com.apps.home.notewidget;
 
 
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -185,8 +182,11 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     public void onStop() {
         super.onStop();
         if (!deleteNote && !discardChanges) {
-            Utils.showToast(context, context.getString(R.string.saving_changes));
-            new PutNoteInTable().execute();
+            if(isNewNote)//TODO ENCRYPTION
+                Utils.saveNewNote(context, noteId, title, noteEditText.getText().toString(), folderId,
+                        creationTimeMillis, null);
+            else
+                Utils.updateNote(context, noteId, title, noteEditText.getText().toString(), null);
         } else if (deleteNote && !isNewNote) {
             Utils.moveToTrash(context, ((MainActivity)context).getNavigationViewMenu(),
                     noteId, title, noteEditText.getText().toString().replace(newLine, "<br/>"),
@@ -228,52 +228,52 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         }
     }
 
-    private class PutNoteInTable extends AsyncTask<Void, Void, Boolean>
-    {   private ContentValues contentValues;
-
-        @Override
-        protected void onPreExecute()
-        {
-            contentValues = new ContentValues();
-            contentValues.put(Constants.NOTE_TITLE_COL, title);
-            contentValues.put(Constants.NOTE_TEXT_COL, noteEditText.getText().toString().replace(newLine, "<br/>"));
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... p1)
-        {
-            SQLiteDatabase db;
-            if((db = Utils.getDb(context)) != null) {
-                if (isNewNote) {
-                    contentValues.put(Constants.MILLIS_COL, creationTimeMillis);
-                    contentValues.put(Constants.FOLDER_ID_COL, folderId);
-                    contentValues.put(Constants.DELETED_COL, 0);
-                    noteId = db.insert(Constants.NOTES_TABLE, null, contentValues);
-                    Log.e(TAG, "insert " + contentValues.toString());
-                } else {
-                    db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
-                            new String[]{Long.toString(noteId)});
-                    Log.e(TAG, "update " + contentValues.toString());
-                }
-                return true;
-            } else
-                return false;
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            if(result){
-                if(isNewNote){
-                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId, 1);
-                }
-                else
-                    Utils.updateConnectedWidgets(context, noteId);
-            }
-            super.onPostExecute(result);
-        }
-    }
+//    private class PutNoteInTable extends AsyncTask<Void, Void, Boolean>
+//    {   private ContentValues contentValues;
+//
+//        @Override
+//        protected void onPreExecute()
+//        {
+//            contentValues = new ContentValues();
+//            contentValues.put(Constants.NOTE_TITLE_COL, title);
+//            contentValues.put(Constants.NOTE_TEXT_COL, noteEditText.getText().toString().replace(newLine, "<br/>"));
+//            super.onPreExecute();
+//        }
+//
+//        @Override
+//        protected Boolean doInBackground(Void... p1)
+//        {
+//            SQLiteDatabase db;
+//            if((db = Utils.getDb(context)) != null) {
+//                if (isNewNote) {
+//                    contentValues.put(Constants.MILLIS_COL, creationTimeMillis);
+//                    contentValues.put(Constants.FOLDER_ID_COL, folderId);
+//                    contentValues.put(Constants.DELETED_COL, 0);
+//                    noteId = db.insert(Constants.NOTES_TABLE, null, contentValues);
+//                    Log.e(TAG, "insert " + contentValues.toString());
+//                } else {
+//                    db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
+//                            new String[]{Long.toString(noteId)});
+//                    Log.e(TAG, "update " + contentValues.toString());
+//                }
+//                return true;
+//            } else
+//                return false;
+//
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Boolean result)
+//        {
+//            if(result){
+//                if(isNewNote){
+//                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId, 1);
+//                }
+//                else
+//                    Utils.updateConnectedWidgets(context, noteId);
+//            }
+//            super.onPostExecute(result);
+//        }
+//    }
 }
 

@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -325,7 +324,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                         @Override
                         public void onFinished(boolean result) {
                             preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
-                                    .putBoolean(Constants.RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY, true).apply();
+                                    .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
                             Utils.updateAllWidgets(context);
                             onBackPressed();
                         }
@@ -333,7 +332,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 } else {
                     Utils.showToast(context, "Settings restored");
                     preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
-                            .putBoolean(Constants.RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY, true).apply();
+                            .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
                     Utils.updateAllWidgets(context);
                     onBackPressed();
                 }

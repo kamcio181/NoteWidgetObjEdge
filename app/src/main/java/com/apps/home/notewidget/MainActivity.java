@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG, "trash id " + trashNavId);
         folderId = preferences.getInt(Constants.STARTING_FOLDER_KEY, Utils.getMyNotesNavId(context));
         preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)
-        .putBoolean(Constants.RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY, false).apply();//reset flag
+        .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, false).apply();//reset flag
 
         Utils.hideShadowSinceLollipop(this);
 
@@ -291,6 +291,25 @@ public class MainActivity extends AppCompatActivity
     }
 
     private DialogInterface.OnClickListener getRestoreOrRemoveNoteFromTrashAction(final int action,
+                                                                                  final boolean actionBarMenuItemClicked){
+        return new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Utils.restoreOrRemoveNoteFromTrash(context, noteId, action, new Utils.FinishListener() {
+                    @Override
+                    public void onFinished(boolean result) {
+                        if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
+                            ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                        } else if (actionBarMenuItemClicked) {
+                            onBackPressed();
+                        }
+                    }
+                });
+            }
+        };
+    }
+
+    private DialogInterface.OnClickListener get(final int action,
                                                                                   final boolean actionBarMenuItemClicked){
         return new DialogInterface.OnClickListener() {
             @Override
@@ -607,7 +626,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onRestart() {
         super.onRestart();
-        if(preferences.getBoolean(Constants.RELOAD_MAIACTIVITY_AFTER_RESTORE_KEY, false))
+        if(preferences.getBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, false))
             reloadMainActivityAfterRestore();
         else {
             if (preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {

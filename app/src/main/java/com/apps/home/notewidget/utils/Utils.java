@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -152,19 +153,21 @@ public class Utils {
         void onNameSet(String name);
     }
 
-    public static Dialog getNameDialog(final Context context, final String text, String title,
-                                       final OnNameSet action){
+    public static Dialog getEdiTextDialog(final Context context, final String text, String title,
+                                       final OnNameSet action, boolean hideContent){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
         final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
         titleEditText.setText(text);
+        if(hideContent)
+            titleEditText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
         titleEditText.setSelection(0, titleEditText.length());
         AlertDialog dialog = builder.setTitle(title).setView(layout)
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
+                        showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                         if(action != null)
                             action.onNameSet(titleEditText.getText().toString());
                     }
@@ -172,13 +175,25 @@ public class Utils {
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(context, "Canceled");
-                        Utils.showOrHideKeyboard(((AppCompatActivity)context).getWindow(), false);
+                        showToast(context, "Canceled");
+                        showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 }).create();
-        Utils.showOrHideKeyboard(dialog.getWindow(), true);
+        showOrHideKeyboard(dialog.getWindow(), true);
 
         return dialog;
+    }
+
+    public static Dialog getNameDialog(final Context context, final String text, final String title,
+                                       final OnNameSet action){
+
+        return getEdiTextDialog(context, text, title, action, false);
+    }
+
+    public static Dialog getPasswordDialog(final Context context,
+                                           final OnNameSet action){
+
+        return getEdiTextDialog(context, "", "Put password", action, true);
     }
 
     public static Dialog getFolderListDialog(Context context, Menu menu, int[] exclusions, String title,
@@ -372,6 +387,126 @@ public class Utils {
 
     public interface FolderIdUpdateListener{
         void onUpdate(int newFolderId);
+    }
+
+    public static void updateNote(Context context, long noteId, String title, String note, FinishListener finishListener){
+        new PutNoteInTable(context, noteId, title, note, finishListener).execute();
+    }
+
+    public static void updateNoteWithEncryption(Context context, long noteId, String title, String note, String password, FinishListener finishListener){
+        new PutNoteInTable(context, noteId, title, note, password, finishListener).execute();
+    }
+
+    public static void saveNewNote(Context context, long noteId, String title, String note, int folderId,
+                                  long creationTimeMillis, FinishListener finishListener){
+        new PutNoteInTable(context, noteId, title, note, folderId, creationTimeMillis, finishListener).execute();
+    }
+
+    public static void saveNewNoteWithEncryption(Context context, long noteId, String title, String note, int folderId,
+                                   long creationTimeMillis, String password, FinishListener finishListener){
+        new PutNoteInTable(context, noteId, title, note, folderId, creationTimeMillis, password, finishListener).execute();
+    }
+
+    private static class PutNoteInTable extends AsyncTask<Void, Void, Boolean>
+    {   private ContentValues contentValues;
+        private Context context;
+        private int folderId;
+        private long noteId;
+        private String title;
+        private String note;
+        private boolean isNewNote;
+        private long creationTimeMillis;
+        private boolean encrypt;
+        private String password;
+        private FinishListener finishListener;
+
+
+        public PutNoteInTable(Context context, long noteId, String title, String note, FinishListener finishListener){
+            init(context, noteId, title, note, finishListener);
+            isNewNote = false;
+            encrypt = false;
+        }
+
+        public PutNoteInTable(Context context, long noteId, String title, String note, String password, FinishListener finishListener){
+            init(context, noteId, title, note, finishListener);
+            this.password = password;
+            isNewNote = false;
+            encrypt = true;
+        }
+
+        public PutNoteInTable(Context context, long noteId, String title, String note, int folderId,
+                              long creationTimeMillis, FinishListener finishListener){
+            init(context, noteId, title, note, finishListener);
+            this.folderId = folderId;
+            this.creationTimeMillis = creationTimeMillis;
+            isNewNote = true;
+            encrypt = false;
+        }
+
+        public PutNoteInTable(Context context, long noteId, String title, String note, int folderId,
+                              long creationTimeMillis, String password, FinishListener finishListener){
+            init(context, noteId, title, note, finishListener);
+            this.folderId = folderId;
+            this.creationTimeMillis = creationTimeMillis;
+            this.password = password;
+            isNewNote = true;
+            encrypt = true;
+        }
+
+        public void init(Context context, long noteId, String title, String note, FinishListener finishListener){
+            this.context = context;
+            this.noteId = noteId;
+            this.title = title;
+            this.note = note;
+            this.finishListener = finishListener;
+        }
+
+        @Override
+        protected void onPreExecute()
+        {
+            contentValues = new ContentValues();
+            contentValues.put(Constants.NOTE_TITLE_COL, title);
+            contentValues.put(Constants.NOTE_TEXT_COL, note.replace(System.getProperty("line.separator"), "<br/>"));
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... p1)
+        {
+            SQLiteDatabase db;
+            if((db = Utils.getDb(context)) != null) {
+                if (isNewNote) {
+                    contentValues.put(Constants.MILLIS_COL, creationTimeMillis);
+                    contentValues.put(Constants.FOLDER_ID_COL, folderId);
+                    contentValues.put(Constants.DELETED_COL, 0);
+                    noteId = db.insert(Constants.NOTES_TABLE, null, contentValues);
+                    Log.e(TAG, "insert " + contentValues.toString());
+                } else {
+                    db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
+                            new String[]{Long.toString(noteId)});
+                    Log.e(TAG, "update " + contentValues.toString());
+                }
+                return true;
+            } else
+                return false;
+
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result)
+        {
+            super.onPostExecute(result);
+            if(result){
+                showToast(context, context.getString(R.string.saved));
+                if(isNewNote){
+                    incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId, 1);
+                } else
+                    updateConnectedWidgets(context, noteId);
+            }
+            if(finishListener != null)
+                finishListener.onFinished(result);
+
+        }
     }
 
     public static class UpdateConnectedWidgets extends AsyncTask<Void, Void, Boolean>

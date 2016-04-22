@@ -45,7 +45,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + Constants.NOTE_TITLE_COL + " TEXT, "
                     + Constants.NOTE_TEXT_COL + " TEXT, "
                     + Constants.FOLDER_ID_COL + " INTEGER, "
-                    + Constants.DELETED_COL + " INTEGER);");
+                    + Constants.DELETED_COL + " INTEGER, "
+                    + Constants.ENCRYPTED_COL + " TEXT, "
+                    + Constants.SALT_COL + " INTEGER);");
             Log.e("helper", "created" + Constants.NOTES_TABLE + " table");
 
             db.execSQL("CREATE TABLE " + Constants.WIDGETS_TABLE + " ("
