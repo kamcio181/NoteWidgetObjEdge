@@ -37,7 +37,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     private long noteId;
     private Context context;
     private int folderId;
-    private String title = "Untitled";
+    private String title = getString(R.string.untitled);
     private TextWatcher textWatcher;
     private boolean skipTextCheck = false;
     private int editTextSelection;

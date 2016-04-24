@@ -596,9 +596,9 @@ public class Utils {
             super.onPostExecute(result);
             if(result){
                 if(action == R.id.action_delete_from_trash) {
-                    showToast(context, "Note was removed");
+                    showToast(context, context.getString(R.string.note_was_removed));
                 } else {
-                    showToast(context, "Notes was restored");
+                    showToast(context, context.getString(R.string.notes_was_restored));
                     updateConnectedWidgets(context, noteId);
                     incrementFolderCount(menu, folderId, 1);
                 }
@@ -716,7 +716,7 @@ public class Utils {
         {
             super.onPostExecute(result);
             if(result){
-                Utils.showToast(context, "Note has been moved");
+                Utils.showToast(context, context.getString(R.string.note_has_been_moved));
 
                 Utils.incrementFolderCount(menu, newFolderId, 1);
                 Utils.decrementFolderCount(menu, folderId, 1);

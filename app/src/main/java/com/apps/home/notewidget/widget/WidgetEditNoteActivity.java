@@ -53,7 +53,7 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Utils.getNameDialog(context, getSupportActionBar().getTitle().toString(), "Set note title",
+                Utils.getNameDialog(context, getSupportActionBar().getTitle().toString(), getString(R.string.set_note_title),
                         new Utils.OnNameSet() {
                             @Override
                             public void onNameSet(String name) {
@@ -73,7 +73,7 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
 
     private String setTitle(String title){
         if(title.equals(""))
-            title = "Untitled";
+            title = getString(R.string.untitled);
         else
             title = Utils.capitalizeFirstLetter(title);
         getSupportActionBar().setTitle(title);

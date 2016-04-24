@@ -47,7 +47,7 @@ public class WidgetProvider extends AppWidgetProvider {
                 case INCREASE_TEXT_SIZE:
                     putInConfigTable(context, Constants.CURRENT_TEXT_SIZE_COL, (currentTextSize + 1), appWidgetId);
 
-                    Utils.showToast(context, "Text size: " + (currentTextSize + 1));
+                    Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize + 1));
 
                     updateNote(context, appWidgetId);
 
@@ -56,11 +56,11 @@ public class WidgetProvider extends AppWidgetProvider {
                     if (currentTextSize > 1) {
                         putInConfigTable(context, Constants.CURRENT_TEXT_SIZE_COL, (currentTextSize - 1), appWidgetId);
 
-                        Utils.showToast(context, "Text size: " + (currentTextSize - 1));
+                        Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize - 1));
 
                         updateNote(context, appWidgetId);
                     } else
-                        Utils.showToast(context, "Text size cannot be lower than 1");
+                        Utils.showToast(context, context.getString(R.string.text_size_cannot_be_lower_than_1));
 
                     break;
                 case CHANGE_WIDGET_MODE:
@@ -254,7 +254,7 @@ public class WidgetProvider extends AppWidgetProvider {
             views = new RemoteViews(context.getPackageName(),
                     currentThemeMode == Constants.WIDGET_THEME_LIGHT? R.layout.appwidget_deleted_note_light
                     : R.layout.appwidget_deleted_note_dark);
-            views.setTextViewText(R.id.noteTextView, "Note was deleted, click here to pick new one");
+            views.setTextViewText(R.id.noteTextView, context.getString(R.string.note_was_deleted_click_here_to_pick_new_one));
             views.setOnClickPendingIntent(R.id.container, getConfigPendingIntent(context, appWidgetId));
 
         }

@@ -1,0 +1,88 @@
+<resources>
+    <string name="app_name">Szybkie notatki</string>
+
+    <string name="navigation_drawer_open">Otwórz menu</string>
+    <string name="navigation_drawer_close">Zamknij menu</string>
+
+    <string name="title_activity_widget_edit_note">WidgetEditNoteActivity</string>
+    <string name="title_activity_export">Eksport do pliku txt</string>
+    <string name="title_activity_widget_config">Wybierz notatkę</string>
+    <string name="saved">Zapisano</string>
+    <string name="note_moved_to_trash">Notatka przeniesiona do kosza</string>
+    <string name="closed_without_saving">Zamknięto bez zapisywania</string>
+    <string name="multilevel_note_manual_text">Możesz użyć \"-\", \"+\" i \"*\" na początku lini żeby
+        stworzyć wielopoziomowe notatki.\nZobacz przykład poniżej: \n\u0009- pierwszy poziom notatki\n\u0009
+        \u0009+ drugi poziom notatki\n\u0009\u0009\u0009* trzeci poziom notatki\nMożesz wyłączyć tabulatory
+        w widgetach na pulpicie w Ustawieniach"</string>
+    <string name="press_back_button_again_to_exit">Naciśnij wstacz jeszcze raz aby wyjść</string>
+    <string name="set_file_name">Ustaw nazwę pliku</string>
+    <string name="confirm">Potwierdź</string>
+    <string name="untitled">Bez tytułu</string>
+    <string name="cancel">Anuluj</string>
+    <string name="canceled">Anulowano</string>
+    <string name="you_are_not_allowed_to_write_in_this_folder">Nie możesz zapisywać w tym folderze</string>
+    <string name="do_you_want_to_override_this_file">Czy chcesz nadpisać ten plik?</string>
+    <string name="failed">Niepowodzenie</string>
+    <string name="do_you_want_to_delete_all_notes">Czy chcesz usunąć wszystkie notatki?</string>
+    <string name="do_you_want_to_restore_all_notes">Czy chcesz przywrócić wszystkie notatki?</string>
+    <string name="do_you_want_to_delete_this_folder_and_all_associated_notes">Czy chcesz usunąć ten folder i wszystkie powiązane notatki?</string>
+    <string name="set_note_title">Ustaw tytuł notatki</string>
+    <string name="set_folder_name">Ustaw nazwę folderu</string>
+    <string name="restore">Przywróć</string>
+    <string name="delete">Usuń</string>
+    <string name="open">Otwórz</string>
+    <string name="share">Udostępnij</string>
+    <string name="move_to_other_folder">Przenieś do innego folderu</string>
+    <string name="move_to_trash">Przenieś do kosza</string>
+    <string name="new_folder">Nowy folder</string>
+    <string name="add_folder">Dodaj folder</string>
+    <string name="do_you_want_to_delete_this_note_from_trash">Czy chcesz usunąć tą notatkę z kosza?</string>
+    <string name="choose_new_folder">Choose new folder</string>
+    <string name="do_you_want_to_restore_this_note_from_trash">Czy chcesz przywrócić tą notatkę z kosza?</string>
+    <string name="search">Szukaj</string>
+    <string name="folder_was_added">Folder dodany</string>
+    <string name="all_notes_were_removed">Wszystkie notatki zostały usunięte</string>
+    <string name="all_notes_were_restored">Wszystkie notatki zostały przywrócone</string>
+    <string name="folder_and_all_associated_notes_were_removed">Usunięto folder i wszystkie powiązane notatki</string>
+    <string name="note_is_empty_or_was_not_loaded_yet">Notatka jest pusta lub nie została jeszcze załadowana</string>
+    <string name="choose_search_mode">Wybierz tryb wyszukania</string>
+    <string name="help">Pomoc</string>
+    <string name="backups_have_to_be_placed_in_below_folder_in_internal_memory">Kopie zapasowe muszą być umieszczone w poniższym folderze w pamięci wewnętrznej\n</string>
+    <string name="i_have_got_it">Rozumiem!</string>
+    <string name="set_note_text_size">Ustaw wielkość tekstu notatki</string>
+    <string name="text_size_changed">Zmieniono wielkość tekstu</string>
+    <string name="backup">Kopia zapasowa</string>
+    <string name="data">Dane</string>
+    <string name="settings">Ustawienia</string>
+    <string name="data_and_settings">Dane i ustawienia</string>
+    <string name="choose_starting_folder">Wybierz folder startowy</string>
+    <string name="starting_folder_was_set">Ustawiono folder startowy</string>
+    <string name="warning_this_action_will_replace_your_current_database_and_all_current_notes_and_folders_will_be_lost">Uwaga! Baza danych zostanie nadpisana, wszyskie notatki i foldery zostaną usunięte.\n</string>
+    <string name="warning_this_action_will_replace_your_current_settings_and_all_current_configuration_will_be_lost">Uwaga! Ustawienia zostaną nadpisane, cała aktualna konfiguracja zostanie usunięta.\n</string>
+    <string name="do_you_want_to_continue">Czy chcesz kontynuować?</string>
+    <string name="backup_saved_to">Kopia zapiana w:\n</string>
+    <string name="notes_restored">Przywrócono notatki</string>
+    <string name="settings_restored">Przywrócono ustawienia</string>
+    <string name="restore_data">Przywróć dane</string>
+    <string name="restore_settings">Przywróć ustawienia</string>
+    <string name="backup_folder_is_empty_please_push_question_mark_to_check_where_backup_should_be_placed">Folder z kopiami zapasowymi jest pusty. Użyj znaku zapytania, aby sprawdzić gdzie kopie powinny zostać umieszczone</string>
+    <string name="widget_configuration">Ustawienia widgetu</string>
+    <string name="database_unavailable">Baza danych niedostępna</string>
+    <string name="tip">Wskazówka</string>
+    <string name="put_password">Wprowadź hasło</string>
+    <string name="you_have_only_one_folder">Masz tylko jeden folder</string>
+    <string name="note_was_removed">Usunięto notatkę</string>
+    <string name="notes_was_restored">Przywrócono notatkę</string>
+    <string name="note_has_been_moved">Przeniesiono notatkę</string>
+    <string name="note_is_empty_click_here_to_edit">Notatka jest pusta, kliknij aby edytować</string>
+    <string name="text_size">"Wielkośc tekstu: "</string>
+    <string name="text_size_cannot_be_lower_than_1">Wielkość tekstu nie może być mniejsza niż 1</string>
+    <string name="note_was_deleted_click_here_to_pick_new_one">Notatka usunięta, kliknij aby wybrać inną</string>
+
+    <string-array name="settings_items">
+        <item>Ustawienia widgetu</item>
+        <item>Wielkość tektu notatki</item>
+        <item>Folder startowy</item>
+        <item>Kopia zapasowa i przywracanie</item>
+    </string-array>
+</resources>

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NoteWidget</string>
+    <string name="app_name">Quick notes</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -71,6 +71,13 @@
     <string name="tip">Tip</string>
     <string name="put_password">Put password</string>
     <string name="you_have_only_one_folder">You have only one folder</string>
+    <string name="note_was_removed">Note was removed</string>
+    <string name="notes_was_restored">Notes was restored</string>
+    <string name="note_has_been_moved">Note has been moved</string>
+    <string name="note_is_empty_click_here_to_edit">Note is empty, click here to edit</string>
+    <string name="text_size">"Text size: "</string>
+    <string name="text_size_cannot_be_lower_than_1">Text size cannot be lower than 1</string>
+    <string name="note_was_deleted_click_here_to_pick_new_one">Note was deleted, click here to pick new one</string>
 
     <string-array name="settings_items">
         <item>Widget configuration</item>
