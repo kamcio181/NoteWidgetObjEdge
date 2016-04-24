@@ -92,6 +92,8 @@
     <string name="example">Example</string>
     <string name="title">Title</string>
     <string name="content">Content</string>
+    <string name="my_notes">My Notes</string>
+    <string name="trash">Trash</string>
 
     <string-array name="settings_items">
         <item>Widget configuration</item>

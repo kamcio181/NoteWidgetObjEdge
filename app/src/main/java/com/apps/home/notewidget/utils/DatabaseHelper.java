@@ -65,8 +65,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + Constants.FOLDER_ICON_COL + " INTEGER);");
             Log.e("helper", "created" + Constants.FOLDER_TABLE + " table");
 
-            int myNotesId = (int) insertItem(db, "My Notes", R.drawable.ic_nav_black_home);
-            int trashId = (int) insertItem(db, "Trash", R.drawable.ic_nav_black_trash);
+            int myNotesId = (int) insertItem(db, context.getString(R.string.my_notes), R.drawable.ic_nav_black_home);
+            int trashId = (int) insertItem(db, context.getString(R.string.trash), R.drawable.ic_nav_black_trash);
 
             Log.e("helper", "my notes Id " + myNotesId + ", trash id "+ trashId);
 
