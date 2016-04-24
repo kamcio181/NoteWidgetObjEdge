@@ -419,7 +419,7 @@ public class MainActivity extends AppCompatActivity
                             break;
                         case 3:
                             //move to trash
-                            Utils.moveToTrash(context, getNavigationViewMenu(), noteId, folderId, new Utils.FinishListener() { //TODO handler
+                            Utils.moveToTrash(context, getNavigationViewMenu(), noteId, folderId, new Utils.FinishListener() {
                                 @Override
                                 public void onFinished(boolean result) {
                                     if(result && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
