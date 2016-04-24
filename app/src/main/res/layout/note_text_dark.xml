@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
 	android:minHeight="44dp"
     android:textAppearance="?android:attr/textAppearanceSmall"
-    android:text="Note is empty. Click here to edit your note"
+    android:text="@string/note_is_empty_click_here_to_edit"
     android:textColor="#B2FFFFFF"
     android:id="@+id/noteTextView" />
 

@@ -19,13 +19,13 @@
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Title"
+            android:text="@string/title"
             android:id="@+id/titleCheckBox" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Content"
+            android:text="@string/content"
             android:id="@+id/contentCheckBox" />
     </LinearLayout>
 

@@ -7,7 +7,7 @@
     <android.support.v7.widget.SwitchCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ignore tabs in widgets"
+        android:text="@string/ignore_tabs_in_widgets"
         android:id="@+id/switch1"
         android:checked="false"
         android:layout_marginBottom="10dp"/>
@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:textSize="14sp"
         android:textColor="@color/colorAccent"
-        android:text="WIDGET THEME"
+        android:text="@string/widget_theme"
         android:id="@+id/textView4"
         android:layout_marginBottom="10dp" />
 

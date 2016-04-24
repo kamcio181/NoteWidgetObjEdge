@@ -78,6 +78,19 @@
     <string name="text_size">"Wielkośc tekstu: "</string>
     <string name="text_size_cannot_be_lower_than_1">Wielkość tekstu nie może być mniejsza niż 1</string>
     <string name="note_was_deleted_click_here_to_pick_new_one">Notatka usunięta, kliknij aby wybrać inną</string>
+    <string name="sort_by_date">Sortuj po dacie</string>
+    <string name="sort_by_title">Sortuj po tytule</string>
+    <string name="delete_folder">Usuń folder</string>
+    <string name="discard_changes">Porzuć zmiany</string>
+    <string name="save">Zapisz</string>
+    <string name="restore_all">Przywróć wszystkie</string>
+    <string name="delete_all">Usuń wszystkie</string>
+    <string name="ignore_tabs_in_widgets">Pomiń tabulatory w widgetach</string>
+    <string name="widget_theme">MOTYW WIDGETU</string>
+    <string name="about">O mnie</string>
+    <string name="do_not_show_again">Nie pokazuj więcej</string>
+    <string name="title">Tytuł</string>
+    <string name="content">Zawartość</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>
