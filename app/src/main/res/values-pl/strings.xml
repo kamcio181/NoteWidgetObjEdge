@@ -89,6 +89,7 @@
     <string name="widget_theme">MOTYW WIDGETU</string>
     <string name="about">O mnie</string>
     <string name="do_not_show_again">Nie pokazuj więcej</string>
+    <string name="example">Example</string>
     <string name="title">Tytuł</string>
     <string name="content">Zawartość</string>
     <string name="my_notes">Moje notaki</string>

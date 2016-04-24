@@ -37,7 +37,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     private long noteId;
     private Context context;
     private int folderId;
-    private String title = getString(R.string.untitled);
+    private String title;
     private TextWatcher textWatcher;
     private boolean skipTextCheck = false;
     private int editTextSelection;
@@ -84,6 +84,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         context = getActivity();
+        title = getString(R.string.untitled);
         ((AppCompatActivity)context).invalidateOptionsMenu();
         setTextWatcher();
         // Inflate the layout for this fragment

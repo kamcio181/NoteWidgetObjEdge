@@ -169,7 +169,7 @@ public class Utils {
                     public void onClick(DialogInterface dialog, int which) {
                         showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                         if(action != null)
-                            action.onNameSet(titleEditText.getText().toString());
+                            action.onNameSet(titleEditText.getText().toString().trim());
                     }
                 })
                 .setNegativeButton(context.getString(R.string.cancel), new DialogInterface.OnClickListener() {
