@@ -89,7 +89,6 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
     @Override
     protected void onStop() {
         super.onStop();
-        Utils.closeDb();
         getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, true).apply();
     }
 

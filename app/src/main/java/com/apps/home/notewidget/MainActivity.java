@@ -272,7 +272,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Utils.closeDb();
     }
 
     private void openFolderWithNotes(int id){
