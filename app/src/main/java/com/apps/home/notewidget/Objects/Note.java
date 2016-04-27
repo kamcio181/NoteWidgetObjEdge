@@ -75,4 +75,9 @@ public class Note {
     public int getDeletedState() {
         return deletedState;
     }
+
+    public String toString(){
+        return "i: " + id + " ,c: " + createdAt + " ,t: " + title + " ,n: " + note + " ,f: "
+                + folderId + " ,d: " + deletedState;
+    }
 }
