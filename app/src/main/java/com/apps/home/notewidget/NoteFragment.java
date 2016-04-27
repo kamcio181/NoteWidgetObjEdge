@@ -28,7 +28,6 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
-    private static final String ARG_PARAM4 = "param4";
     private RobotoEditText noteEditText;
     private boolean deleteNote = false;
     private boolean discardChanges = false;
@@ -48,23 +47,21 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         // Required empty public constructor
     }
 
-    public static NoteFragment newInstance(boolean isNewNote, long noteId, boolean moveToEnd, int folderId) {
+    public static NoteFragment newInstance(boolean isNewNote, long noteId, int folderId) {
         NoteFragment fragment = new NoteFragment();
         Bundle args = new Bundle();
         args.putBoolean(ARG_PARAM1, isNewNote);
         args.putLong(ARG_PARAM2, noteId);
-        args.putBoolean(ARG_PARAM3, moveToEnd);
-        args.putInt(ARG_PARAM4, folderId);
+        args.putInt(ARG_PARAM3, folderId);
         fragment.setArguments(args);
         return fragment;
     }
 
-    public static NoteFragment newInstance(boolean isNewNote, long noteId, boolean moveToEnd) {
+    public static NoteFragment newInstance(boolean isNewNote, long noteId) {
         NoteFragment fragment = new NoteFragment();
         Bundle args = new Bundle();
         args.putBoolean(ARG_PARAM1, isNewNote);
         args.putLong(ARG_PARAM2, noteId);
-        args.putBoolean(ARG_PARAM3, moveToEnd);
         fragment.setArguments(args);
         return fragment;
     }
@@ -75,8 +72,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         if (getArguments() != null) {
             isNewNote = getArguments().getBoolean(ARG_PARAM1);
             noteId = getArguments().getLong(ARG_PARAM2);
-            //moveToEnd = getArguments().getBoolean(ARG_PARAM3);
-            folderId = getArguments().getInt(ARG_PARAM4);
+            folderId = getArguments().getInt(ARG_PARAM3);
         }
     }
 
@@ -114,7 +110,6 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         } else {
             Log.e(TAG, "skip new " +skipTextCheck);
             setTitleAndSubtitle(getString(R.string.untitled), 0);
-            //showSoftKeyboard(0);
         }
     }
 

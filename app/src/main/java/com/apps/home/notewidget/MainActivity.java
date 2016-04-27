@@ -545,7 +545,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.fab:
                 switch (fragmentManager.findFragmentById(R.id.container).getTag()){
                     case Constants.FRAGMENT_LIST:
-                        attachFragment(Constants.FRAGMENT_NOTE, true, true);
+                        attachFragment(Constants.FRAGMENT_NOTE, true);
                         break;
                 }
                 break;
@@ -553,14 +553,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void attachFragment(String fragment) {
-        attachFragment(fragment, false, false);
+        attachFragment(fragment, false);
     }
 
     private void attachFragment (String fragment, boolean isNew){
-        attachFragment(fragment, isNew, false);
-    }
-
-    private void attachFragment (String fragment, boolean isNew, boolean moveToEnd){
         Fragment fragmentToAttach = null;
         boolean fabVisible = false;
         switch (fragment){
@@ -578,7 +574,7 @@ public class MainActivity extends AppCompatActivity
             case Constants.FRAGMENT_NOTE:
                 Log.e(TAG, "NOTE FRAGMENT");
                 setOnTitleClickListener(true);
-                fragmentToAttach = NoteFragment.newInstance(isNew, noteId, moveToEnd, folderId);
+                fragmentToAttach = NoteFragment.newInstance(isNew, noteId, folderId);
                 break;
             case Constants.FRAGMENT_TRASH_NOTE:
                 setOnTitleClickListener(false);
