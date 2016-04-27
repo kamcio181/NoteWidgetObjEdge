@@ -389,22 +389,26 @@ public class Utils {
         void onUpdate(int newFolderId);
     }
 
-    public static void updateNote(Context context, long noteId, String title, String note, FinishListener finishListener){
-        new PutNoteInTable(context, noteId, title, note, finishListener).execute();
+    public interface InsertListener {
+        void onInsert(long id);
     }
 
-    public static void updateNoteWithEncryption(Context context, long noteId, String title, String note, String password, FinishListener finishListener){
-        new PutNoteInTable(context, noteId, title, note, password, finishListener).execute();
+    public static void updateNote(Context context, long noteId, String title, String note, InsertListener insertListener){
+        new PutNoteInTable(context, noteId, title, note, insertListener).execute();
+    }
+
+    public static void updateNoteWithEncryption(Context context, long noteId, String title, String note, String password, InsertListener insertListener){
+        new PutNoteInTable(context, noteId, title, note, password, insertListener).execute();
     }
 
     public static void saveNewNote(Context context, long noteId, String title, String note, int folderId,
-                                  long creationTimeMillis, FinishListener finishListener){
-        new PutNoteInTable(context, noteId, title, note, folderId, creationTimeMillis, finishListener).execute();
+                                  long creationTimeMillis, InsertListener insertListener){
+        new PutNoteInTable(context, noteId, title, note, folderId, creationTimeMillis, insertListener).execute();
     }
 
     public static void saveNewNoteWithEncryption(Context context, long noteId, String title, String note, int folderId,
-                                   long creationTimeMillis, String password, FinishListener finishListener){
-        new PutNoteInTable(context, noteId, title, note, folderId, creationTimeMillis, password, finishListener).execute();
+                                   long creationTimeMillis, String password, InsertListener insertListener){
+        new PutNoteInTable(context, noteId, title, note, folderId, creationTimeMillis, password, insertListener).execute();
     }
 
     private static class PutNoteInTable extends AsyncTask<Void, Void, Boolean>
@@ -418,25 +422,25 @@ public class Utils {
         private long creationTimeMillis;
         private boolean encrypt;
         private String password;
-        private FinishListener finishListener;
+        private InsertListener insertListener;
 
 
-        public PutNoteInTable(Context context, long noteId, String title, String note, FinishListener finishListener){
-            init(context, noteId, title, note, finishListener);
+        public PutNoteInTable(Context context, long noteId, String title, String note, InsertListener insertListener){
+            init(context, noteId, title, note, insertListener);
             isNewNote = false;
             encrypt = false;
         }
 
-        public PutNoteInTable(Context context, long noteId, String title, String note, String password, FinishListener finishListener){
-            init(context, noteId, title, note, finishListener);
+        public PutNoteInTable(Context context, long noteId, String title, String note, String password, InsertListener insertListener){
+            init(context, noteId, title, note, insertListener);
             this.password = password;
             isNewNote = false;
             encrypt = true;
         }
 
         public PutNoteInTable(Context context, long noteId, String title, String note, int folderId,
-                              long creationTimeMillis, FinishListener finishListener){
-            init(context, noteId, title, note, finishListener);
+                              long creationTimeMillis, InsertListener insertListener){
+            init(context, noteId, title, note, insertListener);
             this.folderId = folderId;
             this.creationTimeMillis = creationTimeMillis;
             isNewNote = true;
@@ -444,8 +448,8 @@ public class Utils {
         }
 
         public PutNoteInTable(Context context, long noteId, String title, String note, int folderId,
-                              long creationTimeMillis, String password, FinishListener finishListener){
-            init(context, noteId, title, note, finishListener);
+                              long creationTimeMillis, String password, InsertListener insertListener){
+            init(context, noteId, title, note, insertListener);
             this.folderId = folderId;
             this.creationTimeMillis = creationTimeMillis;
             this.password = password;
@@ -453,12 +457,12 @@ public class Utils {
             encrypt = true;
         }
 
-        public void init(Context context, long noteId, String title, String note, FinishListener finishListener){
+        public void init(Context context, long noteId, String title, String note, InsertListener insertListener){
             this.context = context;
             this.noteId = noteId;
             this.title = title;
             this.note = note;
-            this.finishListener = finishListener;
+            this.insertListener = insertListener;
         }
 
         @Override
@@ -503,8 +507,8 @@ public class Utils {
                 } else
                     updateConnectedWidgets(context, noteId);
             }
-            if(finishListener != null)
-                finishListener.onFinished(result);
+            if(insertListener != null)
+                insertListener.onInsert(noteId);
 
         }
     }

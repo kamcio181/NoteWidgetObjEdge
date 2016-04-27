@@ -185,7 +185,12 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         if (!deleteNote && !discardChanges) {
             if(isNewNote) {//TODO ENCRYPTION
                 Utils.saveNewNote(context, noteId, title, noteEditText.getText().toString(), folderId,
-                        creationTimeMillis, null);
+                        creationTimeMillis, new Utils.InsertListener() {
+                            @Override
+                            public void onInsert(long id) {
+                                noteId = id;
+                            }
+                        });
                 isNewNote = false;
             } else
                 Utils.updateNote(context, noteId, title, noteEditText.getText().toString(), null);
