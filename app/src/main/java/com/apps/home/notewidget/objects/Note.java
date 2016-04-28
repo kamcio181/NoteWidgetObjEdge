@@ -1,4 +1,4 @@
-package com.apps.home.notewidget.Objects;
+package com.apps.home.notewidget.objects;
 
 
 public class Note {
