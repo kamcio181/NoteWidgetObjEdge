@@ -189,7 +189,7 @@ public class NoteFragment extends Fragment{
                 public void onItemUpdated(int numberOfRows) {
                     if (numberOfRows > 0) {
                         Utils.showToast(context, context.getString(R.string.note_moved_to_trash));
-                        Utils.updateConnectedWidgets(context, note.getId()); //TODO update and rest
+                        Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
                         Menu menu = ((MainActivity) context).getNavigationViewMenu();
                         Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                         Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
