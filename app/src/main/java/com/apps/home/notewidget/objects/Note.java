@@ -1,7 +1,9 @@
 package com.apps.home.notewidget.objects;
 
 
-public class Note {
+import java.io.Serializable;
+
+public class Note implements Serializable {
     private long id;
     private long createdAt;
     private String title;

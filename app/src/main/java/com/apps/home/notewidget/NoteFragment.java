@@ -9,59 +9,48 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
+import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.Calendar;
 import java.util.regex.Pattern;
 
-public class NoteFragment extends Fragment implements Utils.LoadListener{
+public class NoteFragment extends Fragment{
     private static final String TAG = "NoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private static final String ARG_PARAM3 = "param3";
     private RobotoEditText noteEditText;
     private boolean deleteNote = false;
     private boolean discardChanges = false;
-    private long creationTimeMillis;
     private boolean isNewNote;
-    private long noteId;
     private Context context;
-    private int folderId;
-    private String title;
     private TextWatcher textWatcher;
     private boolean skipTextCheck = false;
     private int editTextSelection;
     private String newLine;
+    private Note note;
+    private DatabaseHelper2 helper;
 
 
     public NoteFragment() {
         // Required empty public constructor
     }
 
-    public static NoteFragment newInstance(boolean isNewNote, long noteId, int folderId) {
+    public static NoteFragment newInstance(boolean isNewNote, Note note) {
         NoteFragment fragment = new NoteFragment();
         Bundle args = new Bundle();
         args.putBoolean(ARG_PARAM1, isNewNote);
-        args.putLong(ARG_PARAM2, noteId);
-        args.putInt(ARG_PARAM3, folderId);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    public static NoteFragment newInstance(boolean isNewNote, long noteId) {
-        NoteFragment fragment = new NoteFragment();
-        Bundle args = new Bundle();
-        args.putBoolean(ARG_PARAM1, isNewNote);
-        args.putLong(ARG_PARAM2, noteId);
+        args.putSerializable(ARG_PARAM2, note);
         fragment.setArguments(args);
         return fragment;
     }
@@ -71,8 +60,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             isNewNote = getArguments().getBoolean(ARG_PARAM1);
-            noteId = getArguments().getLong(ARG_PARAM2);
-            folderId = getArguments().getInt(ARG_PARAM3);
+            note = (Note) getArguments().getSerializable(ARG_PARAM2);
         }
     }
 
@@ -80,7 +68,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         context = getActivity();
-        title = getString(R.string.untitled);
+        helper = new DatabaseHelper2(context);
         ((AppCompatActivity)context).invalidateOptionsMenu();
         setTextWatcher();
         // Inflate the layout for this fragment
@@ -95,9 +83,6 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
                 getBoolean(Constants.SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY, false))
             Utils.getMultilevelNoteManualDialog(context).show();
 
-        DisplayMetrics metrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-
         noteEditText = (RobotoEditText) view.findViewById(R.id.noteEditText);
         noteEditText.addTextChangedListener(textWatcher);
         noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
@@ -105,12 +90,15 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         newLine = System.getProperty("line.separator");
         Log.e(TAG, "skip start " + skipTextCheck);
         if(!isNewNote) {
-            Log.e(TAG, "skip old " +skipTextCheck);
-            reloadNote();
+            Log.e(TAG, "skip old " + skipTextCheck);
+            noteEditText.setText(Html.fromHtml(note.getNote()));
         } else {
-            Log.e(TAG, "skip new " +skipTextCheck);
-            setTitleAndSubtitle(getString(R.string.untitled), 0);
+            Log.e(TAG, "skip new " + skipTextCheck);
+            note.setTitle(getString(R.string.untitled));
+            note.setCreatedAt(Calendar.getInstance().getTimeInMillis());
+            note.setDeletedState(0);
         }
+        setTitleAndSubtitle();
     }
 
     public void updateNoteTextSize(){
@@ -118,18 +106,13 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
                 context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
     }
 
-    public void reloadNote(){
-        Utils.loadNote(context, noteId, this);
-    }
-
-    private void setTitleAndSubtitle(String title, long millis){
+    private void setTitleAndSubtitle(){
         ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
         if(actionBar !=null){
-            actionBar.setTitle(title);
+            actionBar.setTitle(note.getTitle());
             Calendar calendar = Calendar.getInstance();
-            creationTimeMillis = millis == 0? calendar.getTimeInMillis() : millis;
-            calendar.setTimeInMillis(creationTimeMillis);
-            Log.e(TAG, "millis " + creationTimeMillis);
+            calendar.setTimeInMillis(note.getCreatedAt());
+            Log.e(TAG, "millis " + note.getCreatedAt());
             actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
         }
     }
@@ -179,27 +162,47 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
         super.onStop();
         if (!deleteNote && !discardChanges) {
             if(isNewNote) {//TODO ENCRYPTION
-                Utils.saveNewNote(context, noteId, title, noteEditText.getText().toString(), folderId,
-                        creationTimeMillis, new Utils.InsertListener() {
-                            @Override
-                            public void onInsert(long id) {
-                                noteId = id;
-                            }
-                        });
-                isNewNote = false;
-            } else
-                Utils.updateNote(context, noteId, title, noteEditText.getText().toString(), null);
+                note.setNote(noteEditText.getText().toString());
+                helper.createNote(note, new DatabaseHelper2.OnItemInsertListener() {
+                    @Override
+                    public void onItemInserted(long id) {
+                        Utils.showToast(context, getString(R.string.saved));
+                        note.setId(id);
+                        isNewNote = false;
+                    }
+                });
+            } else{
+                note.setNote(noteEditText.getText().toString());
+                helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+                    @Override
+                    public void onItemUpdated(int numberOfRows) {
+                        if(numberOfRows > 0)
+                            Utils.showToast(context, getString(R.string.saved));
+                    }
+                });
+            }
         } else if (deleteNote && !isNewNote) {
-            Utils.moveToTrash(context, ((MainActivity)context).getNavigationViewMenu(),
-                    noteId, title, noteEditText.getText().toString().replace(newLine, "<br/>"),
-                    folderId);
+            note.setNote(noteEditText.getText().toString());
+            note.setDeletedState(1);
+            helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+                @Override
+                public void onItemUpdated(int numberOfRows) {
+                    if (numberOfRows > 0) {
+                        Utils.showToast(context, context.getString(R.string.note_moved_to_trash));
+                        Utils.updateConnectedWidgets(context, note.getId()); //TODO update and rest
+                        Menu menu = ((MainActivity) context).getNavigationViewMenu();
+                        Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
+                        Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
+                    }
+                }
+            });
         } else {
             Utils.showToast(context, context.getString(R.string.closed_without_saving));
         }
     }
 
     public void setFolderId(int folderId) {
-        this.folderId = folderId;
+        note.setFolderId(folderId);
     }
 
     public void deleteNote() {
@@ -209,7 +212,7 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
     public void discardChanges(){ this.discardChanges = true; }
 
     public void titleChanged(String title) {
-        this.title = title;
+        note.setTitle(title);
     }
 
     public String getNoteText(){
@@ -217,17 +220,6 @@ public class NoteFragment extends Fragment implements Utils.LoadListener{
             Utils.showToast(context, context.getString(R.string.note_is_empty_or_was_not_loaded_yet));
         }
         return noteEditText.getText().toString();
-    }
-
-    @Override
-    public void onLoad(String[] note) {
-        if(note != null){
-            noteEditText.setText(Html.fromHtml(note[1]));
-            title = note[0];
-            setTitleAndSubtitle(title, Long.parseLong(note[2]));
-        } else {
-            ((AppCompatActivity)context).onBackPressed();
-        }
     }
 }
 

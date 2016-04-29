@@ -31,6 +31,7 @@ import android.view.View;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Folder;
+import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper2;
@@ -59,6 +60,8 @@ public class MainActivity extends AppCompatActivity
     private Handler handler = new Handler();
     private Runnable exitRunnable;
     private DatabaseHelper2 helper;
+    private ArrayList<Folder> folders;
+    private Note note;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,13 +75,15 @@ public class MainActivity extends AppCompatActivity
         helper = new DatabaseHelper2(this);
         setResetExitFlagRunnable();
 
-        myNotesNavId = Utils.getMyNotesNavId(this);
+        myNotesNavId = (int) Utils.getMyNotesNavId(this);
         Log.e(TAG, "my notes id " + myNotesNavId);
-        trashNavId = Utils.getTrashNavId(this);
+        trashNavId = (int) Utils.getTrashNavId(this);
         Log.e(TAG, "trash id " + trashNavId);
-        folderId = preferences.getInt(Constants.STARTING_FOLDER_KEY, Utils.getMyNotesNavId(context));
+        folderId = preferences.getInt(Constants.STARTING_FOLDER_KEY, (int) Utils.getMyNotesNavId(context));
         preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)
         .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, false).apply();//reset flag
+        Log.e(TAG, "created");
+
 
         Utils.hideShadowSinceLollipop(this);
 
@@ -93,7 +98,7 @@ public class MainActivity extends AppCompatActivity
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
+        Log.e(TAG, "nav created");
         loadNavViewItems();
     }
 
@@ -243,8 +248,11 @@ public class MainActivity extends AppCompatActivity
         helper.getFolders(new DatabaseHelper2.OnFoldersLoadListener() {
             @Override
             public void onFoldersLoaded(ArrayList<Folder> folders) {
-                if(folders != null)
+                if(folders != null){
+                    MainActivity.this.folders = folders;
+                    Log.e(TAG, "folders got");
                     addFolderToNavView(folders);
+                }
             }
         });
     }
@@ -412,7 +420,7 @@ public class MainActivity extends AppCompatActivity
                     switch (which){
                         case 0:
                             //open
-                            onItemClicked(noteId, false);
+                            //onItemClicked(noteId, false);
                             break;
                         case 1:
                             //share
@@ -479,6 +487,7 @@ public class MainActivity extends AppCompatActivity
             Utils.removeAllMenuItems(menu);
 
         navigationView.inflateMenu(R.menu.activity_main_drawer);
+        Log.e(TAG, "inflate nav ");
 
         for (Folder f : folders){
             long id = f.getId();
@@ -497,7 +506,7 @@ public class MainActivity extends AppCompatActivity
             folderId = myNotesNavId;
 
         navigationView.setCheckedItem(folderId);
-
+        Log.e(TAG, "menu created");
         attachFragment(Constants.FRAGMENT_LIST);
     }
 
@@ -564,7 +573,12 @@ public class MainActivity extends AppCompatActivity
         switch (fragment){
             case Constants.FRAGMENT_LIST:
                 textToFind = "";
-                fragmentToAttach = NoteListFragment.newInstance(folderId);
+                for (Folder f : folders){
+                    if(folderId == f.getId()){
+                        fragmentToAttach = NoteListFragment.newInstance(f);
+                        break;
+                    }
+                }
 
                 if(folderId != trashNavId)  //Folder list
                     fabVisible = true;
@@ -576,7 +590,11 @@ public class MainActivity extends AppCompatActivity
             case Constants.FRAGMENT_NOTE:
                 Log.e(TAG, "NOTE FRAGMENT");
                 setOnTitleClickListener(true);
-                fragmentToAttach = NoteFragment.newInstance(isNew, noteId, folderId);
+                if(isNew) {
+                    note = new Note();
+                    note.setFolderId(folderId);
+                }
+                fragmentToAttach = NoteFragment.newInstance(isNew, note);
                 break;
             case Constants.FRAGMENT_TRASH_NOTE:
                 setOnTitleClickListener(false);
@@ -589,6 +607,7 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
         fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).commitAllowingStateLoss();
+        Log.e(TAG, "attached fragment");
         if(fabVisible)
             fab.show();
         else
@@ -597,8 +616,8 @@ public class MainActivity extends AppCompatActivity
 
     //Interface from NoteListFragment
     @Override
-    public void onItemClicked(long noteId, boolean longClick) {
-        this.noteId = noteId;
+    public void onItemClicked(Note note, boolean longClick) {
+        this.note = note;
         if(!longClick) {
             if (folderId != trashNavId)
                 attachFragment(Constants.FRAGMENT_NOTE, false);
@@ -729,7 +748,7 @@ public class MainActivity extends AppCompatActivity
         {
             super.onPostExecute(result);
             if(result){
-                Utils.setFolderCount(getNavigationViewMenu(), Utils.getTrashNavId(context), 0); //Set count to 0 for trash
+                Utils.setFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 0); //Set count to 0 for trash
                 if(action == R.id.action_delete_all) {
                     Utils.showToast(context, getString(R.string.all_notes_were_removed));
                 } else {

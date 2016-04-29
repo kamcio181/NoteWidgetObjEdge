@@ -45,8 +45,8 @@ public class Utils {
     private static SQLiteDatabase db;
     private static int idArray[];
     private static SharedPreferences preferences;
-    private static int myNotesNavId = -1;
-    private static int trashNavId = -1;
+    private static long myNotesNavId = -1;
+    private static long trashNavId = -1;
 
     public static void showToast(Context context, String message){
         if(toast!=null)
@@ -312,23 +312,23 @@ public class Utils {
             Utils.showToast(context, "Note is empty");
     }
 
-    public static int getMyNotesNavId(Context context){
+    public static long getMyNotesNavId(Context context){
         if(myNotesNavId > 0)
             return myNotesNavId;
         else {
             if(preferences == null)
                 preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-            return (myNotesNavId = preferences.getInt(Constants.MY_NOTES_ID_KEY, 1));
+            return (myNotesNavId = preferences.getLong(Constants.MY_NOTES_ID_KEY, 1));
         }
     }
 
-    public static int getTrashNavId(Context context){
+    public static long getTrashNavId(Context context){
         if(trashNavId > 0)
             return trashNavId;
         else {
             if(preferences == null)
                 preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-            return (trashNavId = preferences.getInt(Constants.TRASH_ID_KEY, 2));
+            return (trashNavId = preferences.getLong(Constants.TRASH_ID_KEY, 2));
         }
     }
 
@@ -573,7 +573,7 @@ public class Utils {
         {
             if((db = Utils.getDb(context)) != null) {
                 menu = ((MainActivity)context).getNavigationViewMenu();
-                Utils.decrementFolderCount(menu, Utils.getTrashNavId(context), 1);
+                Utils.decrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                 if (action == R.id.action_delete_from_trash) { //remove note
                     db.delete(Constants.NOTES_TABLE, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
                     Log.e(TAG, "delete all");
@@ -784,7 +784,7 @@ public class Utils {
             if(result){
                 showToast(context, context.getString(R.string.note_moved_to_trash));
                 updateConnectedWidgets(context, noteId);
-                incrementFolderCount(menu, Utils.getTrashNavId(context), 1);
+                incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                 decrementFolderCount(menu, folderId, 1);
             }
             if(finishListener != null)

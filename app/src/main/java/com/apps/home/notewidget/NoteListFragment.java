@@ -1,29 +1,24 @@
 package com.apps.home.notewidget;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.CursorRecyclerAdapter;
 import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
-import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,21 +28,20 @@ public class NoteListFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private RecyclerView recyclerView;
     private OnItemClickListener mListener;
-    private SQLiteDatabase db;
     private boolean sortByDate;
     private SharedPreferences preferences;
     private Context context;
-    private int folderId;
-    private String folderName;
+    private Folder folder;
+    private DatabaseHelper2 helper;
 
     public NoteListFragment() {
         // Required empty public constructor
     }
 
-    public static NoteListFragment newInstance(int folderId) {
+    public static NoteListFragment newInstance(Folder folder) {
         NoteListFragment fragment = new NoteListFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_PARAM1, folderId);
+        args.putSerializable(ARG_PARAM1, folder);
         fragment.setArguments(args);
         return fragment;
     }
@@ -56,7 +50,7 @@ public class NoteListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            folderId = getArguments().getInt(ARG_PARAM1);
+            folder = (Folder) getArguments().getSerializable(ARG_PARAM1);
         }
     }
 
@@ -68,6 +62,7 @@ public class NoteListFragment extends Fragment {
 
         preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         sortByDate = preferences.getBoolean(Constants.SORT_BY_DATE_KEY, false);
+        helper = new DatabaseHelper2(context);
 
         return inflater.inflate(R.layout.fragment_note_list, container, false);
     }
@@ -76,23 +71,21 @@ public class NoteListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        recyclerView = (RecyclerView) view; //TODO click
+        recyclerView = (RecyclerView) view;
 
-        new LoadNoteList().execute();
-
-        folderName = Utils.getFolderName(context, folderId);
+        loadNotes();
 
         ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
 
         if(actionBar!=null){
-            actionBar.setTitle(folderName);
+            actionBar.setTitle(folder.getName());
             actionBar.setSubtitle("");
         }
     }
 
     public void titleChanged(String title){
-        this.folderName = title;
-        new UpdateFolderNameInTable().execute();
+        folder.setName(title);
+        helper.updateFolder(folder, null);
     }
 
     @Override
@@ -110,36 +103,35 @@ public class NoteListFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        if(cursor!=null && !cursor.isClosed())
-            cursor.close();
     }
 
     public void setSortByDate(boolean sortByDate) {
         this.sortByDate = sortByDate;
         preferences.edit().putBoolean(Constants.SORT_BY_DATE_KEY, sortByDate).apply();
-        new LoadNoteList().execute();
+        loadNotes();
     }
 
     public void loadNotes(){
-        DatabaseHelper2 helper = new DatabaseHelper2(context);
-        helper.getFolderNotes(folderId, sortByDate, new DatabaseHelper2.OnNotesLoadListener() {
+
+        helper.getFolderNotes((int) folder.getId(), sortByDate, new DatabaseHelper2.OnNotesLoadListener() {
             @Override
-            public void onNotesLoaded(ArrayList<Note> notes) {
-                if (recyclerView.getAdapter() == null) {
-                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
-                    recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
-                    recyclerView.setAdapter(new NotesRecyclerAdapter(notes,
-                            new NotesRecyclerAdapter.OnItemClickListener() {
-                                @Override
-                                public void onItemClick(View view, int position, boolean longClick) {
-                                    if (mListener != null) {
-                                        cursor.moveToPosition(position);
-                                        mListener.onItemClicked(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)), longClick);
+            public void onNotesLoaded(final ArrayList<Note> notes) {
+                if (notes != null) {
+                    if (recyclerView.getAdapter() == null) {
+                        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                        recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
+                        recyclerView.setAdapter(new NotesRecyclerAdapter(notes,
+                                new NotesRecyclerAdapter.OnItemClickListener() {
+                                    @Override
+                                    public void onItemClick(View view, int position, boolean longClick) {
+                                        if (mListener != null) {//TODO notes
+                                            mListener.onItemClicked(notes.get(position), longClick);
+                                        }
                                     }
-                                }
-                            }));
-                } else {
-                    ((CursorRecyclerAdapter)recyclerView.getAdapter()).changeCursor(cursor);
+                                }));
+                    } else {
+                        ((NotesRecyclerAdapter) recyclerView.getAdapter()).setNotes(notes);
+                    }
                 }
             }
         });
@@ -147,38 +139,11 @@ public class NoteListFragment extends Fragment {
     }
 
     public void reloadList(){
-        new LoadNoteList().execute();
+        loadNotes();
     }
 
     public interface OnItemClickListener {
-        void onItemClicked(long noteId, boolean longClick);
-    }
-
-
-
-    private class UpdateFolderNameInTable extends AsyncTask<Void, Void, Boolean>
-    {   private ContentValues contentValues;
-
-        @Override
-        protected void onPreExecute()
-        {
-            contentValues = new ContentValues();
-            contentValues.put(Constants.FOLDER_NAME_COL, folderName);
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                db.update(Constants.FOLDER_TABLE, contentValues, Constants.ID_COL + " = ?",
-                        new String[]{Long.toString(folderId)});
-                Log.e(TAG, "update " + contentValues.toString());
-                return true;
-            } else
-                return false;
-
-        }
+        void onItemClicked(Note note, boolean longClick);
     }
 }
 
@@ -197,6 +162,10 @@ class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdapter.Dou
         calendar = Calendar.getInstance();
     }
 
+    public void setNotes(ArrayList<Note> notes){
+        this.notes = notes;
+        notifyDataSetChanged();
+    }
 
     @Override
     public DoubleLineViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

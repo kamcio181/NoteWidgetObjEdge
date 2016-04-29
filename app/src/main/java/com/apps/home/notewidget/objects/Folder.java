@@ -1,6 +1,8 @@
 package com.apps.home.notewidget.objects;
 
-public class Folder {
+import java.io.Serializable;
+
+public class Folder implements Serializable {
     private long id;
     private String name;
     private int icon;

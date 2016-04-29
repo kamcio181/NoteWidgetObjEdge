@@ -68,11 +68,29 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
             final SharedPreferences.Editor editor = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).edit();
 
-            Folder folder = new Folder(context.getString(R.string.my_notes), R.drawable.ic_nav_black_home);
+            //db = DatabaseHelper2.this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put(Constants.FOLDER_NAME_COL, context.getString(R.string.my_notes));
+            values.put(Constants.FOLDER_ICON_COL, R.drawable.ic_nav_black_home);
+
+            editor.putLong(Constants.MY_NOTES_ID_KEY, db.insert(Constants.FOLDER_TABLE, null, values)).apply();
+            Log.e("Helper", "myNotes ");
+
+            values.put(Constants.FOLDER_NAME_COL, context.getString(R.string.trash));
+            values.put(Constants.FOLDER_ICON_COL, R.drawable.ic_nav_black_home);
+
+            editor.putLong(Constants.TRASH_ID_KEY, db.insert(Constants.FOLDER_TABLE, null, values)).apply();
+            Log.e("Helper", "trash ");
+
+            //db.close();
+
+            /*Folder folder = new Folder(context.getString(R.string.my_notes), R.drawable.ic_nav_black_home);
             createFolder(folder, new OnItemInsertListener() {
                 @Override
                 public void onItemInserted(long id) {
                     editor.putLong(Constants.MY_NOTES_ID_KEY, id).apply();
+                    Log.e("Helper", "myNotes "+id);
                 }
             });
             folder = new Folder(context.getString(R.string.trash), R.drawable.ic_nav_black_trash);
@@ -80,8 +98,10 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 @Override
                 public void onItemInserted(long id) {
                     editor.putLong(Constants.TRASH_ID_KEY, id).apply();
+                    Log.e("Helper", "trash " + id);
                 }
-            });
+            });*/
+            Log.e("Helper", "created");
         }
     }
 
@@ -121,8 +141,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         new CreateNote(note, listener).execute();
     }
 
-    public void updateNote (Note note, long noteId, OnItemUpdateListener listener){
-        new UpdateNote(note, noteId, listener).execute();
+    public void updateNote (Note note, OnItemUpdateListener listener){
+        new UpdateNote(note, listener).execute();
     }
 
     public void getNote(boolean includeDeleted, long noteId, OnNoteLoadListener listener){
@@ -145,8 +165,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         new CreateFolder(folder, listener).execute();
     }
 
-    public void updateFolder (Folder folder, long folderId, OnItemUpdateListener listener){
-        new UpdateFolder(folder, folderId, listener).execute();
+    public void updateFolder (Folder folder, OnItemUpdateListener listener){
+        new UpdateFolder(folder, listener).execute();
     }
 
     public void getFolder(long folderId, OnFolderLoadListener listener){
@@ -225,12 +245,10 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     private class UpdateNote extends AsyncTask<Void, Void, Integer> {
         private Note note;
-        private long noteId;
         private OnItemUpdateListener listener;
 
-        public UpdateNote(Note note, long noteId, OnItemUpdateListener listener) {
+        public UpdateNote(Note note, OnItemUpdateListener listener) {
             this.note = note;
-            this.noteId = noteId;
             this.listener = listener;
         }
 
@@ -247,7 +265,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 values.put(Constants.DELETED_COL, 0);
 
                 int rows = db.update(Constants.NOTES_TABLE, values, Constants.ID_COL + " = ?",
-                        new String[]{Long.toString(noteId)});
+                        new String[]{Long.toString(note.getId())});
 
                 db.close();
 
@@ -537,12 +555,10 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     private class UpdateFolder extends AsyncTask<Void, Void, Integer> {
         private Folder folder;
-        private long folderId;
         private OnItemUpdateListener listener;
 
-        public UpdateFolder(Folder folder, long folderId, OnItemUpdateListener listener) {
+        public UpdateFolder(Folder folder, OnItemUpdateListener listener) {
             this.folder = folder;
-            this.folderId = folderId;
             this.listener = listener;
         }
 
@@ -556,7 +572,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 values.put(Constants.FOLDER_NAME_COL, folder.getName());
 
                 int rows = db.update(Constants.FOLDER_TABLE, values, Constants.ID_COL + " = ?",
-                        new String[]{Long.toString(folderId)});
+                        new String[]{Long.toString(folder.getId())});
 
                 db.close();
 
@@ -646,7 +662,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
             SQLiteDatabase db;
             try {
                 db = DatabaseHelper2.this.getReadableDatabase();
-
+                Log.e("Helper", "get Readable - Folders");
                 String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
                         + ", f." + Constants.FOLDER_ICON_COL
                         + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
