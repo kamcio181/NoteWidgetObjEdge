@@ -2,7 +2,7 @@ package com.apps.home.notewidget.objects;
 
 public class Widget {
     private long id;
-    private long widgetId;
+    private int widgetId;
     private long noteId;
     private int mode;
     private int theme;
@@ -11,7 +11,7 @@ public class Widget {
     public Widget() {
     }
 
-    public Widget(long widgetId, long noteId, int mode, int theme, int textSize) {
+    public Widget(int widgetId, long noteId, int mode, int theme, int textSize) {
         this.widgetId = widgetId;
         this.noteId = noteId;
         this.mode = mode;
@@ -19,7 +19,7 @@ public class Widget {
         this.textSize = textSize;
     }
 
-    public Widget(long id, long widgetId, long noteId, int mode, int theme, int textSize) {
+    public Widget(long id, int widgetId, long noteId, int mode, int theme, int textSize) {
         this.id = id;
         this.widgetId = widgetId;
         this.noteId = noteId;
@@ -32,7 +32,7 @@ public class Widget {
         this.id = id;
     }
 
-    public void setWidgetId(long widgetId) {
+    public void setWidgetId(int widgetId) {
         this.widgetId = widgetId;
     }
 
@@ -56,7 +56,7 @@ public class Widget {
         return id;
     }
 
-    public long getWidgetId() {
+    public int getWidgetId() {
         return widgetId;
     }
 

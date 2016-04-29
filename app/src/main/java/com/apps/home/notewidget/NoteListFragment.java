@@ -18,11 +18,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.CursorRecyclerAdapter;
+import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
 import com.apps.home.notewidget.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class NoteListFragment extends Fragment {
@@ -31,7 +34,6 @@ public class NoteListFragment extends Fragment {
     private RecyclerView recyclerView;
     private OnItemClickListener mListener;
     private SQLiteDatabase db;
-    private Cursor cursor;
     private boolean sortByDate;
     private SharedPreferences preferences;
     private Context context;
@@ -74,7 +76,8 @@ public class NoteListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        recyclerView = (RecyclerView) view;
+        recyclerView = (RecyclerView) view; //TODO click
+
         new LoadNoteList().execute();
 
         folderName = Utils.getFolderName(context, folderId);
@@ -117,49 +120,16 @@ public class NoteListFragment extends Fragment {
         new LoadNoteList().execute();
     }
 
-    public void reloadList(){
-        new LoadNoteList().execute();
-    }
-
-    public interface OnItemClickListener {
-        void onItemClicked(long noteId, boolean longClick);
-    }
-
-    private class LoadNoteList extends AsyncTask<Void, Void, Boolean> {
-        @Override
-        protected Boolean doInBackground(Void... params) {
-
-            if((db = Utils.getDb(context)) != null){
-                String orderColumn = sortByDate ? Constants.MILLIS_COL : Constants.NOTE_TITLE_COL;
-                Log.e(TAG, orderColumn);
-                Log.e(TAG, "get list cursor");
-
-                if(folderId != 2) { //is not trash
-                    cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL, Constants.MILLIS_COL,
-                                    Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
-                            Constants.FOLDER_ID_COL + " = ? AND " + Constants.DELETED_COL + " = ?",
-                            new String[]{Long.toString(folderId), Integer.toString(0)}, null, null, "LOWER(" + orderColumn + ") ASC");
-                } else {
-                    cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL, Constants.MILLIS_COL,
-                                    Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
-                            Constants.DELETED_COL + " = ?",
-                            new String[]{Integer.toString(1)}, null, null, "LOWER(" + orderColumn + ") ASC");
-                }
-                return true;
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            if(aBoolean){
-                cursor.moveToFirst();
-
+    public void loadNotes(){
+        DatabaseHelper2 helper = new DatabaseHelper2(context);
+        helper.getFolderNotes(folderId, sortByDate, new DatabaseHelper2.OnNotesLoadListener() {
+            @Override
+            public void onNotesLoaded(ArrayList<Note> notes) {
                 if (recyclerView.getAdapter() == null) {
                     recyclerView.setLayoutManager(new LinearLayoutManager(context));
                     recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
-                    recyclerView.setAdapter(new NotesCursorRecyclerAdapter(cursor,
-                            new NotesCursorRecyclerAdapter.OnItemClickListener() {
+                    recyclerView.setAdapter(new NotesRecyclerAdapter(notes,
+                            new NotesRecyclerAdapter.OnItemClickListener() {
                                 @Override
                                 public void onItemClick(View view, int position, boolean longClick) {
                                     if (mListener != null) {
@@ -172,8 +142,19 @@ public class NoteListFragment extends Fragment {
                     ((CursorRecyclerAdapter)recyclerView.getAdapter()).changeCursor(cursor);
                 }
             }
-        }
+        });
+
     }
+
+    public void reloadList(){
+        new LoadNoteList().execute();
+    }
+
+    public interface OnItemClickListener {
+        void onItemClicked(long noteId, boolean longClick);
+    }
+
+
 
     private class UpdateFolderNameInTable extends AsyncTask<Void, Void, Boolean>
     {   private ContentValues contentValues;
@@ -201,36 +182,38 @@ public class NoteListFragment extends Fragment {
     }
 }
 
-class NotesCursorRecyclerAdapter extends CursorRecyclerAdapter<NotesCursorRecyclerAdapter.DoubleLineViewHolder>{
+class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdapter.DoubleLineViewHolder>{
     private Calendar calendar;
-    private static NotesCursorRecyclerAdapter.OnItemClickListener listener;
+    private static OnItemClickListener listener;
+    private ArrayList<Note> notes;
 
     public interface OnItemClickListener{
         void onItemClick(View view, int position, boolean longClick);
     }
 
-    public NotesCursorRecyclerAdapter (Cursor cursor, OnItemClickListener listener){
-        super(cursor);
+    public NotesRecyclerAdapter(ArrayList<Note> notes, OnItemClickListener listener) {
+        this.notes = notes;
         this.listener = listener;
         calendar = Calendar.getInstance();
     }
 
+
     @Override
-    public int getItemViewType(Cursor cursor) {
-        return 0;
+    public DoubleLineViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        return new DoubleLineViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_recycle_view_item, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(NotesCursorRecyclerAdapter.DoubleLineViewHolder holder, Cursor cursor) {
-        calendar.setTimeInMillis(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
-        Log.e("RecycleViewAdapter", "millis " + cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
-        holder.titleTextView.setText(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
+    public void onBindViewHolder(DoubleLineViewHolder holder, int position) {
+        Note note = notes.get(position);
+        calendar.setTimeInMillis(note.getCreatedAt());
+        holder.titleTextView.setText(note.getTitle());
         holder.subtitleTextView.setText(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
     }
 
     @Override
-    public NotesCursorRecyclerAdapter.DoubleLineViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new DoubleLineViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_recycle_view_item, parent, false));
+    public int getItemCount() {
+        return notes.size();
     }
 
     static class DoubleLineViewHolder extends RecyclerView.ViewHolder{

@@ -11,60 +11,63 @@ import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.objects.Note;
+import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.Utils;
 
 public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory {
     private Context context = null;
     private int appWidgetId;
-    private int currentSize;
-    private int currentThemeMode;
-    private SQLiteDatabase db;
-    private Cursor configCursor;
-    private Cursor noteCursor;
-	private long noteId;
-    private String noteText;
+    private Widget widget;
+    private Note note;
 	
     public WidgetListProvider(Context context, Intent intent) {
         this.context = context;
         appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
-				
-		noteId = intent.getIntExtra(Constants.ID_COL,0);
+
         Log.e("list", "constructor");
     }
 
-    private void getCursors(){
-        if((db = Utils.getDb(context)) != null) {
+    private void getObjects(){
+        final DatabaseHelper2 helper = new DatabaseHelper2(context);
 
-            configCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.CURRENT_TEXT_SIZE_COL, Constants.CURRENT_THEME_MODE_COL},
-                    Constants.WIDGET_ID_COL + " = ?", new String[]{Integer.toString(appWidgetId)},
-                    null, null, null);
-            configCursor.moveToFirst();
+        helper.getWidget(appWidgetId, new DatabaseHelper2.OnWidgetLoadListener() {
+            @Override
+            public void onWidgetLoaded(Widget widget) {
+                if(widget != null){
+                    WidgetListProvider.this.widget = widget;
 
-            currentSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL));
-
-            currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL));
-
-            noteCursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.NOTE_TEXT_COL},
-                    Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
-            noteCursor.moveToFirst();
-
-            noteText = noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL));
-        }
+                    helper.getNote(false, widget.getNoteId(), new DatabaseHelper2.OnNoteLoadListener() {
+                        @Override
+                        public void onNoteLoaded(Note note) {
+                            if(note != null){
+                                WidgetListProvider.this.note = note;
+                            }
+                        }
+                    });
+                }
+            }
+        });
     }
 
     @Override
     public RemoteViews getViewAt(int position) {
-        getCursors();
+        getObjects();
 
-        int item = currentThemeMode == Constants.WIDGET_THEME_LIGHT? R.layout.note_text_light : R.layout.note_text_dark;
-        Log.e("list", "currentThemeMode " + currentThemeMode);
+        int textSize = widget.getTextSize();
+        int widgetTheme = widget.getTheme();
+        String noteText = note.getNote();
+
+        int item = widgetTheme == Constants.WIDGET_THEME_LIGHT? R.layout.note_text_light : R.layout.note_text_dark;
+        Log.e("list", "currentThemeMode " + widgetTheme);
         final RemoteViews remoteView = new RemoteViews(
                 context.getPackageName(),item);
 
         Intent fillInIntent = new Intent();
-        fillInIntent.putExtra(Constants.ID_COL, noteId);
+        fillInIntent.putExtra(Constants.ID_COL, widget.getNoteId());
         remoteView.setOnClickFillInIntent(R.id.noteTextView, fillInIntent);
 
         if(!noteText.trim().equals("")){
@@ -75,7 +78,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
             remoteView.setTextViewText(R.id.noteTextView, context.getString(R.string.note_is_empty_click_here_to_edit));
         }
         //Set text size
-        remoteView.setFloat(R.id.noteTextView, "setTextSize", currentSize);
+        remoteView.setFloat(R.id.noteTextView, "setTextSize", textSize);
         return remoteView;
     }
 

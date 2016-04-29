@@ -3,19 +3,19 @@ package com.apps.home.notewidget.widget;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.apps.home.notewidget.MainActivity;
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.objects.Note;
+import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.Utils;
 
 public class WidgetProvider extends AppWidgetProvider {
@@ -25,9 +25,9 @@ public class WidgetProvider extends AppWidgetProvider {
     public static final String CHANGE_THEME_MODE = "android.appwidget.action.CHANGE_THEME_MODE";
     public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
 
-    private SQLiteDatabase db;
-    private Cursor configCursor;
-    private Cursor noteCursor;
+    private DatabaseHelper2 helper;
+    private Widget widget;
+    private Note note;
 
     private SharedPreferences preferences;
 
@@ -41,11 +41,12 @@ public class WidgetProvider extends AppWidgetProvider {
         int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
         if(isConfigured(context, appWidgetId)) {
-            getCursors(context, appWidgetId);
+            getObjects(context, appWidgetId);
 
             switch (intent.getAction()) {
                 case INCREASE_TEXT_SIZE:
-                    putInConfigTable(context, Constants.CURRENT_TEXT_SIZE_COL, (currentTextSize + 1), appWidgetId);
+                    widget.setTextSize(currentTextSize + 1);
+                    helper.updateWidget(widget, widget.getId(), null);
 
                     Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize + 1));
 
@@ -54,7 +55,8 @@ public class WidgetProvider extends AppWidgetProvider {
                     break;
                 case DECREASE_TEXT_SIZE:
                     if (currentTextSize > 1) {
-                        putInConfigTable(context, Constants.CURRENT_TEXT_SIZE_COL, (currentTextSize - 1), appWidgetId);
+                        widget.setTextSize(currentTextSize - 1);
+                        helper.updateWidget(widget, widget.getId(), null);
 
                         Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize - 1));
 
@@ -64,14 +66,16 @@ public class WidgetProvider extends AppWidgetProvider {
 
                     break;
                 case CHANGE_WIDGET_MODE:
-                    putInConfigTable(context, Constants.CURRENT_WIDGET_MODE_COL, Utils.switchWidgetMode(currentWidgetMode), appWidgetId);
+                    widget.setMode(Utils.switchWidgetMode(currentWidgetMode));
+                    helper.updateWidget(widget, widget.getId(), null);
 
                     AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
 
                     break;
 
                 case CHANGE_THEME_MODE:
-                    putInConfigTable(context, Constants.CURRENT_THEME_MODE_COL, Utils.switchThemeMode(currentThemeMode), appWidgetId);
+                    widget.setTheme(Utils.switchThemeMode(currentThemeMode));
+                    helper.updateWidget(widget, widget.getId(), null);
 
                     AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
 
@@ -106,7 +110,14 @@ public class WidgetProvider extends AppWidgetProvider {
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
 
-        removeFromConfigTable(context, appWidgetIds);
+        if (preferences == null)
+            preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+
+        for (int i : appWidgetIds) {
+            helper.removeWidget(i, null);
+            editor.remove(i + Constants.CONFIGURED_KEY).apply();
+        }
     }
 
     private boolean isConfigured(Context context, int widgetId){
@@ -115,54 +126,29 @@ public class WidgetProvider extends AppWidgetProvider {
         return preferences.getBoolean(widgetId+Constants.CONFIGURED_KEY, false);
     }
 
-    private void getCursors(Context context, int widgetId){
-        if((db = Utils.getDb(context)) != null) {
+    private void getObjects(final Context context, int widgetId){
+        helper = new DatabaseHelper2(context);
 
-            configCursor = db.query(Constants.WIDGETS_TABLE, new String[]{
-                            Constants.CONNECTED_NOTE_ID_COL, Constants.CURRENT_WIDGET_MODE_COL,
-                            Constants.CURRENT_THEME_MODE_COL, Constants.CURRENT_TEXT_SIZE_COL},
-                    Constants.WIDGET_ID_COL + " = ?", new String[]{Integer.toString(widgetId)},
-                    null, null, null);
-            if(configCursor.getCount()>0) {
-                configCursor.moveToFirst();
-                currentTextSize = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL));
-                currentThemeMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL));
-                currentWidgetMode = configCursor.getInt(configCursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE_COL));
+        helper.getWidget(widgetId, new DatabaseHelper2.OnWidgetLoadListener() {
+            @Override
+            public void onWidgetLoaded(Widget widget) {
+                if(widget != null){
+                    WidgetProvider.this.widget = widget;
+                    currentTextSize = widget.getTextSize();
+                    currentThemeMode = widget.getTheme();
+                    currentWidgetMode = widget.getMode();
 
-                noteCursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.NOTE_TITLE_COL},
-                        Constants.ID_COL + " = ? AND " + Constants.DELETED_COL + " = ?", new String[]{Integer.toString(
-                                configCursor.getInt(configCursor.getColumnIndexOrThrow(
-                                        Constants.CONNECTED_NOTE_ID_COL))), "0"}, null, null, null);
-                if (noteCursor.getCount() > 0)
-                    noteCursor.moveToFirst();
+                    helper.getNote(false, widget.getNoteId(), new DatabaseHelper2.OnNoteLoadListener() {
+                        @Override
+                        public void onNoteLoaded(Note note) {
+                            if(note != null){
+                                WidgetProvider.this.note = note;
+                            }
+                        }
+                    });
+                }
             }
-        }
-    }
-
-    private void putInConfigTable(Context context, String column, int value, int widgetId){
-        if((db = Utils.getDb(context)) != null) {
-
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(column, value);
-            db.update(Constants.WIDGETS_TABLE, contentValues, Constants.WIDGET_ID_COL + " = ?",
-                    new String[]{Integer.toString(widgetId)});
-        }
-    }
-
-    private void removeFromConfigTable(Context context, int[] widgetIds){
-        if((db = Utils.getDb(context)) != null) {
-
-            if (preferences == null)
-                preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-
-            String[] args = new String[widgetIds.length];
-            for (int i = 0; i < widgetIds.length; i++) {
-                args[i] = Integer.toString(widgetIds[i]);
-                preferences.edit().remove(widgetIds[i] + Constants.CONFIGURED_KEY).apply();
-            }
-
-            db.delete(Constants.WIDGETS_TABLE, Constants.WIDGET_ID_COL + " = ?", args);
-        }
+        });
     }
 
     private PendingIntent getPendingIntentWithAction(Context context, Intent intent, int appWidgetId, String action){
@@ -195,10 +181,10 @@ public class WidgetProvider extends AppWidgetProvider {
 
     private RemoteViews updateWidgetListView(Context context,
                                              int appWidgetId) {
-        getCursors(context, appWidgetId);
+        getObjects(context, appWidgetId);
         RemoteViews views;
 
-        if(configCursor.getCount()>0 && noteCursor.getCount()>0){
+        if(widget != null && note != null){
             Log.e("provider", "themeMode " + currentThemeMode + " widgetMode "+currentWidgetMode);
             views = new RemoteViews(context.getPackageName(), Utils.getLayoutFile(context, currentThemeMode, currentWidgetMode));
 
@@ -210,8 +196,7 @@ public class WidgetProvider extends AppWidgetProvider {
             //which layout to show on widget
             if(currentWidgetMode == Constants.WIDGET_MODE_TITLE){
                 //Set note title and intent to change note
-                views.setTextViewText(R.id.titleTextView, noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
-                Log.e("provider", "title "+noteCursor.getString(noteCursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
+                views.setTextViewText(R.id.titleTextView, note.getTitle());
 
                 //Reconfigure intent
                 //views.setOnClickPendingIntent(R.id.titleTextView, getConfigPendingIntent(context, appWidgetId));
@@ -237,9 +222,6 @@ public class WidgetProvider extends AppWidgetProvider {
             Intent svcIntent = new Intent(context, WidgetService.class);
             //passing app widget id to that RemoteViews Service
             svcIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            //pass note text
-            svcIntent.putExtra(Constants.ID_COL, configCursor.getInt(configCursor.getColumnIndexOrThrow(
-                    Constants.CONNECTED_NOTE_ID_COL)));
             //setting a unique Uri to the intent
             //don't know its purpose to me right now
             svcIntent.setData(Uri.parse(

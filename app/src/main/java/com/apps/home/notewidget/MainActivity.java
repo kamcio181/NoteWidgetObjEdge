@@ -30,9 +30,13 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.Utils;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity
@@ -54,7 +58,7 @@ public class MainActivity extends AppCompatActivity
     private boolean exit = false;
     private Handler handler = new Handler();
     private Runnable exitRunnable;
-    int deletedCount;
+    private DatabaseHelper2 helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +69,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
+        helper = new DatabaseHelper2(this);
         setResetExitFlagRunnable();
 
         myNotesNavId = Utils.getMyNotesNavId(this);
@@ -235,7 +240,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void loadNavViewItems(){
-        new LoadNavViewItems().execute();
+        helper.getFolders(new DatabaseHelper2.OnFoldersLoadListener() {
+            @Override
+            public void onFoldersLoaded(ArrayList<Folder> folders) {
+                if(folders != null)
+                    addFolderToNavView(folders);
+            }
+        });
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -461,7 +472,7 @@ public class MainActivity extends AppCompatActivity
         openFolderWithNotes(id);
     }
 
-    private void addFolderToNavView(Cursor cursor){
+    private void addFolderToNavView(ArrayList<Folder> folders){
         Menu menu = navigationView.getMenu();
 
         if(menu.size()!=0)
@@ -469,27 +480,18 @@ public class MainActivity extends AppCompatActivity
 
         navigationView.inflateMenu(R.menu.activity_main_drawer);
 
-        for (int i =0; i<cursor.getCount(); i++){
-            Log.e(TAG, " " + cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL))
-                    + ",  " + cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
-
-            int id = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL));
+        for (Folder f : folders){
+            long id = f.getId();
             int order = 11;
-            int count = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL));
+
+
             if(id == myNotesNavId)
                 order = 10;
-            else if (id == trashNavId) {
+            else if (id == trashNavId)
                 order = 10000;
-                count = deletedCount;
-            }
 
-            addMenuCustomItem(menu, id, order,
-                    cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)),
-                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)),
-                    count);
-            cursor.moveToNext();
+            addMenuCustomItem(menu, (int) id, order, f.getName(), f.getIcon(), f.getCount());
         }
-        cursor.close();
 
         if(menu.findItem(folderId) == null)
             folderId = myNotesNavId;
@@ -645,40 +647,6 @@ public class MainActivity extends AppCompatActivity
         return navigationView.getMenu();
     }
 
-
-
-    private class LoadNavViewItems extends AsyncTask<Void, Integer, Boolean>
-    {
-        Cursor cursor;
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            if((db = Utils.getDb(context)) != null) {
-
-                String query ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
-                        + ", f." + Constants.FOLDER_ICON_COL
-                        + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
-                        + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
-                        + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
-                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = 0"
-                        +  " GROUP BY f." + Constants.ID_COL;
-                deletedCount = (int) DatabaseUtils.queryNumEntries(db, Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{"1"});
-                cursor = db.rawQuery(query, null);
-                return (cursor.getCount()>0);
-            } else
-                return false;
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            if(aBoolean){
-                cursor.moveToFirst();
-                Log.e(TAG, " count " + cursor.getCount());
-                addFolderToNavView(cursor);
-            }
-        }
-    }
 
     private class PutFolderInTable extends AsyncTask<String, Void, Boolean>
     {   private ContentValues contentValues;
