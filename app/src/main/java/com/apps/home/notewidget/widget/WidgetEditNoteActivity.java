@@ -11,7 +11,9 @@ import android.view.View;
 
 import com.apps.home.notewidget.NoteFragment;
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.Utils;
 
 
@@ -21,6 +23,7 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
     private long noteId = -1;
     private FragmentManager fragmentManager;
     private Toolbar toolbar;
+    private boolean skipSaving = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,8 +43,16 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
         }
 
         if(noteId>0) {
-            fragmentManager.beginTransaction().replace(R.id.container,
-                    NoteFragment.newInstance(false, noteId), Constants.FRAGMENT_NOTE).commit();
+            DatabaseHelper2 helper = new DatabaseHelper2(context);
+            helper.getNote(false, noteId, new DatabaseHelper2.OnNoteLoadListener() {
+                @Override
+                public void onNoteLoaded(Note note) {
+                    if(note != null)
+                        fragmentManager.beginTransaction().replace(R.id.container,
+                            NoteFragment.newInstance(false, note), Constants.FRAGMENT_NOTE).commit();
+                }
+            });
+
         }
     }
 
@@ -89,7 +100,9 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
     @Override
     protected void onStop() {
         super.onStop();
-        getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, true).apply();
+        if(!skipSaving)
+            getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().
+                    putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, true).apply();
     }
 
     @Override
@@ -109,6 +122,7 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
         //noinspection SimplifiableIfStatement
         switch (id){
             case R.id.action_discard_changes:
+                skipSaving = true;
                 ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
                 finish();
                 break;

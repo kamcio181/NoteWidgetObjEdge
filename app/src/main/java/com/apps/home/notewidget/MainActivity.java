@@ -18,6 +18,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity
     private DatabaseHelper2 helper;
     private ArrayList<Folder> folders;
     private Note note;
+    private ActionBar actionBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity
         context = this;
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        actionBar = getSupportActionBar();
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
         helper = new DatabaseHelper2(this);
@@ -100,9 +103,17 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         Log.e(TAG, "nav created");
         loadNavViewItems();
+
+        helper.getNotes(true, new DatabaseHelper2.OnNotesLoadListener() {
+            @Override
+            public void onNotesLoaded(ArrayList<Note> notes) {
+                for (Note n : notes)
+                    Log.e(TAG, n.toString());
+            }
+        });
     }
 
-    private void reloadMainActivityAfterRestore(){
+    private void reloadMainActivityAfterRestore(){ //TODO sometimes notes are vanish? issue with folder id?
         folderId = myNotesNavId;
         attachFragment(Constants.FRAGMENT_LIST);
         loadNavViewItems();
@@ -199,10 +210,10 @@ public class MainActivity extends AppCompatActivity
                 }
                 else
                     ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
-                if(textToFind.length() == 0)
+                /*if(textToFind.length() == 0)
                     attachFragment(Constants.FRAGMENT_LIST);
                 else
-                    attachFragment(Constants.FRAGMENT_SEARCH);
+                    attachFragment(Constants.FRAGMENT_SEARCH);*/
                 break;
             case R.id.action_delete_all:
             case R.id.action_restore_all:
@@ -230,10 +241,11 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_share:
                 Utils.sendShareIntent(this, ((NoteFragment) fragmentManager.
                         findFragmentByTag(Constants.FRAGMENT_NOTE)).getNoteText(),
-                        getSupportActionBar().getTitle().toString());
+                        actionBar.getTitle().toString());
                 break;
             case R.id.action_save:
-                onBackPressed();
+                ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).saveNote(true);
+                //onBackPressed();
                 break;
         }
 
@@ -248,7 +260,7 @@ public class MainActivity extends AppCompatActivity
         helper.getFolders(new DatabaseHelper2.OnFoldersLoadListener() {
             @Override
             public void onFoldersLoaded(ArrayList<Folder> folders) {
-                if(folders != null){
+                if (folders != null) {
                     MainActivity.this.folders = folders;
                     Log.e(TAG, "folders got");
                     addFolderToNavView(folders);
@@ -286,6 +298,9 @@ public class MainActivity extends AppCompatActivity
         super.onStop();
         exit = false;
         handler.removeCallbacks(exitRunnable);
+
+        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+            ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).saveNote(false);
     }
 
     @Override
@@ -327,8 +342,7 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    private DialogInterface.OnClickListener get(final int action,
-                                                                                  final boolean actionBarMenuItemClicked){
+    private DialogInterface.OnClickListener get(final int action, final boolean actionBarMenuItemClicked){
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -392,7 +406,7 @@ public class MainActivity extends AppCompatActivity
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Utils.getNameDialog(context, getSupportActionBar().getTitle().toString(),
+                Utils.getNameDialog(context, actionBar.getTitle().toString(),
                         fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null ? getString(R.string.set_note_title) : getString(R.string.set_folder_name),
                         new Utils.OnNameSet() {
                             @Override
@@ -544,7 +558,7 @@ public class MainActivity extends AppCompatActivity
             title = getString(R.string.untitled);
         else
             title = Utils.capitalizeFirstLetter(title);
-        getSupportActionBar().setTitle(title);
+        actionBar.setTitle(title);
         Log.e(TAG, "setToolbarTitle " + title);
 
         return title;
@@ -598,12 +612,12 @@ public class MainActivity extends AppCompatActivity
                 break;
             case Constants.FRAGMENT_TRASH_NOTE:
                 setOnTitleClickListener(false);
-                fragmentToAttach = TrashNoteFragment.newInstance(noteId);
+                fragmentToAttach = TrashNoteFragment.newInstance(note);
                 break;
             case Constants.FRAGMENT_SEARCH:
                 setOnTitleClickListener(false);
                 fragmentToAttach = SearchFragment.newInstance(textToFind);
-                getSupportActionBar().setTitle(R.string.search);
+                actionBar.setTitle(R.string.search);
                 break;
         }
         fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).commitAllowingStateLoss();
@@ -646,12 +660,19 @@ public class MainActivity extends AppCompatActivity
             reloadMainActivityAfterRestore();
         else {
             if (preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
-                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-                    ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).reloadNote();
+                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null){
+                    helper.getNote(false, note.getId(), new DatabaseHelper2.OnNoteLoadListener() { //TODO common with trash
+                        @Override
+                        public void onNoteLoaded(Note note) {
+                            if(note != null){
+                                MainActivity.this.note = note;
+                                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).setNote(note);
+                            }
+                        }
+                    });
+                }
                 else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
                     ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-                else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE) != null)
-                    ((TrashNoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_TRASH_NOTE)).reloadNote();
                 preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();
             }
             if (preferences.getBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false)) {

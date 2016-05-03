@@ -20,7 +20,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -270,7 +269,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
             super.onPostExecute(aBoolean);
 
             if(aBoolean) {
-                Utils.showToast(context, getString(R.string.saved));
+                Utils.showToast(context, getString(R.string.saving));
                 finish();
             }
             else

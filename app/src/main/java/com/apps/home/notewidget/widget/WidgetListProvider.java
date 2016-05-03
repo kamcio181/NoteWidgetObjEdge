@@ -34,23 +34,11 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
     private void getObjects(){
         final DatabaseHelper2 helper = new DatabaseHelper2(context);
 
-        helper.getWidget(appWidgetId, new DatabaseHelper2.OnWidgetLoadListener() {
-            @Override
-            public void onWidgetLoaded(Widget widget) {
-                if(widget != null){
-                    WidgetListProvider.this.widget = widget;
+        widget = helper.getWidgetOnDemand(appWidgetId);
 
-                    helper.getNote(false, widget.getNoteId(), new DatabaseHelper2.OnNoteLoadListener() {
-                        @Override
-                        public void onNoteLoaded(Note note) {
-                            if(note != null){
-                                WidgetListProvider.this.note = note;
-                            }
-                        }
-                    });
-                }
-            }
-        });
+        if(widget != null){
+            note = helper.getNoteOnDemand(false, widget.getNoteId());
+        }
     }
 
     @Override

@@ -22,6 +22,8 @@ import com.apps.home.notewidget.utils.DividerItemDecoration;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class NoteListFragment extends Fragment {
     private static final String TAG = "NoteListFragment";
@@ -33,6 +35,7 @@ public class NoteListFragment extends Fragment {
     private Context context;
     private Folder folder;
     private DatabaseHelper2 helper;
+    private ArrayList<Note> notes;
 
     public NoteListFragment() {
         // Required empty public constructor
@@ -108,15 +111,41 @@ public class NoteListFragment extends Fragment {
     public void setSortByDate(boolean sortByDate) {
         this.sortByDate = sortByDate;
         preferences.edit().putBoolean(Constants.SORT_BY_DATE_KEY, sortByDate).apply();
-        loadNotes();
+        if(notes != null) {
+            Collections.sort(notes, new NotesComparator(sortByDate));
+            recyclerView.getAdapter().notifyDataSetChanged();
+        }
+    }
+
+    class NotesComparator implements Comparator<Note>{
+        boolean sortByDate;
+
+        public NotesComparator(boolean sortByDate) {
+            this.sortByDate = sortByDate;
+        }
+
+        @Override
+        public int compare(Note lhs, Note rhs) {
+            if(sortByDate){
+                if(lhs.getCreatedAt() < rhs.getCreatedAt())
+                    return -1;
+                else if (lhs.getCreatedAt() > rhs.getCreatedAt())
+                    return 1;
+                else
+                    return 0;
+            } else {
+                return lhs.getTitle().compareTo(rhs.getTitle());
+            }
+        }
     }
 
     public void loadNotes(){
 
         helper.getFolderNotes((int) folder.getId(), sortByDate, new DatabaseHelper2.OnNotesLoadListener() {
             @Override
-            public void onNotesLoaded(final ArrayList<Note> notes) {
+            public void onNotesLoaded(ArrayList<Note> notes) {
                 if (notes != null) {
+                    NoteListFragment.this.notes = notes;
                     if (recyclerView.getAdapter() == null) {
                         recyclerView.setLayoutManager(new LinearLayoutManager(context));
                         recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
@@ -124,13 +153,13 @@ public class NoteListFragment extends Fragment {
                                 new NotesRecyclerAdapter.OnItemClickListener() {
                                     @Override
                                     public void onItemClick(View view, int position, boolean longClick) {
-                                        if (mListener != null) {//TODO notes
-                                            mListener.onItemClicked(notes.get(position), longClick);
+                                        if (mListener != null) {
+                                            mListener.onItemClicked(NoteListFragment.this.notes.get(position), longClick);
                                         }
                                     }
                                 }));
                     } else {
-                        ((NotesRecyclerAdapter) recyclerView.getAdapter()).setNotes(notes);
+                        ((NotesRecyclerAdapter) recyclerView.getAdapter()).setNotes(NoteListFragment.this.notes);
                     }
                 }
             }
@@ -160,6 +189,7 @@ class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdapter.Dou
         this.notes = notes;
         this.listener = listener;
         calendar = Calendar.getInstance();
+        setHasStableIds(true);
     }
 
     public void setNotes(ArrayList<Note> notes){
@@ -209,5 +239,10 @@ class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdapter.Dou
             titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
             subtitleTextView = (RobotoTextView) itemView.findViewById(R.id.textView3);
         }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return notes.get(position).getId();
     }
 }

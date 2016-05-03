@@ -7,8 +7,8 @@
     <string name="title_activity_widget_edit_note">WidgetEditNoteActivity</string>
     <string name="title_activity_export">Export to txt file</string>
     <string name="title_activity_widget_config">Choose note</string>
-    <string name="saved">Saved</string>
-    <string name="note_moved_to_trash">Note moved to trash</string>
+    <string name="saving">Saving</string>
+    <string name="moving_to_trash">Moving to trash</string>
     <string name="closed_without_saving">Closed without saving</string>
     <string name="multilevel_note_manual_text">You can use \"-\", \"+\" and \"*\" at beginning of line to
         create multilevel notes.\nCheck the below example: \n\u0009- first level of note\n\u0009

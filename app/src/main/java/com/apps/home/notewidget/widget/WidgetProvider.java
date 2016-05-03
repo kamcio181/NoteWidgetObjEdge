@@ -25,6 +25,7 @@ public class WidgetProvider extends AppWidgetProvider {
     public static final String CHANGE_THEME_MODE = "android.appwidget.action.CHANGE_THEME_MODE";
     public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
 
+    private static final String TAG = "WidgetProvider";
     private DatabaseHelper2 helper;
     private Widget widget;
     private Note note;
@@ -46,7 +47,7 @@ public class WidgetProvider extends AppWidgetProvider {
             switch (intent.getAction()) {
                 case INCREASE_TEXT_SIZE:
                     widget.setTextSize(currentTextSize + 1);
-                    helper.updateWidget(widget, widget.getId(), null);
+                    helper.updateWidgetOnDemand(widget, widget.getId());
 
                     Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize + 1));
 
@@ -56,7 +57,7 @@ public class WidgetProvider extends AppWidgetProvider {
                 case DECREASE_TEXT_SIZE:
                     if (currentTextSize > 1) {
                         widget.setTextSize(currentTextSize - 1);
-                        helper.updateWidget(widget, widget.getId(), null);
+                        helper.updateWidgetOnDemand(widget, widget.getId());
 
                         Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize - 1));
 
@@ -67,7 +68,7 @@ public class WidgetProvider extends AppWidgetProvider {
                     break;
                 case CHANGE_WIDGET_MODE:
                     widget.setMode(Utils.switchWidgetMode(currentWidgetMode));
-                    helper.updateWidget(widget, widget.getId(), null);
+                    helper.updateWidgetOnDemand(widget, widget.getId());
 
                     AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
 
@@ -75,7 +76,7 @@ public class WidgetProvider extends AppWidgetProvider {
 
                 case CHANGE_THEME_MODE:
                     widget.setTheme(Utils.switchThemeMode(currentThemeMode));
-                    helper.updateWidget(widget, widget.getId(), null);
+                    helper.updateWidgetOnDemand(widget, widget.getId());
 
                     AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
 
@@ -86,13 +87,13 @@ public class WidgetProvider extends AppWidgetProvider {
     }
 
     private void updateNote(Context context, int appWidgetId){
-		Log.e("Widget", "" + appWidgetId);
+		Log.e(TAG, "" + appWidgetId);
         AppWidgetManager mgr = AppWidgetManager.getInstance(context);
         mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.noteListView);
     }
 
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        Log.e("widget", "onUpdate");
+        Log.e(TAG, "onUpdate");
         for (int appWidgetId : appWidgetIds) {
             if(isConfigured(context, appWidgetId)){
 
@@ -128,27 +129,20 @@ public class WidgetProvider extends AppWidgetProvider {
 
     private void getObjects(final Context context, int widgetId){
         helper = new DatabaseHelper2(context);
+        Log.e(TAG, "getObjects");
 
-        helper.getWidget(widgetId, new DatabaseHelper2.OnWidgetLoadListener() {
-            @Override
-            public void onWidgetLoaded(Widget widget) {
-                if(widget != null){
-                    WidgetProvider.this.widget = widget;
-                    currentTextSize = widget.getTextSize();
-                    currentThemeMode = widget.getTheme();
-                    currentWidgetMode = widget.getMode();
+        widget = helper.getWidgetOnDemand(widgetId);
+        Log.e(TAG, "getWidget");
+        if(widget != null){
+            Log.e(TAG, "widget Not null");
+            currentTextSize = widget.getTextSize();
+            currentThemeMode = widget.getTheme();
+            currentWidgetMode = widget.getMode();
 
-                    helper.getNote(false, widget.getNoteId(), new DatabaseHelper2.OnNoteLoadListener() {
-                        @Override
-                        public void onNoteLoaded(Note note) {
-                            if(note != null){
-                                WidgetProvider.this.note = note;
-                            }
-                        }
-                    });
-                }
-            }
-        });
+            note = helper.getNoteOnDemand(false, widget.getNoteId());
+            Log.e(TAG, "getNote");
+
+        }
     }
 
     private PendingIntent getPendingIntentWithAction(Context context, Intent intent, int appWidgetId, String action){

@@ -30,8 +30,7 @@ public class NoteFragment extends Fragment{
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private RobotoEditText noteEditText;
-    private boolean deleteNote = false;
-    private boolean discardChanges = false;
+    private boolean skipSaving = false;
     private boolean isNewNote;
     private Context context;
     private TextWatcher textWatcher;
@@ -40,6 +39,7 @@ public class NoteFragment extends Fragment{
     private String newLine;
     private Note note;
     private DatabaseHelper2 helper;
+    private ActionBar actionBar;
 
 
     public NoteFragment() {
@@ -106,9 +106,15 @@ public class NoteFragment extends Fragment{
                 context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
     }
 
+    public void setNote(Note note){
+        this.note = note;
+        noteEditText.setText(Html.fromHtml(note.getNote()));
+        actionBar.setTitle(note.getTitle());
+    }
+
     private void setTitleAndSubtitle(){
-        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
-        if(actionBar !=null){
+        actionBar = ((AppCompatActivity) context).getSupportActionBar();
+        if(actionBar != null){
             actionBar.setTitle(note.getTitle());
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(note.getCreatedAt());
@@ -158,46 +164,38 @@ public class NoteFragment extends Fragment{
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        if (!deleteNote && !discardChanges) {
-            if(isNewNote) {//TODO ENCRYPTION
-                note.setNote(noteEditText.getText().toString());
-                helper.createNote(note, new DatabaseHelper2.OnItemInsertListener() {
-                    @Override
-                    public void onItemInserted(long id) {
-                        Utils.showToast(context, getString(R.string.saved));
-                        note.setId(id);
-                        isNewNote = false;
-                    }
-                });
-            } else{
-                note.setNote(noteEditText.getText().toString());
-                helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
-                    @Override
-                    public void onItemUpdated(int numberOfRows) {
-                        if(numberOfRows > 0)
-                            Utils.showToast(context, getString(R.string.saved));
-                    }
-                });
-            }
-        } else if (deleteNote && !isNewNote) {
+    public void onStop() { //TODO delete note - update note and attach proper fragment
+        super.onStop(); //TODO save note on stop
+        if(!skipSaving){
+            saveNote(false);
+        }
+    }
+
+    public void saveNote(final boolean quit){
+        Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
+        if(isNewNote) {//TODO ENCRYPTION
             note.setNote(noteEditText.getText().toString());
-            note.setDeletedState(1);
+            helper.createNote(note, new DatabaseHelper2.OnItemInsertListener() {
+                @Override
+                public void onItemInserted(long id) {
+                    note.setId(id);
+                    isNewNote = false;
+                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
+                    Utils.updateConnectedWidgets(context, note.getId());
+                    if(quit)
+                        ((AppCompatActivity)context).onBackPressed();
+                }
+            });
+        } else{
+            note.setNote(noteEditText.getText().toString());
             helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
                 @Override
                 public void onItemUpdated(int numberOfRows) {
-                    if (numberOfRows > 0) {
-                        Utils.showToast(context, context.getString(R.string.note_moved_to_trash));
-                        Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
-                        Menu menu = ((MainActivity) context).getNavigationViewMenu();
-                        Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
-                        Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
-                    }
+                    Utils.updateConnectedWidgets(context, note.getId());
+                    if(quit)
+                        ((AppCompatActivity)context).onBackPressed();
                 }
             });
-        } else {
-            Utils.showToast(context, context.getString(R.string.closed_without_saving));
         }
     }
 
@@ -206,10 +204,29 @@ public class NoteFragment extends Fragment{
     }
 
     public void deleteNote() {
-        this.deleteNote = true;
+        skipSaving = true;
+        Utils.showToast(context, context.getString(R.string.moving_to_trash));
+        note.setNote(noteEditText.getText().toString());
+        note.setDeletedState(1);
+        helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+            @Override
+            public void onItemUpdated(int numberOfRows) {
+                if (numberOfRows > 0) {
+                    Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
+                    Menu menu = ((MainActivity) context).getNavigationViewMenu();
+                    Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
+                    Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
+                }
+                ((AppCompatActivity)context).onBackPressed();
+            }
+        });
     }
 
-    public void discardChanges(){ this.discardChanges = true; }
+    public void discardChanges(){
+        skipSaving = true;
+        Utils.showToast(context, context.getString(R.string.closed_without_saving));
+        ((AppCompatActivity)context).onBackPressed();
+    }
 
     public void titleChanged(String title) {
         note.setTitle(title);

@@ -368,10 +368,6 @@ public class Utils {
         new UpdateFolderId(context, menu, noteId, newFolderId, folderId, updateListener).execute();
     }
 
-    public static void moveToTrash(Context context, Menu menu, long noteId, String title, String note, int folderId){
-        new MoveToTrash(context, menu, noteId, title, note, folderId).execute();
-    }
-
     public static void moveToTrash(Context context, Menu menu, long noteId, int folderId,
                                    FinishListener finishListener){
         new MoveToTrash(context, menu, noteId, folderId, finishListener).execute();
@@ -387,130 +383,6 @@ public class Utils {
 
     public interface FolderIdUpdateListener{
         void onUpdate(int newFolderId);
-    }
-
-    public interface InsertListener {
-        void onInsert(long id);
-    }
-
-    public static void updateNote(Context context, long noteId, String title, String note, InsertListener insertListener){
-        new PutNoteInTable(context, noteId, title, note, insertListener).execute();
-    }
-
-    public static void updateNoteWithEncryption(Context context, long noteId, String title, String note, String password, InsertListener insertListener){
-        new PutNoteInTable(context, noteId, title, note, password, insertListener).execute();
-    }
-
-    public static void saveNewNote(Context context, long noteId, String title, String note, int folderId,
-                                  long creationTimeMillis, InsertListener insertListener){
-        new PutNoteInTable(context, noteId, title, note, folderId, creationTimeMillis, insertListener).execute();
-    }
-
-    public static void saveNewNoteWithEncryption(Context context, long noteId, String title, String note, int folderId,
-                                   long creationTimeMillis, String password, InsertListener insertListener){
-        new PutNoteInTable(context, noteId, title, note, folderId, creationTimeMillis, password, insertListener).execute();
-    }
-
-    private static class PutNoteInTable extends AsyncTask<Void, Void, Boolean>
-    {   private ContentValues contentValues;
-        private Context context;
-        private int folderId;
-        private long noteId;
-        private String title;
-        private String note;
-        private boolean isNewNote;
-        private long creationTimeMillis;
-        private boolean encrypt;
-        private String password;
-        private InsertListener insertListener;
-
-
-        public PutNoteInTable(Context context, long noteId, String title, String note, InsertListener insertListener){
-            init(context, noteId, title, note, insertListener);
-            isNewNote = false;
-            encrypt = false;
-        }
-
-        public PutNoteInTable(Context context, long noteId, String title, String note, String password, InsertListener insertListener){
-            init(context, noteId, title, note, insertListener);
-            this.password = password;
-            isNewNote = false;
-            encrypt = true;
-        }
-
-        public PutNoteInTable(Context context, long noteId, String title, String note, int folderId,
-                              long creationTimeMillis, InsertListener insertListener){
-            init(context, noteId, title, note, insertListener);
-            this.folderId = folderId;
-            this.creationTimeMillis = creationTimeMillis;
-            isNewNote = true;
-            encrypt = false;
-        }
-
-        public PutNoteInTable(Context context, long noteId, String title, String note, int folderId,
-                              long creationTimeMillis, String password, InsertListener insertListener){
-            init(context, noteId, title, note, insertListener);
-            this.folderId = folderId;
-            this.creationTimeMillis = creationTimeMillis;
-            this.password = password;
-            isNewNote = true;
-            encrypt = true;
-        }
-
-        public void init(Context context, long noteId, String title, String note, InsertListener insertListener){
-            this.context = context;
-            this.noteId = noteId;
-            this.title = title;
-            this.note = note;
-            this.insertListener = insertListener;
-        }
-
-        @Override
-        protected void onPreExecute()
-        {
-            contentValues = new ContentValues();
-            contentValues.put(Constants.NOTE_TITLE_COL, title);
-            contentValues.put(Constants.NOTE_TEXT_COL, note.replace(System.getProperty("line.separator"), "<br/>"));
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... p1)
-        {
-            SQLiteDatabase db;
-            if((db = Utils.getDb(context)) != null) {
-                if (isNewNote) {
-                    contentValues.put(Constants.MILLIS_COL, creationTimeMillis);
-                    contentValues.put(Constants.FOLDER_ID_COL, folderId);
-                    contentValues.put(Constants.DELETED_COL, 0);
-                    noteId = db.insert(Constants.NOTES_TABLE, null, contentValues);
-                    Log.e(TAG, "insert " + contentValues.toString());
-                } else {
-                    db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
-                            new String[]{Long.toString(noteId)});
-                    Log.e(TAG, "update " + contentValues.toString());
-                }
-                return true;
-            } else
-                return false;
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            super.onPostExecute(result);
-            if(result){
-                showToast(context, context.getString(R.string.saved));
-                if(isNewNote){
-                    incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), folderId, 1);
-                } else
-                    updateConnectedWidgets(context, noteId);
-            }
-            if(insertListener != null)
-                insertListener.onInsert(noteId);
-
-        }
     }
 
     public static class UpdateConnectedWidgets extends AsyncTask<Void, Void, Boolean>
@@ -782,7 +654,7 @@ public class Utils {
         protected void onPostExecute(Boolean result)
         {
             if(result){
-                showToast(context, context.getString(R.string.note_moved_to_trash));
+                showToast(context, context.getString(R.string.moving_to_trash));
                 updateConnectedWidgets(context, noteId);
                 incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                 decrementFolderCount(menu, folderId, 1);

@@ -17,6 +17,7 @@ import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Widget;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final int DB_VERSION = 1;
@@ -149,6 +150,45 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         new GetNote(includeDeleted, noteId, listener).execute();
     }
 
+    public Note getNoteOnDemand(boolean includeDeleted, long noteId){
+        try {
+            SQLiteDatabase db = getReadableDatabase();
+
+            String selectQuery;
+
+            if(includeDeleted)
+                selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
+                        Constants.ID_COL + " = " + noteId;
+            else
+                selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
+                        Constants.ID_COL + " = " + noteId + " AND " +Constants.DELETED_COL +
+                        " = " + 0;
+
+            Cursor cursor = db.rawQuery(selectQuery, null);
+
+            if(cursor != null){
+                cursor.moveToFirst();
+
+                Note note = new Note();
+                note.setId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                note.setCreatedAt(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
+                note.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
+                note.setNote(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
+                note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL)));
+                note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
+
+                cursor.close();
+                db.close();
+
+                return note;
+            } else
+                return null;
+        }catch (SQLiteException e){
+            Utils.showToast(context, context.getString(R.string.database_unavailable));
+            return null;
+        }
+    }
+
     public void getNotes(boolean includeDeleted, OnNotesLoadListener listener){
         new GetNotes(includeDeleted, listener).execute();
     }
@@ -189,12 +229,64 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         new UpdateWidget(widget, widgetId, listener).execute();
     }
 
-    public void getWidget(long widgetId, OnWidgetLoadListener listener){
-        new GetWidget(widgetId, listener).execute();
+    public int updateWidgetOnDemand (Widget widget, long widgetId){
+        try {
+            SQLiteDatabase db = DatabaseHelper2.this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put(Constants.CURRENT_WIDGET_MODE_COL, widget.getMode());
+            values.put(Constants.CURRENT_THEME_MODE_COL, widget.getTheme());
+            values.put(Constants.CURRENT_TEXT_SIZE_COL, widget.getTextSize());
+
+            int rows = db.update(Constants.WIDGETS_TABLE, values, Constants.ID_COL + " = ?",
+                    new String[]{Long.toString(widgetId)});
+
+            db.close();
+
+            return rows;
+        }catch (SQLiteException e){
+            Utils.showToast(context, context.getString(R.string.database_unavailable));
+            return -1;
+        }
+    }
+
+    public void getWidget(long itemId, OnWidgetLoadListener listener){
+        new GetWidget(itemId, listener).execute();
     }
 
     public void getWidget(int widgetId, OnWidgetLoadListener listener){
         new GetWidget(widgetId, listener).execute();
+    }
+
+    public Widget getWidgetOnDemand(int widgetId){
+        try {
+            SQLiteDatabase db = getReadableDatabase();
+            String selectQuery = "SELECT * FROM " + Constants.WIDGETS_TABLE + " WHERE " +
+                    Constants.WIDGET_ID_COL + " = " + widgetId;
+
+            Cursor cursor = db.rawQuery(selectQuery, null);
+
+            if(cursor != null){
+                cursor.moveToFirst();
+
+                Widget widget = new Widget();
+                widget.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                widget.setWidgetId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.WIDGET_ID_COL)));
+                widget.setNoteId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.CONNECTED_NOTE_ID_COL)));
+                widget.setMode(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE_COL)));
+                widget.setTheme(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL)));
+                widget.setTextSize(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL)));
+
+                cursor.close();
+                db.close();
+
+                return widget;
+            } else
+                return null;
+        }catch (SQLiteException e){
+            Utils.showToast(context, context.getString(R.string.database_unavailable));
+            return null;
+        }
     }
 
     public void removeWidget(int widgetId, OnItemRemoveListener listener){
@@ -262,7 +354,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 values.put(Constants.NOTE_TITLE_COL, note.getTitle());
                 values.put(Constants.NOTE_TEXT_COL, note.getNote().replace(System.getProperty("line.separator"), "<br/>"));
                 values.put(Constants.FOLDER_ID_COL, note.getFolderId());
-                values.put(Constants.DELETED_COL, 0);
+                values.put(Constants.DELETED_COL, note.getDeletedState());
 
                 int rows = db.update(Constants.NOTES_TABLE, values, Constants.ID_COL + " = ?",
                         new String[]{Long.toString(note.getId())});
@@ -298,9 +390,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Note doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getReadableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 String selectQuery;
 
@@ -323,7 +414,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                     note.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
                     note.setNote(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
                     note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL)));
-                    note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
+                    note.setDeletedState(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
 
                     cursor.close();
                     db.close();

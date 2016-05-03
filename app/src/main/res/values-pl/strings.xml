@@ -7,8 +7,8 @@
     <string name="title_activity_widget_edit_note">WidgetEditNoteActivity</string>
     <string name="title_activity_export">Eksport do pliku txt</string>
     <string name="title_activity_widget_config">Wybierz notatkę</string>
-    <string name="saved">Zapisano</string>
-    <string name="note_moved_to_trash">Notatka przeniesiona do kosza</string>
+    <string name="saving">Zapisywanie</string>
+    <string name="moving_to_trash">Przenoszenie do kosza</string>
     <string name="closed_without_saving">Zamknięto bez zapisywania</string>
     <string name="multilevel_note_manual_text">Możesz użyć \"-\", \"+\" i \"*\" na początku lini żeby
         stworzyć wielopoziomowe notatki.\nZobacz przykład poniżej: \n\u0009- pierwszy poziom notatki\n\u0009
