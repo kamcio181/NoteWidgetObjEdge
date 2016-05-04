@@ -328,16 +328,44 @@ public class MainActivity extends AppCompatActivity
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Utils.restoreOrRemoveNoteFromTrash(context, noteId, action, new Utils.FinishListener() {
-                    @Override
-                    public void onFinished(boolean result) {
-                        if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
-                            ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-                        } else if (actionBarMenuItemClicked) {
-                            onBackPressed();
+                if(action == R.id.action_restore_from_trash){
+                    note.setDeletedState(Constants.FALSE);
+                    helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+                        @Override
+                        public void onItemUpdated(int numberOfRows) { //TODO code duplicated, toast before async task
+                            if (numberOfRows > 0) {
+                                Utils.decrementFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 1);
+
+                                Utils.showToast(context, context.getString(R.string.notes_was_restored));
+                                Utils.updateConnectedWidgets(context, note.getId());
+                                Utils.incrementFolderCount(getNavigationViewMenu(), (int) note.getFolderId(), 1);
+
+                                if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
+                                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                } else if (actionBarMenuItemClicked) {
+                                    onBackPressed();
+                                }
+                            }
                         }
-                    }
-                });
+                    });
+                } else if (action == R.id.action_delete_from_trash){
+                    helper.removeNote(note.getId(), new DatabaseHelper2.OnItemRemoveListener() {
+                        @Override
+                        public void onItemRemoved(int numberOfRows) {
+                            if(numberOfRows > 0){
+                                Utils.decrementFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 1);
+
+                                Utils.showToast(context, context.getString(R.string.note_was_removed));
+
+                                if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
+                                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                } else if (actionBarMenuItemClicked) {
+                                    onBackPressed();
+                                }
+                            }
+                        }
+                    });
+                }
             }
         };
     }
@@ -469,7 +497,20 @@ public class MainActivity extends AppCompatActivity
         Utils.getNameDialog(context, getString(R.string.new_folder), getString(R.string.add_folder), new Utils.OnNameSet() {
             @Override
             public void onNameSet(String name) {
-                addFolderToDb(name);
+                if(name.equals(""))
+                    name = getString(R.string.new_folder);
+                else
+                    name = Utils.capitalizeFirstLetter(name);
+                final Folder folder = new Folder(name, R.drawable.ic_nav_black_folder);
+                helper.createFolder(folder, new DatabaseHelper2.OnItemInsertListener() {
+                    @Override
+                    public void onItemInserted(long id) {
+                        if(id > 0){
+                            folder.setId(id);
+                            addFolderToNavView(folder);
+                        }
+                    }
+                });
             }
         }).show();
     }
@@ -492,6 +533,14 @@ public class MainActivity extends AppCompatActivity
         addMenuCustomItem(menu, id, 11, name, icon, 0);
 
         openFolderWithNotes(id);
+    }
+
+    private void addFolderToNavView(Folder folder){
+
+        Menu menu = getNavigationViewMenu();
+        addMenuCustomItem(menu, (int) folder.getId(), 11, folder.getName(), folder.getIcon(), 0);
+
+        openFolderWithNotes((int) folder.getId());
     }
 
     private void addFolderToNavView(ArrayList<Folder> folders){

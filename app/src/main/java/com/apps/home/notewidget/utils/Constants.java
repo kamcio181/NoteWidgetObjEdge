@@ -50,6 +50,9 @@ public interface Constants {
     String FRAGMENT_SETTINGS_WIDGET_CONFIG = "SettingsWidgetConfigFragment";
     String FRAGMENT_SETTINGS_RESTORE_LIST = "SettingsRestoreListFragment";
 
+    int FALSE = 0;
+    int TRUE = 1;
+
     int WIDGET_MODE_TITLE = 0;
     int WIDGET_MODE_CONFIG = 1;
 
