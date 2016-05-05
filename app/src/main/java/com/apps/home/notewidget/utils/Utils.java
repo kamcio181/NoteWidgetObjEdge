@@ -104,11 +104,6 @@ public class Utils {
         }
     }
 
-    public static void closeDb(){
-        if(db != null && db.isOpen())
-            db.close();
-    }
-
     public static File getBackupDir(Context context){
         return new File(Environment.getExternalStorageDirectory() + "/backup/" + context.getPackageName());
     }
@@ -190,12 +185,6 @@ public class Utils {
         return getEdiTextDialog(context, text, title, action, false);
     }
 
-    public static Dialog getPasswordDialog(final Context context,
-                                           final OnNameSet action){
-
-        return getEdiTextDialog(context, "", context.getString(R.string.put_password), action, true);
-    }
-
     public static Dialog getFolderListDialog(Context context, Menu menu, int[] exclusions, String title,
                                              DialogInterface.OnClickListener action){
         int menuSize = menu.size();
@@ -253,18 +242,6 @@ public class Utils {
             showToast(context, "Unable to load folders list. Try again later");
             return null;
         }
-    }
-
-    public static String getFolderName(Context context, int id){
-        String name = "";
-        try {
-            name = new GetFolderName(context, id).execute().get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return name;
     }
 
     public static void removeAllMenuItems(Menu menu){
@@ -354,35 +331,8 @@ public class Utils {
         new UpdateConnectedWidgets(context, noteId).execute();
     }
 
-    public static void restoreOrRemoveNoteFromTrash(Context context, long noteId, int action,
-                                                    FinishListener finishListener){
-        new RestoreOrRemoveNoteFromTrash(context, noteId, action, finishListener).execute();
-    }
-
-    public static void loadNote(Context context, long noteId, LoadListener loadListener){
-        new LoadNote(context, noteId, loadListener).execute();
-    }
-
-    public static void updateFolderId(Context context, Menu menu, long noteId, int newFolderId, int folderId,
-                                      FolderIdUpdateListener updateListener){
-        new UpdateFolderId(context, menu, noteId, newFolderId, folderId, updateListener).execute();
-    }
-
-    public static void moveToTrash(Context context, Menu menu, long noteId, int folderId,
-                                   FinishListener finishListener){
-        new MoveToTrash(context, menu, noteId, folderId, finishListener).execute();
-    }
-
     public interface FinishListener {
         void onFinished(boolean result);
-    }
-
-    public interface LoadListener {
-        void onLoad(String[] note);
-    }
-
-    public interface FolderIdUpdateListener{
-        void onUpdate(int newFolderId);
     }
 
     public static class UpdateConnectedWidgets extends AsyncTask<Void, Void, Boolean>
@@ -425,64 +375,7 @@ public class Utils {
         }
     }
 
-    private static class RestoreOrRemoveNoteFromTrash extends AsyncTask<Void,Void,Boolean>
-    {
-        private final FinishListener finishListener;
-        int action;
-        private Context context;
-        int folderId;
-        long noteId;
-        Menu menu;
 
-        private RestoreOrRemoveNoteFromTrash(Context context, long noteId, int action, FinishListener finishListener) {
-            this.context = context;
-            this.noteId = noteId;
-            this.action = action;
-            this.finishListener = finishListener;
-        }
-        @Override
-        protected Boolean doInBackground(Void[] p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                menu = ((MainActivity)context).getNavigationViewMenu();
-                Utils.decrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
-                if (action == R.id.action_delete_from_trash) { //remove note
-                    db.delete(Constants.NOTES_TABLE, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-                    Log.e(TAG, "delete all");
-                    return true;
-                } else { //restore note
-                    Log.e(TAG, "restore");
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(Constants.DELETED_COL, 0);
-                    Cursor cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.FOLDER_ID_COL},
-                            Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
-                    cursor.moveToFirst();
-                    folderId = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL));
-                    cursor.close();
-                    db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-                    return true;
-                }
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            super.onPostExecute(result);
-            if(result){
-                if(action == R.id.action_delete_from_trash) {
-                    showToast(context, context.getString(R.string.note_was_removed));
-                } else {
-                    showToast(context, context.getString(R.string.notes_was_restored));
-                    updateConnectedWidgets(context, noteId);
-                    incrementFolderCount(menu, folderId, 1);
-                }
-            }
-            if(finishListener!= null)
-                finishListener.onFinished(result);
-        }
-    }
 
     private static class ClearWidgetsTable extends AsyncTask<Void,Void,Boolean>
     {
@@ -510,158 +403,6 @@ public class Utils {
 
             if(finishListener!= null)
                 finishListener.onFinished(result);
-        }
-    }
-
-    private static class LoadNote extends AsyncTask<Void, Void, String[]> {
-        private Context context;
-        private Cursor cursor;
-        private long noteId;
-        private LoadListener loadListener;
-
-        private LoadNote(Context context, long noteId, LoadListener loadListener) {
-            this.context = context;
-            this.noteId = noteId;
-            this.loadListener = loadListener;
-        }
-
-        @Override
-        protected String[] doInBackground(Void... params) {
-            if((db = Utils.getDb(context)) != null) {
-                cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.MILLIS_COL,
-                                Constants.NOTE_TITLE_COL, Constants.NOTE_TEXT_COL},
-                        Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
-                if(cursor.getCount()>0) {
-                    cursor.moveToFirst();
-                    return new String[]{cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)),
-                            cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)),
-                            Long.toString(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)))};
-                } else
-                    return null;
-            } else
-                return null;
-
-        }
-
-        @Override
-        protected void onPostExecute(String[] note) {
-            if(cursor != null && !cursor.isClosed())
-                cursor.close();
-            loadListener.onLoad(note);
-        }
-    }
-
-    private static class UpdateFolderId extends AsyncTask<Void,Void,Boolean>
-    {
-        private Context context;
-        private Menu menu;
-        private int newFolderId;
-        private int folderId;
-        private long noteId;
-        private FolderIdUpdateListener updateListener;
-
-        private UpdateFolderId(Context context, Menu menu, long noteId, int newFolderId, int folderId,
-                               FolderIdUpdateListener updateListener) {
-            this.context = context;
-            this.menu = menu;
-            this.noteId = noteId;
-            this.folderId = folderId;
-            this.newFolderId = newFolderId;
-            this.updateListener = updateListener;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void[] voids)
-        {
-            SQLiteDatabase db;
-
-            if((db = Utils.getDb(context)) != null) {
-                //Update folder id for current note
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(Constants.FOLDER_ID_COL, newFolderId);
-                db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
-                        new String[]{Long.toString(noteId)});
-                return true;
-
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            super.onPostExecute(result);
-            if(result){
-                Utils.showToast(context, context.getString(R.string.note_has_been_moved));
-
-                Utils.incrementFolderCount(menu, newFolderId, 1);
-                Utils.decrementFolderCount(menu, folderId, 1);
-                if(updateListener != null)
-                    updateListener.onUpdate(newFolderId);
-            }
-        }
-    }
-
-    private static class MoveToTrash extends AsyncTask<Void,Void,Boolean>
-    {
-        private Context context;
-        private long noteId;
-        private String title;
-        private String note;
-        private int folderId;
-        private Menu menu;
-        private boolean wasNoteChanged;
-        private FinishListener finishListener;
-
-        private MoveToTrash(Context context, Menu menu, long noteId, String title, String note,
-                            int folderId) {
-            this.context = context;
-            this.noteId = noteId;
-            this.title = title;
-            this.note = note;
-            this.folderId = folderId;
-            this.menu = menu;
-            this.wasNoteChanged = true;
-            this.finishListener = null;
-        }
-        private MoveToTrash(Context context, Menu menu, long noteId, int folderId,
-                            FinishListener finishListener) {
-            this.context = context;
-            this.noteId = noteId;
-            this.folderId = folderId;
-            this.menu = menu;
-            this.wasNoteChanged = false;
-            this.finishListener = finishListener;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void[] p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(Constants.DELETED_COL, 1);
-                if(wasNoteChanged) {
-                    contentValues.put(Constants.NOTE_TITLE_COL, title);
-                    contentValues.put(Constants.NOTE_TEXT_COL, note);
-                }
-                db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?", new String[]{Long.toString(noteId)});
-                return true;
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            if(result){
-                showToast(context, context.getString(R.string.moving_to_trash));
-                updateConnectedWidgets(context, noteId);
-                incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
-                decrementFolderCount(menu, folderId, 1);
-            }
-            if(finishListener != null)
-                finishListener.onFinished(result);
-            super.onPostExecute(result);
         }
     }
 
@@ -694,33 +435,6 @@ public class Utils {
                     return foldersNames;
                 }
                 return null;
-            } else
-                return null;
-        }
-    }
-
-    private static class GetFolderName extends AsyncTask<Void, Void, String>{
-        private Context context;
-        private int id;
-
-        private GetFolderName(Context context, int id){
-            this.context = context;
-            this.id = id;
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            if((db = Utils.getDb(context)) != null) {
-
-                Cursor cursor = db.query(Constants.FOLDER_TABLE, new String[]{Constants.FOLDER_NAME_COL},
-                        Constants.ID_COL + " = ?", new String[]{Integer.toString(id)}, null, null, null);
-                String name = "";
-                if(cursor.getCount()>0) {
-                    cursor.moveToFirst();
-                    name = cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL));
-                }
-                cursor.close();
-                return name;
             } else
                 return null;
         }

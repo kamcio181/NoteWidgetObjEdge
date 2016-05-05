@@ -751,7 +751,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         }
     }
 
-    private class CreateFolder extends AsyncTask<Void, Void, Long>{//
+    private class CreateFolder extends AsyncTask<Void, Void, Long>{
         private Folder folder;
         private OnItemInsertListener listener;
 

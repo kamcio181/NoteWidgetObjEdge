@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -191,13 +191,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         String confirmationTitle;
 
-        //noinspection SimplifiableIfStatement
         switch (id){
             case R.id.action_sort_by_date:
                 setOrderType(true);
@@ -243,7 +239,6 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.action_save:
                 ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).saveNote(true);
-                //onBackPressed();
                 break;
         }
 
@@ -287,7 +282,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        if (drawer != null) {
+            drawer.closeDrawer(GravityCompat.START);
+        }
         return true;
     }
 
@@ -299,11 +296,6 @@ public class MainActivity extends AppCompatActivity
 
         if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
             ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).saveNote(false);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
     }
 
     private void openFolderWithNotes(int id){
@@ -396,24 +388,6 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    private DialogInterface.OnClickListener get(final int action, final boolean actionBarMenuItemClicked){
-        return new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Utils.restoreOrRemoveNoteFromTrash(context, noteId, action, new Utils.FinishListener() {
-                    @Override
-                    public void onFinished(boolean result) {
-                        if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
-                            ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-                        } else if (actionBarMenuItemClicked) {
-                            onBackPressed();
-                        }
-                    }
-                });
-            }
-        };
-    }
-
     private DialogInterface.OnClickListener getRemoveFolderAndAllNotesAction(){
         return new DialogInterface.OnClickListener() {
             @Override
@@ -421,14 +395,14 @@ public class MainActivity extends AppCompatActivity
                 helper.removeFolder(folderId, new DatabaseHelper2.OnItemRemoveListener() {
                     @Override
                     public void onItemRemoved(int numberOfRows) {
-                        if(numberOfRows > 0){
+                        if (numberOfRows > 0) {
                             helper.removeAllNotesFromFolder(folderId, new DatabaseHelper2.OnItemRemoveListener() {
                                 @Override
                                 public void onItemRemoved(int numberOfRows) {
                                     Utils.showToast(context, getString(R.string.folder_and_all_associated_notes_were_removed));
                                     Utils.updateAllWidgets(context);
                                     removeMenuItem(navigationView.getMenu(), folderId);
-                                    if(preferences.getInt(Constants.STARTING_FOLDER_KEY,-1) == folderId)
+                                    if (preferences.getInt(Constants.STARTING_FOLDER_KEY, -1) == folderId)
                                         preferences.edit().remove(Constants.STARTING_FOLDER_KEY).apply();
                                     openFolderWithNotes(myNotesNavId);
                                 }
@@ -444,24 +418,33 @@ public class MainActivity extends AppCompatActivity
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Utils.updateFolderId(context, getNavigationViewMenu(), noteId, Utils.getFolderId(which),
-                        folderId, new Utils.FolderIdUpdateListener() {
-                            @Override
-                            public void onUpdate(int newFolderId) {
-                                if (actionBarMenuItemClicked) {
-                                    //Change folder id for note which is currently visible
-                                    if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-                                        ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).setFolderId(newFolderId);
 
-                                    //Update current folderId for folder fragment displayed onBackPressed
-                                    folderId = newFolderId;
-                                    navigationView.setCheckedItem(folderId);
-                                } else {
-                                    if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
-                                        ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-                                }
+                note.setFolderId(Utils.getFolderId(which));
+                helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+                    @Override
+                    public void onItemUpdated(int numberOfRows) {
+                        if (numberOfRows > 0) {
+                            Utils.showToast(context, context.getString(R.string.note_has_been_moved));
+                            Menu menu = getNavigationViewMenu();
+                            Utils.incrementFolderCount(menu, (int) note.getFolderId(), 1);
+                            Utils.decrementFolderCount(menu, folderId, 1);
+
+                            if (actionBarMenuItemClicked) {
+                                //Change folder id for note which is currently visible
+                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+                                    ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).setFolderId((int) note.getFolderId());
+
+                                //Update current folderId for folder fragment displayed onBackPressed
+                                folderId = (int) note.getFolderId();
+                                navigationView.setCheckedItem(folderId);
+                            } else {
+                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
+                                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
                             }
-                        });
+                        } else
+                            note.setFolderId(folderId);
+                    }
+                });
             }
         };
     }
@@ -501,20 +484,14 @@ public class MainActivity extends AppCompatActivity
                     handleRestoreOrRemoveFromTrashAction(which == 0?  R.id.action_restore_from_trash : R.id.action_delete_from_trash,
                             false);
                 } else {
-                    //Utils.showToast(context, "The feature hasn't implemented yet");
                     switch (which){
                         case 0:
                             //open
-                            //onItemClicked(noteId, false);
+                            onItemClicked(note, false);
                             break;
                         case 1:
                             //share
-                            Utils.loadNote(context, noteId, new Utils.LoadListener() {
-                                @Override
-                                public void onLoad(String[] note) {
-                                    Utils.sendShareIntent(context, Html.fromHtml(note[1]).toString(), note[0]);
-                                }
-                            });
+                            Utils.sendShareIntent(context, Html.fromHtml(note.getNote()).toString(), note.getTitle());
                             break;
                         case 2:
                             //move to other folder
@@ -522,11 +499,19 @@ public class MainActivity extends AppCompatActivity
                             break;
                         case 3:
                             //move to trash
-                            Utils.moveToTrash(context, getNavigationViewMenu(), noteId, folderId, new Utils.FinishListener() {
+                            Utils.showToast(context, context.getString(R.string.moving_to_trash));
+                            note.setDeletedState(1);
+                            helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
                                 @Override
-                                public void onFinished(boolean result) {
-                                    if(result && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
-                                        ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                public void onItemUpdated(int numberOfRows) {
+                                    if (numberOfRows > 0) {
+                                        Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
+                                        Menu menu = getNavigationViewMenu();
+                                        Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
+                                        Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
+                                        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
+                                            ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                    }
                                 }
                             });
                             break;
