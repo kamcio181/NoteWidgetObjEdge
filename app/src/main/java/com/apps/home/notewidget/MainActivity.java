@@ -107,13 +107,15 @@ public class MainActivity extends AppCompatActivity
         helper.getNotes(true, new DatabaseHelper2.OnNotesLoadListener() {
             @Override
             public void onNotesLoaded(ArrayList<Note> notes) {
-                for (Note n : notes)
-                    Log.e(TAG, n.toString());
+                if (notes != null) {
+                    for (Note n : notes)
+                        Log.e(TAG, n.toString());
+                }
             }
         });
     }
 
-    private void reloadMainActivityAfterRestore(){ //TODO sometimes notes are vanish? issue with folder id?
+    private void reloadMainActivityAfterRestore(){
         folderId = myNotesNavId;
         attachFragment(Constants.FRAGMENT_LIST);
         loadNavViewItems();
@@ -210,10 +212,6 @@ public class MainActivity extends AppCompatActivity
                 }
                 else
                     ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
-                /*if(textToFind.length() == 0)
-                    attachFragment(Constants.FRAGMENT_LIST);
-                else
-                    attachFragment(Constants.FRAGMENT_SEARCH);*/
                 break;
             case R.id.action_delete_all:
             case R.id.action_restore_all:
@@ -318,7 +316,35 @@ public class MainActivity extends AppCompatActivity
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                new RestoreOrRemoveAllNotesFromTrash().execute(action);
+                if(action == R.id.action_restore_all)
+                helper.restoreAllNotesFromTrash(new DatabaseHelper2.OnFoldersLoadListener() {
+                    @Override
+                    public void onFoldersLoaded(ArrayList<Folder> folders) {
+                        if (folders != null) {
+                            Utils.setFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 0); //Set count to 0 for trash
+                            Utils.updateAllWidgets(context);
+                            Menu menu = getNavigationViewMenu();
+                            for (Folder f : folders) {
+                                Utils.incrementFolderCount(menu, (int) f.getId(), f.getCount());
+                            }
+                            Utils.showToast(context, getString(R.string.all_notes_were_restored));
+
+                            ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).clearRecyclerViewAdapter();
+                        }
+                    }
+                });
+                else
+                    helper.removeAllNotesFromTrash(new DatabaseHelper2.OnItemRemoveListener() {
+                        @Override
+                        public void onItemRemoved(int numberOfRows) {
+                            if(numberOfRows > 0){
+                                Utils.setFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 0); //Set count to 0 for trash
+                                Utils.showToast(context, getString(R.string.all_notes_were_removed));
+
+                                ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).clearRecyclerViewAdapter();
+                            }
+                        }
+                    });
             }
         };
     }
@@ -539,6 +565,7 @@ public class MainActivity extends AppCompatActivity
 
         Menu menu = getNavigationViewMenu();
         addMenuCustomItem(menu, (int) folder.getId(), 11, folder.getName(), folder.getIcon(), 0);
+        folders.add(folder);
 
         openFolderWithNotes((int) folder.getId());
     }

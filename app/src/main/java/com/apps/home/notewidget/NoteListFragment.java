@@ -9,9 +9,11 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Folder;
@@ -19,6 +21,7 @@ import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
+import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -161,6 +164,8 @@ public class NoteListFragment extends Fragment {
                     } else {
                         ((NotesRecyclerAdapter) recyclerView.getAdapter()).setNotes(NoteListFragment.this.notes);
                     }
+                } else {
+                    recyclerView.setAdapter(null);
                 }
             }
         });
@@ -169,6 +174,11 @@ public class NoteListFragment extends Fragment {
 
     public void reloadList(){
         loadNotes();
+    }
+
+    public void clearRecyclerViewAdapter(){
+        if(recyclerView != null)
+            recyclerView.setAdapter(null);
     }
 
     public interface OnItemClickListener {

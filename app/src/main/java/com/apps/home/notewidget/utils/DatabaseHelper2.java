@@ -201,6 +201,14 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         new RemoveNote(noteId, listener).execute();
     }
 
+    public void removeAllNotesFromTrash(OnItemRemoveListener listener){
+        new RemoveAllNotesFromTrash(listener).execute();
+    }
+
+    public void restoreAllNotesFromTrash(OnFoldersLoadListener listener){
+        new RestoreAllNotesFromTrash(listener).execute();
+    }
+
     public void createFolder(Folder folder, OnItemInsertListener listener){
         new CreateFolder(folder, listener).execute();
     }
@@ -602,6 +610,100 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
             if(listener != null)
                 listener.onItemRemoved(aInt);
+        }
+    }
+
+    private class RemoveAllNotesFromTrash extends AsyncTask<Void, Void, Integer> {
+        private OnItemRemoveListener listener;
+
+        public RemoveAllNotesFromTrash(OnItemRemoveListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper2.this.getWritableDatabase();
+
+                int rows = db.delete(Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{"1"});
+
+                db.close();
+
+                return rows;
+            }catch (SQLiteException e){
+                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                return -1;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer aInt) {
+            super.onPostExecute(aInt);
+
+            if(listener != null)
+                listener.onItemRemoved(aInt);
+        }
+    }
+
+    private class RestoreAllNotesFromTrash extends AsyncTask<Void, Void, ArrayList<Folder>> {
+        private OnFoldersLoadListener listener;
+
+        public RestoreAllNotesFromTrash(OnFoldersLoadListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        protected ArrayList<Folder> doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
+
+                String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
+                        + ", f." + Constants.FOLDER_ICON_COL
+                        + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
+                        + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
+                        + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
+                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = 1"
+                        +  " GROUP BY f." + Constants.ID_COL;
+
+                Cursor cursor = db.rawQuery(selectQuery, null);
+
+                if(cursor != null && cursor.moveToFirst()){
+
+                    ArrayList<Folder> folders = new ArrayList<>(cursor.getCount());
+                    do{
+                        Folder folder = new Folder();
+                        folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                        folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
+                        folder.setIcon(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
+                        folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
+
+                        folders.add(folder);
+
+                    } while (cursor.moveToNext());
+
+                    cursor.close();
+
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(Constants.DELETED_COL, Constants.FALSE);
+                    int rows = db.update(Constants.NOTES_TABLE, contentValues, Constants.DELETED_COL + " = ?", new String[]{"1"});
+
+                    db.close();
+
+                    return rows > 0 ? folders : null;
+                } else
+                    return null;
+            }catch (SQLiteException e){
+                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Folder> aFolders) {
+            super.onPostExecute(aFolders);
+
+            if(listener != null)
+                listener.onFoldersLoaded(aFolders);
         }
     }
 
