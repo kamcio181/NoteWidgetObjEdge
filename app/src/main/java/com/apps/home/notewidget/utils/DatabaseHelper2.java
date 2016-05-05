@@ -209,6 +209,10 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         new RestoreAllNotesFromTrash(listener).execute();
     }
 
+    public void removeAllNotesFromFolder(long folderId, OnItemRemoveListener listener){
+        new RemoveAllNotesFromFolder(folderId, listener).execute();
+    }
+
     public void createFolder(Folder folder, OnItemInsertListener listener){
         new CreateFolder(folder, listener).execute();
     }
@@ -704,6 +708,46 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
             if(listener != null)
                 listener.onFoldersLoaded(aFolders);
+        }
+    }
+
+    private class RemoveAllNotesFromFolder extends AsyncTask<Void, Void, Integer> {
+        private long folderId;
+        private OnItemRemoveListener listener;
+
+        public RemoveAllNotesFromFolder(long folderId, OnItemRemoveListener listener) {
+            this.folderId = folderId;
+            this.listener = listener;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper2.this.getWritableDatabase();
+
+                int rows = db.delete(Constants.NOTES_TABLE, Constants.FOLDER_ID_COL + " = ? AND " +
+                        Constants.DELETED_COL + " = ?", new String[]{Long.toString(folderId), Integer.toString(Constants.FALSE)});
+
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(Constants.FOLDER_ID_COL, Utils.getMyNotesNavId(context));
+                db.update(Constants.NOTES_TABLE, contentValues, Constants.FOLDER_ID_COL + " = ? AND " +
+                        Constants.DELETED_COL + " = ?", new String[]{Long.toString(folderId), Integer.toString(Constants.TRUE)});
+
+                db.close();
+
+                return rows;
+            }catch (SQLiteException e){
+                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                return -1;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer aInt) {
+            super.onPostExecute(aInt);
+
+            if(listener != null)
+                listener.onItemRemoved(aInt);
         }
     }
 

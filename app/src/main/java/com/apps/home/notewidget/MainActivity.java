@@ -418,7 +418,24 @@ public class MainActivity extends AppCompatActivity
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                new RemoveFolderAndAllNotes().execute();
+                helper.removeFolder(folderId, new DatabaseHelper2.OnItemRemoveListener() {
+                    @Override
+                    public void onItemRemoved(int numberOfRows) {
+                        if(numberOfRows > 0){
+                            helper.removeAllNotesFromFolder(folderId, new DatabaseHelper2.OnItemRemoveListener() {
+                                @Override
+                                public void onItemRemoved(int numberOfRows) {
+                                    Utils.showToast(context, getString(R.string.folder_and_all_associated_notes_were_removed));
+                                    Utils.updateAllWidgets(context);
+                                    removeMenuItem(navigationView.getMenu(), folderId);
+                                    if(preferences.getInt(Constants.STARTING_FOLDER_KEY,-1) == folderId)
+                                        preferences.edit().remove(Constants.STARTING_FOLDER_KEY).apply();
+                                    openFolderWithNotes(myNotesNavId);
+                                }
+                            });
+                        }
+                    }
+                });
             }
         };
     }
@@ -553,14 +570,6 @@ public class MainActivity extends AppCompatActivity
             dialog.show();
     }
 
-    private void addFolderToNavView(int id, String name, int icon){
-
-        Menu menu = navigationView.getMenu();
-        addMenuCustomItem(menu, id, 11, name, icon, 0);
-
-        openFolderWithNotes(id);
-    }
-
     private void addFolderToNavView(Folder folder){
 
         Menu menu = getNavigationViewMenu();
@@ -614,9 +623,6 @@ public class MainActivity extends AppCompatActivity
         m.removeItem(id);
     }
 
-    private void addFolderToDb(String name){
-        new PutFolderInTable().execute(name);
-    }
 	
 	private void setNoteTitleOrFolderName(String title){
 		title = setTitle(title);
@@ -763,146 +769,4 @@ public class MainActivity extends AppCompatActivity
         return navigationView.getMenu();
     }
 
-
-    private class PutFolderInTable extends AsyncTask<String, Void, Boolean>
-    {   private ContentValues contentValues;
-        private int id;
-        private String name;
-
-        @Override
-        protected void onPreExecute()
-        {
-            contentValues = new ContentValues();
-            contentValues.put(Constants.FOLDER_ICON_COL, R.drawable.ic_nav_black_folder);
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Boolean doInBackground(String... p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                name = p1[0];
-                if(name.equals(""))
-                    name = getString(R.string.new_folder);
-                else
-                    name = Utils.capitalizeFirstLetter(name);
-                contentValues.put(Constants.FOLDER_NAME_COL, name);
-                id = (int) db.insert(Constants.FOLDER_TABLE, null, contentValues);
-                return true;
-
-            } else
-                return false;
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            if(result){
-                addFolderToNavView(id, name, R.drawable.ic_nav_black_folder);
-                Utils.showToast(context, getString(R.string.folder_was_added));
-            }
-            super.onPostExecute(result);
-        }
-    }
-
-    private class RestoreOrRemoveAllNotesFromTrash extends AsyncTask<Integer,Void,Boolean>
-    {
-        Cursor cursor;
-        int action;
-        @Override
-        protected Boolean doInBackground(Integer[] p1)
-        {
-            SQLiteDatabase db;
-            if((db = Utils.getDb(context)) != null) {
-                action = p1[0];
-                if(action == R.id.action_delete_all){ //remove all
-                    db.delete(Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{"1"});
-                    Log.e(TAG, "delete all");
-                    return true;
-                } else { //restore all
-                    Log.e(TAG, "restore all");
-
-                    String query ="SELECT f." + Constants.ID_COL + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
-                            + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
-                            + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
-                            + Constants.FOLDER_ID_COL +  " GROUP BY f." + Constants.ID_COL
-                            + " HAVING n." + Constants.DELETED_COL + " = 1";
-
-                    cursor = db.rawQuery(query, null);
-                    cursor.moveToFirst();
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(Constants.DELETED_COL, 0);
-                    db.update(Constants.NOTES_TABLE, contentValues, Constants.DELETED_COL + " = ?", new String[]{"1"});
-                    return true;
-                }
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            super.onPostExecute(result);
-            if(result){
-                Utils.setFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 0); //Set count to 0 for trash
-                if(action == R.id.action_delete_all) {
-                    Utils.showToast(context, getString(R.string.all_notes_were_removed));
-                } else {
-                    Utils.updateAllWidgets(context);
-                    if(cursor.getCount()>0) { //check if trash is empty
-                        do {
-                            Utils.incrementFolderCount(getNavigationViewMenu(),
-                                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)),
-                                    cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
-                        } while (cursor.moveToNext());
-                    }
-                    cursor.close();
-                    Utils.showToast(context, getString(R.string.all_notes_were_restored));
-                }
-                ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-            }
-        }
-    }
-
-    private class RemoveFolderAndAllNotes extends AsyncTask<Void,Void,Boolean>
-    {
-        @Override
-        protected Boolean doInBackground(Void... voids)
-        {
-            SQLiteDatabase db;
-
-            if((db = Utils.getDb(context)) != null) {
-
-                //Delete folder
-                Log.e(TAG, "deleted folders " + db.delete(Constants.FOLDER_TABLE, Constants.ID_COL + " = ?", new String[]{Integer.toString(folderId)}));
-                //Delete all associated notes which are not in trash
-                Log.e(TAG, "deleted  notes " + db.delete(Constants.NOTES_TABLE, Constants.FOLDER_ID_COL + " = ? AND " +
-                        Constants.DELETED_COL + " = ?", new String[]{Integer.toString(folderId), Integer.toString(0)}));
-                //Change associated folder to My Notes for all notes associated with deleted folder
-                //which are currently in trash and can be restored
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(Constants.FOLDER_ID_COL, myNotesNavId);
-                Log.e(TAG, "updated trash notes " + db.update(Constants.NOTES_TABLE, contentValues, Constants.FOLDER_ID_COL + " = ? AND " +
-                        Constants.DELETED_COL + " = ?", new String[]{Integer.toString(folderId), Integer.toString(1)}));
-                return true;
-
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            super.onPostExecute(result);
-            if(result){
-                Utils.showToast(context, getString(R.string.folder_and_all_associated_notes_were_removed));
-                Utils.updateAllWidgets(context);
-                removeMenuItem(navigationView.getMenu(), folderId);
-                if(preferences.getInt(Constants.STARTING_FOLDER_KEY,-1) == folderId)
-                    preferences.edit().remove(Constants.STARTING_FOLDER_KEY).apply();
-                openFolderWithNotes(myNotesNavId);
-            }
-        }
-    }
 }
