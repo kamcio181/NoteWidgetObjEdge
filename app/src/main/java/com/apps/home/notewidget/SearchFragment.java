@@ -2,9 +2,6 @@ package com.apps.home.notewidget;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -20,10 +17,12 @@ import android.widget.CompoundButton;
 import android.widget.SearchView;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.CursorRecyclerAdapter;
+import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
-import com.apps.home.notewidget.utils.Utils;
+
+import java.util.ArrayList;
 
 
 public class SearchFragment extends Fragment implements CompoundButton.OnCheckedChangeListener,
@@ -34,8 +33,8 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
     private RecyclerView recyclerView;
     private SharedPreferences preferences;
     private Context context;
-    private SearchNotes searchNotes;
-    private Cursor cursor;
+    private ArrayList<Note> notes;
+    private DatabaseHelper2 helper;
 
     private OnItemClickListener mListener;
 
@@ -61,6 +60,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
         preferences = getActivity().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         context = getActivity();
         ((AppCompatActivity)context).invalidateOptionsMenu();
+        helper = new DatabaseHelper2(context);
 
         if (getArguments() != null) {
             textToFind = getArguments().getString(ARG_PARAM1);
@@ -111,8 +111,6 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        if(cursor != null && !cursor.isClosed())
-            cursor.close();
     }
 
     @Override
@@ -141,174 +139,69 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
         return true;
     }
 
-    private void search(String text){
-        if(searchNotes != null)
-            searchNotes.cancel(true);
-        searchNotes = new SearchNotes();
-        searchNotes.execute(text);
+    private void search(final String text){
+        if(text.length() > 0)
+            helper.searchNotes(titleSearch.isChecked(), contentSearch.isChecked(), text, new DatabaseHelper2.OnNotesLoadListener() {
+                @Override
+                public void onNotesLoaded(ArrayList<Note> notes) {
+                    if(notes != null) {
+                        SearchFragment.this.notes = notes;
+                        if (recyclerView.getAdapter() == null) {
+                            recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                            recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
+                            recyclerView.setAdapter(new SearchRecyclerAdapter(SearchFragment.this.notes,
+                                    titleSearch.isChecked(), contentSearch.isChecked(), text, new SearchRecyclerAdapter.OnItemClickListener() {
+                                @Override
+                                public void onItemClick(View view, int position) {
+                                    if (mListener != null)
+                                        mListener.onItemClicked(SearchFragment.this.notes.get(position), text);
+                                }
+                            }));
+                        } else {
+                            ((SearchRecyclerAdapter) recyclerView.getAdapter()).setNotes(SearchFragment.this.notes);
+                            ((SearchRecyclerAdapter) recyclerView.getAdapter()).setSearchInTitle(titleSearch.isChecked());
+                            ((SearchRecyclerAdapter) recyclerView.getAdapter()).setSearchInContent(contentSearch.isChecked());
+                            ((SearchRecyclerAdapter) recyclerView.getAdapter()).setTextToFind(text.toLowerCase());
+                        }
+                    }
+                    else
+                        recyclerView.setAdapter(null);
+                }
+            });
+        else
+            recyclerView.setAdapter(null);
     }
 
     public interface OnItemClickListener {
-        void onItemClicked(int noteId, boolean deleted, String textToFind);
-    }
-
-    private class SearchNotes extends AsyncTask<String, Integer, Boolean>
-    {
-
-        SQLiteDatabase db;
-
-        boolean skipSearch = false;
-        String where;
-        boolean doubleArgs = false;
-        boolean searchInTitle;
-        boolean searchInContent;
-        String textToFind;
-        String textToFindLowerCase;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            searchInTitle = titleSearch.isChecked();
-            searchInContent = contentSearch.isChecked();
-
-            if(!searchInTitle && !searchInContent)
-                skipSearch = true;
-            else if(searchInTitle && !searchInContent){
-                where = "LOWER(" + Constants.NOTE_TITLE_COL + ") LIKE ?";
-            } else if (!searchInTitle){
-                where = "LOWER(" + Constants.NOTE_TEXT_COL + ") LIKE ?";
-            } else {
-                doubleArgs = true;
-                where = "LOWER(" + Constants.NOTE_TITLE_COL + ") LIKE ? OR LOWER(" +Constants.NOTE_TEXT_COL + ") LIKE ?";
-            }
-        }
-
-        @Override
-        protected Boolean doInBackground(String... params) {
-            if(!skipSearch) {
-                if ((db = Utils.getDb(context)) != null) {
-
-                    if (params[0].trim().length() == 0)
-                        return false;
-                    textToFind = params[0];
-                    textToFindLowerCase = textToFind.toLowerCase();
-
-                    String arg = "%" + textToFindLowerCase + "%";
-                    String[] args = doubleArgs? new String[]{arg, arg} : new String[]{arg};
-                    Log.e("search" ,  "where " +where);
-                    Log.e("search" ,  "arg " + params[0]);
-                    cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL, Constants.NOTE_TITLE_COL,
-                            Constants.NOTE_TEXT_COL, Constants.DELETED_COL}, where, args, null, null, null);
-                    Log.e("search", "count "+cursor.getCount());
-
-                    return true;
-                } else
-                    return false;
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            if(aBoolean){
-                cursor.moveToFirst();
-                Log.e("SZUKAJKA", "TRUE");
-                if (recyclerView.getAdapter() == null) {
-                    Log.e("search", "setadapter");
-                            recyclerView.setLayoutManager(new LinearLayoutManager(context));
-                    recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
-                    recyclerView.setAdapter(new SearchCursorRecyclerAdapter(cursor, searchInTitle, searchInContent, textToFindLowerCase,
-                            new SearchCursorRecyclerAdapter.OnItemClickListener() {
-                                @Override
-                                public void onItemClick(View view, int position) {
-                                    if (mListener != null){
-                                        cursor.moveToPosition(position);
-                                        mListener.onItemClicked(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)),
-                                                cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)) == 1, textToFind);
-                                    }
-                                }
-                            }));
-                } else {
-                    Log.e("search", "swap");
-                    ((CursorRecyclerAdapter)recyclerView.getAdapter()).changeCursor(cursor);
-                    ((SearchCursorRecyclerAdapter)recyclerView.getAdapter()).setSearchInTitle(searchInTitle);
-                    ((SearchCursorRecyclerAdapter)recyclerView.getAdapter()).setSearchInContent(searchInContent);
-                    ((SearchCursorRecyclerAdapter)recyclerView.getAdapter()).setTextToFind(textToFindLowerCase);
-
-                }
-
-            } else {
-                recyclerView.setAdapter(null);
-                if (skipSearch)
-                    Utils.showToast(context, context.getString(R.string.choose_search_mode));
-            }
-        }
+        void onItemClicked(Note note, String textToFind);
     }
 }
-class SearchCursorRecyclerAdapter extends CursorRecyclerAdapter<SearchCursorRecyclerAdapter.DoubleLineViewHolder> {
-    private static SearchCursorRecyclerAdapter.OnItemClickListener listener;
+
+class SearchRecyclerAdapter extends RecyclerView.Adapter<SearchRecyclerAdapter.DoubleLineViewHolder> {
+    private static OnItemClickListener listener;
+    private ArrayList<Note> notes;
     private boolean searchInTitle;
     private boolean searchInContent;
     private String textToFind;
 
-    public interface OnItemClickListener{
+    public interface OnItemClickListener {
         void onItemClick(View view, int position);
     }
 
-    public SearchCursorRecyclerAdapter (Cursor cursor, boolean searchInTitle, boolean searchInContent,
-                                        String textToFind, OnItemClickListener listener){
-        super(cursor);
+    public SearchRecyclerAdapter(ArrayList<Note> notes, boolean searchInTitle,
+                                 boolean searchInContent, String textToFind,
+                                 OnItemClickListener listener) {
+        this.notes = notes;
+        SearchRecyclerAdapter.listener = listener;
+        this.textToFind = textToFind;
         this.searchInTitle = searchInTitle;
         this.searchInContent = searchInContent;
-        this.textToFind = textToFind;
-        this.listener = listener;
+        setHasStableIds(true);
     }
 
-    @Override
-    public int getItemViewType(Cursor cursor) {
-        return 0;
-    }
-
-    @Override
-    public void onBindViewHolder(SearchCursorRecyclerAdapter.DoubleLineViewHolder holder, Cursor cursor) {
-        String title = cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL));
-        String content = cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL));
-
-        if(searchInTitle && title.toLowerCase().contains(textToFind)){
-            title = trimmedText(title);
-        }
-        if(searchInContent && content.toLowerCase().contains(textToFind)){
-            content = trimmedText(content);
-        }
-
-        Log.e("ada", "title length "+title.length());
-        Log.e("ada", "content length "+content.length());
-
-        holder.titleTextView.setText(Html.fromHtml(title));
-        holder.subtitleTextView.setText(Html.fromHtml(content));
-    }
-
-    @Override
-    public SearchCursorRecyclerAdapter.DoubleLineViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new DoubleLineViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_recycle_view_item, parent, false));
-    }
-
-    static class DoubleLineViewHolder extends RecyclerView.ViewHolder{
-        public RobotoTextView titleTextView, subtitleTextView;
-
-        public DoubleLineViewHolder(final View itemView){
-            super(itemView);
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (listener != null)
-                        listener.onItemClick(itemView, getLayoutPosition());
-                }
-            });
-
-            titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
-            subtitleTextView = (RobotoTextView) itemView.findViewById(R.id.textView3);
-        }
+    public void setNotes(ArrayList<Note> notes) {
+        this.notes = notes;
+        notifyDataSetChanged();
     }
 
     public void setSearchInTitle(boolean searchInTitle) {
@@ -323,37 +216,66 @@ class SearchCursorRecyclerAdapter extends CursorRecyclerAdapter<SearchCursorRecy
         this.textToFind = textToFind;
     }
 
-    private String trimmedText(String text){
+    @Override
+    public DoubleLineViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        return new DoubleLineViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_recycle_view_item, parent, false));
+    }
+
+    @Override
+    public void onBindViewHolder(DoubleLineViewHolder holder, int position) {
+        String title = notes.get(position).getTitle();
+        String content = notes.get(position).getNote();
+
+        if (searchInTitle && title.toLowerCase().contains(textToFind)) {
+            title = trimmedText(title);
+        }
+        if (searchInContent && content.toLowerCase().contains(textToFind)) {
+            content = trimmedText(content);
+        }
+
+        holder.titleTextView.setText(Html.fromHtml(title));
+        holder.subtitleTextView.setText(Html.fromHtml(content));
+    }
+
+    private String trimmedText(String text) {
         int beginIndex = text.toLowerCase().indexOf(textToFind);
         int endIndex = beginIndex + textToFind.length();
         int offset = 0;
         String prefix = "";
 
-        if(beginIndex>13) {
+        if (beginIndex > 13) {
             prefix = "...";
-            offset = beginIndex-10;
+            offset = beginIndex - 10;
         }
         return prefix + text.substring(offset, beginIndex) + "<b><u>" + text.substring(beginIndex, endIndex)
                 + "</b></u>" + text.substring(endIndex);
+    }
 
-/*
-        if(midIndex > 15 && text.length() > 24){
-            offset = midIndex - 12;
-            prefix = "...";
-            if(text.length() - midIndex > 15)
-                suffix = "...";
-            else{
-                Log.e("ada ", text+" off "+offset);
-                offset = offset + text.length() - midIndex - 12;
+    @Override
+    public int getItemCount() {
+        return notes.size();
+    }
 
-                Log.e("ada ", "off "+offset + " text "+text.length()+" mid "+midIndex);
-                if(offset < 0)
-                    offset = 0;
-            }
+    static class DoubleLineViewHolder extends RecyclerView.ViewHolder {
+        public RobotoTextView titleTextView, subtitleTextView;
 
+        public DoubleLineViewHolder(final View itemView) {
+            super(itemView);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null)
+                        listener.onItemClick(itemView, getLayoutPosition());
+                }
+            });
+
+            titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
+            subtitleTextView = (RobotoTextView) itemView.findViewById(R.id.textView3);
         }
+    }
 
-        return prefix + text.substring(offset, beginIndex) + "<b><u>" + text.substring(beginIndex, endIndex)
-                + "</b></u>" + text.substring(endIndex) + suffix;*/
+    @Override
+    public long getItemId(int position) {
+        return notes.get(position).getId();
     }
 }

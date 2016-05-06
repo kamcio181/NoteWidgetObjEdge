@@ -17,11 +17,12 @@ import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Widget;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 public class DatabaseHelper2 extends SQLiteOpenHelper {
+    private static final String TAG = "DatabaseHelper";
     private static final int DB_VERSION = 1;
     private Context context;
+    private SearchNotes searchNotes;
 
     public DatabaseHelper2(Context context) {
         super(context, Constants.DB_NAME, null, DB_VERSION);
@@ -138,6 +139,14 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         void onWidgetLoaded(Widget widget);
     }
 
+    public interface OnWidgetsLoadListener {
+        void onWidgetsLoaded(ArrayList<Widget> widgets);
+    }
+
+    public interface OnFinishListener {
+        void onFinished(boolean result);
+    }
+
     public void createNote (Note note, OnItemInsertListener listener){
         new CreateNote(note, listener).execute();
     }
@@ -195,6 +204,13 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     public void getFolderNotes(int folderId, boolean sortByDate, OnNotesLoadListener listener){
         new GetFolderNotes(folderId, sortByDate, listener).execute();
+    }
+
+    public void searchNotes(boolean searchInTitle, boolean searchInContent, String textToFind, OnNotesLoadListener listener){
+        if(searchNotes != null)
+            searchNotes.cancel(true);
+        searchNotes = new SearchNotes(searchInTitle, searchInContent, textToFind, listener);
+        searchNotes.execute();
     }
 
     public void removeNote(long noteId, OnItemRemoveListener listener){
@@ -270,6 +286,10 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         new GetWidget(widgetId, listener).execute();
     }
 
+    public void getWidgetsWithNote(long noteId, OnWidgetsLoadListener listener){
+        new GetWidgetsWithNote(noteId, listener).execute();
+    }
+
     public Widget getWidgetOnDemand(int widgetId){
         try {
             SQLiteDatabase db = getReadableDatabase();
@@ -305,6 +325,10 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         new RemoveWidget(widgetId, listener).execute();
     }
 
+    public void clearWidgetsTable(OnFinishListener listener){
+        new ClearWidgetsTable(listener).execute();
+    }
+
     private class CreateNote extends AsyncTask<Void, Void, Long>{
         private Note note;
         private OnItemInsertListener listener;
@@ -316,9 +340,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Long doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 ContentValues values = new ContentValues();
                 values.put(Constants.NOTE_TITLE_COL, note.getTitle());
@@ -333,7 +356,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return noteId;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return (long) -1;
             }
         }
@@ -358,9 +381,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 ContentValues values = new ContentValues();
                 values.put(Constants.NOTE_TITLE_COL, note.getTitle());
@@ -375,7 +397,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return rows;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return -1;
             }
         }
@@ -435,7 +457,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 } else
                     return null;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return null;
             }
         }
@@ -460,9 +482,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected ArrayList<Note> doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getReadableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 String selectQuery;
 
@@ -497,7 +518,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 } else
                     return null;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return null;
             }
         }
@@ -524,11 +545,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected ArrayList<Note> doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getReadableDatabase();
-
-
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 String orderColumn = sortByDate ? Constants.MILLIS_COL : Constants.NOTE_TITLE_COL;
 
@@ -567,7 +585,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 } else
                     return null;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return null;
             }
         }
@@ -578,6 +596,81 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
             if(listener != null)
                 listener.onNotesLoaded(aNotes);
+        }
+    }
+
+    private class SearchNotes extends AsyncTask<Void, Void, ArrayList<Note>>{
+        private boolean searchInTitle;
+        private boolean searchInContent;
+        private String textToFind;
+        private OnNotesLoadListener listener;
+
+        public SearchNotes(boolean searchInTitle, boolean searchInContent, String textToFind, OnNotesLoadListener listener) {
+            this.searchInTitle = searchInTitle;
+            this.searchInContent = searchInContent;
+            this.textToFind = textToFind;
+            this.listener = listener;
+        }
+
+        @Override
+        protected ArrayList<Note> doInBackground(Void... params) {
+            String where;
+
+            if(textToFind.length() == 0 || (!searchInTitle && !searchInContent))
+                return null;
+            String textToFindLowerCase = textToFind.toLowerCase();
+            String arg = "'%" + textToFindLowerCase + "%'";
+
+            if(searchInTitle && !searchInContent){
+                where = "LOWER(" + Constants.NOTE_TITLE_COL + ") LIKE " + arg;
+            } else if (!searchInTitle){
+                where = "LOWER(" + Constants.NOTE_TEXT_COL + ") LIKE " + arg;
+            } else {
+                where = "LOWER(" + Constants.NOTE_TITLE_COL + ") LIKE " + arg +
+                        " OR LOWER(" +Constants.NOTE_TEXT_COL + ") LIKE " + arg;
+            }
+
+            try {
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
+
+                String query = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " + where;
+
+                Cursor cursor = db.rawQuery(query, null);
+
+                if(cursor != null && cursor.moveToFirst()){
+
+                    ArrayList<Note> notes = new ArrayList<>(cursor.getCount());
+                    do{
+                        Note note = new Note();
+                        note.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                        note.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
+                        note.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
+                        note.setNote(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
+                        note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL)));
+                        note.setDeletedState(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
+
+                        notes.add(note);
+
+                    } while (cursor.moveToNext());
+
+                    cursor.close();
+                    db.close();
+
+                    return notes;
+                } else
+                    return null;
+            }catch (SQLiteException e){
+                Log.e(TAG, ""+e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Note> notes) {
+            super.onPostExecute(notes);
+            
+            if(listener != null)
+                listener.onNotesLoaded(notes);
         }
     }
 
@@ -592,9 +685,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 int rows = db.delete(Constants.NOTES_TABLE, Constants.ID_COL + " = ?",
                         new String[]{Long.toString(noteId)});
@@ -603,7 +695,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return rows;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return -1;
             }
         }
@@ -635,7 +727,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return rows;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return -1;
             }
         }
@@ -697,7 +789,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 } else
                     return null;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return null;
             }
         }
@@ -737,7 +829,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return rows;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return -1;
             }
         }
@@ -762,9 +854,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Long doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 ContentValues values = new ContentValues();
                 values.put(Constants.FOLDER_NAME_COL, folder.getName());
@@ -776,7 +867,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return folderId;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return (long) -1;
             }
         }
@@ -801,9 +892,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 ContentValues values = new ContentValues();
                 values.put(Constants.FOLDER_NAME_COL, folder.getName());
@@ -815,7 +905,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return rows;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return -1;
             }
         }
@@ -840,9 +930,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Folder doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getReadableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 /*String selectQuery = "SELECT * FROM " + Constants.FOLDER_TABLE + " WHERE " +
                         Constants.ID_COL + " = " + folderId;*/
@@ -873,7 +962,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 } else
                     return null;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return null;
             }
         }
@@ -896,9 +985,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected ArrayList<Folder> doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getReadableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
                 Log.e("Helper", "get Readable - Folders");
                 String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
                         + ", f." + Constants.FOLDER_ICON_COL
@@ -936,7 +1024,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 } else
                     return null;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return null;
             }
         }
@@ -961,9 +1049,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 int rows = db.delete(Constants.FOLDER_TABLE, Constants.ID_COL + " = ?",
                         new String[]{Long.toString(folderId)});
@@ -972,7 +1059,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return rows;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return -1;
             }
         }
@@ -997,9 +1084,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Long doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 ContentValues values = new ContentValues();
                 values.put(Constants.WIDGET_ID_COL, widget.getWidgetId());
@@ -1014,7 +1100,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return widgetId;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return (long) -1;
             }
         }
@@ -1041,9 +1127,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 ContentValues values = new ContentValues();
                 values.put(Constants.CURRENT_WIDGET_MODE_COL, widget.getMode());
@@ -1057,7 +1142,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return rows;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return -1;
             }
         }
@@ -1091,9 +1176,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Widget doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getReadableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
                 String selectQuery;
 
                 if(lookAtItemId)
@@ -1123,7 +1207,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 } else
                     return null;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return null;
             }
         }
@@ -1134,6 +1218,62 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
             if(listener != null)
                 listener.onWidgetLoaded(aWidget);
+        }
+    }
+
+    private class GetWidgetsWithNote extends AsyncTask<Void, Void, ArrayList<Widget>> {
+        private long noteId;
+        private OnWidgetsLoadListener listener;
+
+        public GetWidgetsWithNote(long noteId, OnWidgetsLoadListener listener) {
+            this.noteId = noteId;
+            this.listener = listener;
+        }
+
+        @Override
+        protected ArrayList<Widget> doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
+
+                String selectQuery = "SELECT * FROM " + Constants.WIDGETS_TABLE + " WHERE " +
+                            Constants.CONNECTED_NOTE_ID_COL + " = " + noteId;
+
+                Cursor cursor = db.rawQuery(selectQuery, null);
+
+                if(cursor != null && cursor.moveToFirst()){
+
+                    ArrayList<Widget> widgets = new ArrayList<>(cursor.getCount());
+                    do{
+                        Widget widget = new Widget();
+                        widget.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                        widget.setWidgetId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.WIDGET_ID_COL)));
+                        widget.setNoteId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.CONNECTED_NOTE_ID_COL)));
+                        widget.setMode(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE_COL)));
+                        widget.setTheme(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL)));
+                        widget.setTextSize(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL)));
+
+                        widgets.add(widget);
+
+                    } while (cursor.moveToNext());
+
+                    cursor.close();
+                    db.close();
+
+                    return widgets;
+                } else
+                    return null;
+            }catch (SQLiteException e){
+                Log.e(TAG, ""+e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Widget> widgets) {
+            super.onPostExecute(widgets);
+
+            if(listener != null)
+                listener.onWidgetsLoaded(widgets);
         }
     }
 
@@ -1148,9 +1288,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            SQLiteDatabase db;
             try {
-                db = DatabaseHelper2.this.getWritableDatabase();
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
 
                 int rows = db.delete(Constants.WIDGETS_TABLE, Constants.WIDGET_ID_COL + " = ?",
                         new String[]{Long.toString(widgetId)});
@@ -1159,7 +1298,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
                 return rows;
             }catch (SQLiteException e){
-                Utils.showToast(context, context.getString(R.string.database_unavailable));
+                Log.e(TAG, ""+e);
                 return -1;
             }
         }
@@ -1170,6 +1309,39 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
             if(listener != null)
                 listener.onItemRemoved(aInt);
+        }
+    }
+
+    private class ClearWidgetsTable extends AsyncTask<Void,Void,Boolean>
+    {
+        private final OnFinishListener listener;
+
+        private ClearWidgetsTable(OnFinishListener listener) {
+            this.listener = listener;
+        }
+        @Override
+        protected Boolean doInBackground(Void[] p1)
+        {
+            try {
+                SQLiteDatabase db = DatabaseHelper2.this.getReadableDatabase();
+                db.execSQL("delete from " + Constants.WIDGETS_TABLE);
+
+                db.close();
+
+                return true;
+            }catch (SQLiteException e){
+                Log.e(TAG, ""+e);
+                return false;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result)
+        {
+            super.onPostExecute(result);
+
+            if(listener!= null)
+                listener.onFinished(result);
         }
     }
 }

@@ -1,15 +1,10 @@
 package com.apps.home.notewidget;
 
 import android.app.Dialog;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -46,14 +41,12 @@ public class MainActivity extends AppCompatActivity
         View.OnClickListener, SearchFragment.OnItemClickListener{
     private static final String TAG = "MainActivity";
     private Context context;
-    private long noteId;
     private Toolbar toolbar;
     private FloatingActionButton fab;
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
     private NavigationView navigationView;
     private int folderId;
-    private SQLiteDatabase db;
     private int myNotesNavId;
     private int trashNavId;
     private String textToFind;
@@ -500,7 +493,7 @@ public class MainActivity extends AppCompatActivity
                         case 3:
                             //move to trash
                             Utils.showToast(context, context.getString(R.string.moving_to_trash));
-                            note.setDeletedState(1);
+                            note.setDeletedState(Constants.TRUE);
                             helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
                                 @Override
                                 public void onItemUpdated(int numberOfRows) {
@@ -711,10 +704,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onItemClicked(int noteId, boolean deleted, String textToFind) {
+    public void onItemClicked(Note note, String textToFind) {
         this.textToFind = textToFind;
-        this.noteId = noteId;
-        if(deleted)
+        this.note = note;
+        if(note.getDeletedState() == Constants.TRUE)
             attachFragment(Constants.FRAGMENT_TRASH_NOTE, false);
         else
             attachFragment(Constants.FRAGMENT_NOTE);

@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.DatabaseHelper2;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.io.File;
@@ -319,7 +320,19 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
             if(aBoolean) {
                 if (dbRestore) {
                     Utils.showToast(context, getString(R.string.notes_restored));
-                    Utils.clearWidgetsTable(context, new Utils.FinishListener() {
+                    DatabaseHelper2 helper = new DatabaseHelper2(context);
+                    helper.clearWidgetsTable(new DatabaseHelper2.OnFinishListener() {
+                        @Override
+                        public void onFinished(boolean result) {
+                            if(result){
+                                preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
+                                        .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
+                                Utils.updateAllWidgets(context);
+                                onBackPressed();
+                            }
+                        }
+                    });
+                    /*Utils.clearWidgetsTable(context, new Utils.FinishListener() {
                         @Override
                         public void onFinished(boolean result) {
                             preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
@@ -327,7 +340,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                             Utils.updateAllWidgets(context);
                             onBackPressed();
                         }
-                    });
+                    });*/
                 } else {
                     Utils.showToast(context, getString(R.string.settings_restored));
                     preferences.edit().remove(Constants.STARTING_FOLDER_KEY)

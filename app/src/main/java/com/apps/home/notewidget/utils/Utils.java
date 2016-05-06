@@ -29,13 +29,14 @@ import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
-import com.apps.home.notewidget.MainActivity;
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class Utils {
@@ -49,14 +50,14 @@ public class Utils {
     private static long trashNavId = -1;
 
     public static void showToast(Context context, String message){
-        if(toast!=null)
+        if(toast != null)
             toast.cancel();
         toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
         toast.show();
     }
 
     public static int getLayoutFile(Context context, int themeMode, int widgetMode){
-        if(widgetLayouts==null) {
+        if(widgetLayouts == null) {
             widgetLayouts = new int[3][2][2];
             widgetLayouts[0][0][0] = R.layout.appwidget_title_miui_light;
             widgetLayouts[0][0][1] = R.layout.appwidget_config_miui_light;
@@ -254,9 +255,7 @@ public class Utils {
         return idArray[which];
     }
 
-    public static void clearWidgetsTable(Context context, FinishListener finishListener){
-        new ClearWidgetsTable(context, finishListener).execute();
-    }
+
 
     public static void updateAllWidgets(Context context){
         WidgetProvider widgetProvider = new WidgetProvider();
@@ -327,55 +326,28 @@ public class Utils {
         view.setText(Integer.toString(count));
     }
 
-    public static void updateConnectedWidgets(Context context, long noteId){
-        new UpdateConnectedWidgets(context, noteId).execute();
+    public static void updateConnectedWidgets(final Context context, long noteId){
+        DatabaseHelper2 helper = new DatabaseHelper2(context);
+        helper.getWidgetsWithNote(noteId, new DatabaseHelper2.OnWidgetsLoadListener() {
+            @Override
+            public void onWidgetsLoaded(ArrayList<Widget> widgets) {
+                if(widgets != null){
+                    int[] widgetIds = new int[widgets.size()];
+
+                    for (int i = 0; i < widgets.size(); i++) {
+                        widgetIds[i] = widgets.get(i).getWidgetId();
+                    }
+
+                    WidgetProvider widgetProvider = new WidgetProvider();
+                    widgetProvider.onUpdate(context, AppWidgetManager.getInstance(context), widgetIds);
+                }
+            }
+        });
     }
 
     public interface FinishListener {
         void onFinished(boolean result);
     }
-
-    public static class UpdateConnectedWidgets extends AsyncTask<Void, Void, Boolean>
-    {
-        private int[] widgetIds;
-        private Context context;
-        private long noteId;
-
-        private UpdateConnectedWidgets(Context context, long noteId ) {
-            this.context = context;
-            this.noteId = noteId;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void[] p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                Cursor widgetCursor = db.query(Constants.WIDGETS_TABLE, new String[]{Constants.WIDGET_ID_COL},
-                        Constants.CONNECTED_NOTE_ID_COL + " = ?", new String[]{Long.toString(noteId)}, null, null, null);
-                widgetCursor.moveToFirst();
-                widgetIds = new int[widgetCursor.getCount()];
-                for (int i = 0; i < widgetCursor.getCount(); i++) {
-                    widgetIds[i] = widgetCursor.getInt(0);
-                    widgetCursor.moveToNext();
-                }
-                widgetCursor.close();
-                return true;
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            if(result){
-                WidgetProvider widgetProvider = new WidgetProvider();
-                widgetProvider.onUpdate(context, AppWidgetManager.getInstance(context), widgetIds);
-            }
-            super.onPostExecute(result);
-        }
-    }
-
-
 
     private static class ClearWidgetsTable extends AsyncTask<Void,Void,Boolean>
     {
