@@ -96,7 +96,7 @@ public class NoteFragment extends Fragment{
             Log.e(TAG, "skip new " + skipTextCheck);
             note.setTitle(getString(R.string.untitled));
             note.setCreatedAt(Calendar.getInstance().getTimeInMillis());
-            note.setDeletedState(0);
+            note.setDeletedState(Constants.FALSE);
         }
         setTitleAndSubtitle();
     }
@@ -164,8 +164,8 @@ public class NoteFragment extends Fragment{
     }
 
     @Override
-    public void onStop() { //TODO delete note - update note and attach proper fragment
-        super.onStop(); //TODO save note on stop
+    public void onStop() {
+        super.onStop();
         if(!skipSaving){
             saveNote(false);
         }
@@ -207,7 +207,7 @@ public class NoteFragment extends Fragment{
         skipSaving = true;
         Utils.showToast(context, context.getString(R.string.moving_to_trash));
         note.setNote(noteEditText.getText().toString());
-        note.setDeletedState(1);
+        note.setDeletedState(Constants.TRUE);
         helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
             @Override
             public void onItemUpdated(int numberOfRows) {

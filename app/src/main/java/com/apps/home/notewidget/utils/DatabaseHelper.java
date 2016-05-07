@@ -11,9 +11,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
-import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Widget;
 
 import java.util.ArrayList;
@@ -171,7 +171,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             else
                 selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
                         Constants.ID_COL + " = " + noteId + " AND " +Constants.DELETED_COL +
-                        " = " + 0;
+                        " = " + Constants.FALSE;
 
             Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -348,7 +348,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values.put(Constants.NOTE_TEXT_COL, note.getNote().replace(System.getProperty("line.separator"), "<br/>"));
                 values.put(Constants.MILLIS_COL, note.getCreatedAt());
                 values.put(Constants.FOLDER_ID_COL, note.getFolderId());
-                values.put(Constants.DELETED_COL, 0);
+                values.put(Constants.DELETED_COL, Constants.FALSE);
 
                 long noteId = db.insert(Constants.NOTES_TABLE, null, values);
 
@@ -435,7 +435,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 else
                     selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
                             Constants.ID_COL + " = " + noteId + " AND " +Constants.DELETED_COL +
-                            " = " + 0;
+                            " = " + Constants.FALSE;
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -491,7 +491,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE;
                 else
                     selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
-                        Constants.DELETED_COL + " = " + 0;
+                        Constants.DELETED_COL + " = " + Constants.FALSE;
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -555,10 +555,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 if(folderId != Utils.getTrashNavId(context)) //is not trash
                     selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +//TODO check query
                                 Constants.FOLDER_ID_COL + " = " + folderId + " AND " +
-                                Constants.DELETED_COL + " = 0 ORDER BY LOWER(" + orderColumn +") ASC";
+                                Constants.DELETED_COL + " = " + Constants.FALSE + " ORDER BY LOWER(" + orderColumn +") ASC";
                 else
                     selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
-                            Constants.DELETED_COL + " = 1 ORDER BY LOWER(" + orderColumn +") ASC";
+                            Constants.DELETED_COL + " = " + Constants.TRUE + " ORDER BY LOWER(" + orderColumn +") ASC";
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -721,7 +721,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             try {
                 SQLiteDatabase db = DatabaseHelper.this.getWritableDatabase();
 
-                int rows = db.delete(Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{"1"});
+                int rows = db.delete(Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(Constants.TRUE)});
 
                 db.close();
 
@@ -758,7 +758,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
                         + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
                         + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
-                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = 1"
+                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = " + Constants.TRUE
                         +  " GROUP BY f." + Constants.ID_COL;
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
@@ -781,7 +781,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(Constants.DELETED_COL, Constants.FALSE);
-                    int rows = db.update(Constants.NOTES_TABLE, contentValues, Constants.DELETED_COL + " = ?", new String[]{"1"});
+                    int rows = db.update(Constants.NOTES_TABLE, contentValues, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(Constants.TRUE)});
 
                     db.close();
 
@@ -941,7 +941,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
                         + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
                         + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
-                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = 0"
+                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = " + Constants.FALSE
                         + " AND n." + Constants.FOLDER_ID_COL + " = " + folderId;
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
@@ -993,12 +993,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
                         + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
                         + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
-                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = 0"
+                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = " + Constants.FALSE
                         +  " GROUP BY f." + Constants.ID_COL;
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
 
-                int deletedCount = (int) DatabaseUtils.queryNumEntries(db, Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{"1"});
+                int deletedCount = (int) DatabaseUtils.queryNumEntries(db, Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(Constants.TRUE)});
                 long deletedId = Utils.getTrashNavId(context);
 
                 if(cursor != null && cursor.moveToFirst()){
