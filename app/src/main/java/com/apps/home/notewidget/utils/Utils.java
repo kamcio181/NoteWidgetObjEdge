@@ -4,16 +4,10 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
@@ -32,22 +26,23 @@ import android.widget.Toast;
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.widget.WidgetProvider;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 public class Utils {
     private static final String TAG = "Utils";
     private static Toast toast;
     private static int[][][] widgetLayouts;
-    private static SQLiteDatabase db;
     private static int idArray[];
     private static SharedPreferences preferences;
     private static long myNotesNavId = -1;
     private static long trashNavId = -1;
+    private static Dialog foldersDialog;
+    private static ArrayList<Folder> folders;
 
     public static void showToast(Context context, String message){
         if(toast != null)
@@ -90,19 +85,6 @@ public class Utils {
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         else
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-    }
-
-    public static SQLiteDatabase getDb(Context context){
-        try {
-            if (db == null || !db.isOpen()) {
-                SQLiteOpenHelper helper = DatabaseHelper.getInstance(context);
-                db = helper.getWritableDatabase();
-            }
-            return db;
-        }catch (SQLiteException e){
-            showToast(context, context.getString(R.string.database_unavailable));
-            return null;
-        }
     }
 
     public static File getBackupDir(Context context){
@@ -226,36 +208,42 @@ public class Utils {
 
 
 
-    public static Dialog getAllFolderListDialog(Context context, String title,
-                                             DialogInterface.OnClickListener action){
-        CharSequence[] folders = null;
-        try {
-            folders = new GetAllFolders(context).execute().get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        if(folders != null && folders.length > 0)
-            return new AlertDialog.Builder(context).setTitle(title)
-                    .setItems(folders, action).create();
-        else{
-            showToast(context, "Unable to load folders list. Try again later");
-            return null;
-        }
+    public static Dialog getAllFolderListDialog(final Context context, final String title,
+                                             final DialogInterface.OnClickListener action){
+
+        DatabaseHelper helper = new DatabaseHelper(context);
+        helper.getFolders(new DatabaseHelper.OnFoldersLoadListener() {
+            @Override
+            public void onFoldersLoaded(ArrayList<Folder> folders) {
+                if (folders != null) {
+                    Utils.folders = folders;
+                    CharSequence[] folderNames = new CharSequence[folders.size()];
+                    for (int i = 0; i < folderNames.length; i++)
+                        folderNames[i] = folders.get(i).getName();
+                    foldersDialog = new AlertDialog.Builder(context).setTitle(title).
+                            setItems(folderNames, action).create();
+                } else {
+                    showToast(context, "Unable to load folders list. Try again later");
+                    foldersDialog = null;
+                }
+            }
+        });
+        return foldersDialog;
     }
 
     public static void removeAllMenuItems(Menu menu){
-        Log.e(TAG, " size "+ menu.size());
+        Log.e(TAG, " size " + menu.size());
         while (menu.size()>0)
             menu.removeItem(menu.getItem(0).getItemId());
     }
 
     public static int getFolderId(int which){
-        return idArray[which];
+        return (int) folders.get(which).getId();
     }
 
-
+    public static int getFolderIdFromArray(int which){
+        return idArray[which];
+    }
 
     public static void updateAllWidgets(Context context){
         WidgetProvider widgetProvider = new WidgetProvider();
@@ -327,8 +315,8 @@ public class Utils {
     }
 
     public static void updateConnectedWidgets(final Context context, long noteId){
-        DatabaseHelper2 helper = new DatabaseHelper2(context);
-        helper.getWidgetsWithNote(noteId, new DatabaseHelper2.OnWidgetsLoadListener() {
+        DatabaseHelper helper = new DatabaseHelper(context);
+        helper.getWidgetsWithNote(noteId, new DatabaseHelper.OnWidgetsLoadListener() {
             @Override
             public void onWidgetsLoaded(ArrayList<Widget> widgets) {
                 if(widgets != null){
@@ -343,72 +331,5 @@ public class Utils {
                 }
             }
         });
-    }
-
-    public interface FinishListener {
-        void onFinished(boolean result);
-    }
-
-    private static class ClearWidgetsTable extends AsyncTask<Void,Void,Boolean>
-    {
-        private final FinishListener finishListener;
-        private Context context;
-
-        private ClearWidgetsTable(Context context, FinishListener finishListener) {
-            this.context = context;
-            this.finishListener = finishListener;
-        }
-        @Override
-        protected Boolean doInBackground(Void[] p1)
-        {
-            if((db = Utils.getDb(context)) != null) {
-                db.execSQL("delete from " + Constants.WIDGETS_TABLE);
-                return true;
-            } else
-                return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result)
-        {
-            super.onPostExecute(result);
-
-            if(finishListener!= null)
-                finishListener.onFinished(result);
-        }
-    }
-
-    private static class GetAllFolders extends AsyncTask<Void, Void, CharSequence[]>{
-        private Context context;
-
-        private GetAllFolders(Context context){
-            this.context = context;
-        }
-
-        @Override
-        protected CharSequence[] doInBackground(Void... params) {
-
-            if((db = Utils.getDb(context)) != null) {
-                Cursor cursor = db.query(Constants.FOLDER_TABLE, new String[]{Constants.ID_COL,
-                Constants.FOLDER_NAME_COL}, null, null, null, null, null);
-
-                if(cursor.getCount()>0){
-                    int cursorCount = cursor.getCount();
-                    cursor.moveToFirst();
-                    CharSequence[] foldersNames = new CharSequence[cursorCount];
-                    idArray = new int[cursorCount];
-                    for (int i = 0; i<cursorCount; i++){
-
-                        idArray[i] = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL));
-                        foldersNames[i] = cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL));
-                        cursor.moveToNext();
-                    }
-                    cursor.close();
-                    return foldersNames;
-                }
-                return null;
-            } else
-                return null;
-        }
     }
 }

@@ -13,7 +13,7 @@ import com.apps.home.notewidget.NoteFragment;
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
 
 
@@ -43,8 +43,8 @@ public class WidgetEditNoteActivity extends AppCompatActivity{
         }
 
         if(noteId>0) {
-            DatabaseHelper2 helper = new DatabaseHelper2(context);
-            helper.getNote(false, noteId, new DatabaseHelper2.OnNoteLoadListener() {
+            DatabaseHelper helper = new DatabaseHelper(context);
+            helper.getNote(false, noteId, new DatabaseHelper.OnNoteLoadListener() {
                 @Override
                 public void onNoteLoaded(Note note) {
                     if(note != null)

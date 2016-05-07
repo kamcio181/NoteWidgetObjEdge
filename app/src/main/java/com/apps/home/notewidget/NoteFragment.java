@@ -19,7 +19,7 @@ import android.view.ViewGroup;
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.Calendar;
@@ -38,7 +38,7 @@ public class NoteFragment extends Fragment{
     private int editTextSelection;
     private String newLine;
     private Note note;
-    private DatabaseHelper2 helper;
+    private DatabaseHelper helper;
     private ActionBar actionBar;
 
 
@@ -68,7 +68,7 @@ public class NoteFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         context = getActivity();
-        helper = new DatabaseHelper2(context);
+        helper = new DatabaseHelper(context);
         ((AppCompatActivity)context).invalidateOptionsMenu();
         setTextWatcher();
         // Inflate the layout for this fragment
@@ -175,7 +175,7 @@ public class NoteFragment extends Fragment{
         Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
         if(isNewNote) {//TODO ENCRYPTION
             note.setNote(noteEditText.getText().toString());
-            helper.createNote(note, new DatabaseHelper2.OnItemInsertListener() {
+            helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
                 @Override
                 public void onItemInserted(long id) {
                     note.setId(id);
@@ -188,7 +188,7 @@ public class NoteFragment extends Fragment{
             });
         } else{
             note.setNote(noteEditText.getText().toString());
-            helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
                 @Override
                 public void onItemUpdated(int numberOfRows) {
                     Utils.updateConnectedWidgets(context, note.getId());
@@ -208,7 +208,7 @@ public class NoteFragment extends Fragment{
         Utils.showToast(context, context.getString(R.string.moving_to_trash));
         note.setNote(noteEditText.getText().toString());
         note.setDeletedState(1);
-        helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+        helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
             @Override
             public void onItemUpdated(int numberOfRows) {
                 if (numberOfRows > 0) {

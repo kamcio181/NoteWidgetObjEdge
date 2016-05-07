@@ -3,8 +3,6 @@ package com.apps.home.notewidget.widget;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.text.Html;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -14,8 +12,7 @@ import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
-import com.apps.home.notewidget.utils.Utils;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 
 public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory {
     private Context context = null;
@@ -32,7 +29,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
     }
 
     private void getObjects(){
-        final DatabaseHelper2 helper = new DatabaseHelper2(context);
+        final DatabaseHelper helper = new DatabaseHelper(context);
 
         widget = helper.getWidgetOnDemand(appWidgetId);
 

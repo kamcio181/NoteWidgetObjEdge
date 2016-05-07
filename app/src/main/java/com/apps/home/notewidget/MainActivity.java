@@ -30,7 +30,7 @@ import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity
     private boolean exit = false;
     private Handler handler = new Handler();
     private Runnable exitRunnable;
-    private DatabaseHelper2 helper;
+    private DatabaseHelper helper;
     private ArrayList<Folder> folders;
     private Note note;
     private ActionBar actionBar;
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity
         actionBar = getSupportActionBar();
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
-        helper = new DatabaseHelper2(this);
+        helper = new DatabaseHelper(this);
         setResetExitFlagRunnable();
 
         myNotesNavId = (int) Utils.getMyNotesNavId(this);
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG, "nav created");
         loadNavViewItems();
 
-        helper.getNotes(true, new DatabaseHelper2.OnNotesLoadListener() {
+        helper.getNotes(true, new DatabaseHelper.OnNotesLoadListener() {
             @Override
             public void onNotesLoaded(ArrayList<Note> notes) {
                 if (notes != null) {
@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void loadNavViewItems(){
-        helper.getFolders(new DatabaseHelper2.OnFoldersLoadListener() {
+        helper.getFolders(new DatabaseHelper.OnFoldersLoadListener() {
             @Override
             public void onFoldersLoaded(ArrayList<Folder> folders) {
                 if (folders != null) {
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if(action == R.id.action_restore_all)
-                helper.restoreAllNotesFromTrash(new DatabaseHelper2.OnFoldersLoadListener() {
+                helper.restoreAllNotesFromTrash(new DatabaseHelper.OnFoldersLoadListener() {
                     @Override
                     public void onFoldersLoaded(ArrayList<Folder> folders) {
                         if (folders != null) {
@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
                 else
-                    helper.removeAllNotesFromTrash(new DatabaseHelper2.OnItemRemoveListener() {
+                    helper.removeAllNotesFromTrash(new DatabaseHelper.OnItemRemoveListener() {
                         @Override
                         public void onItemRemoved(int numberOfRows) {
                             if(numberOfRows > 0){
@@ -341,7 +341,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(DialogInterface dialog, int which) {
                 if(action == R.id.action_restore_from_trash){
                     note.setDeletedState(Constants.FALSE);
-                    helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+                    helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
                         @Override
                         public void onItemUpdated(int numberOfRows) { //TODO code duplicated, toast before async task
                             if (numberOfRows > 0) {
@@ -360,7 +360,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     });
                 } else if (action == R.id.action_delete_from_trash){
-                    helper.removeNote(note.getId(), new DatabaseHelper2.OnItemRemoveListener() {
+                    helper.removeNote(note.getId(), new DatabaseHelper.OnItemRemoveListener() {
                         @Override
                         public void onItemRemoved(int numberOfRows) {
                             if(numberOfRows > 0){
@@ -385,11 +385,11 @@ public class MainActivity extends AppCompatActivity
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                helper.removeFolder(folderId, new DatabaseHelper2.OnItemRemoveListener() {
+                helper.removeFolder(folderId, new DatabaseHelper.OnItemRemoveListener() {
                     @Override
                     public void onItemRemoved(int numberOfRows) {
                         if (numberOfRows > 0) {
-                            helper.removeAllNotesFromFolder(folderId, new DatabaseHelper2.OnItemRemoveListener() {
+                            helper.removeAllNotesFromFolder(folderId, new DatabaseHelper.OnItemRemoveListener() {
                                 @Override
                                 public void onItemRemoved(int numberOfRows) {
                                     Utils.showToast(context, getString(R.string.folder_and_all_associated_notes_were_removed));
@@ -412,8 +412,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                note.setFolderId(Utils.getFolderId(which));
-                helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+                note.setFolderId(Utils.getFolderIdFromArray(which));
+                helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
                     @Override
                     public void onItemUpdated(int numberOfRows) {
                         if (numberOfRows > 0) {
@@ -494,7 +494,7 @@ public class MainActivity extends AppCompatActivity
                             //move to trash
                             Utils.showToast(context, context.getString(R.string.moving_to_trash));
                             note.setDeletedState(Constants.TRUE);
-                            helper.updateNote(note, new DatabaseHelper2.OnItemUpdateListener() {
+                            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
                                 @Override
                                 public void onItemUpdated(int numberOfRows) {
                                     if (numberOfRows > 0) {
@@ -523,7 +523,7 @@ public class MainActivity extends AppCompatActivity
                 else
                     name = Utils.capitalizeFirstLetter(name);
                 final Folder folder = new Folder(name, R.drawable.ic_nav_black_folder);
-                helper.createFolder(folder, new DatabaseHelper2.OnItemInsertListener() {
+                helper.createFolder(folder, new DatabaseHelper.OnItemInsertListener() {
                     @Override
                     public void onItemInserted(long id) {
                         if(id > 0){
@@ -721,7 +721,7 @@ public class MainActivity extends AppCompatActivity
         else {
             if (preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
                 if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null){
-                    helper.getNote(false, note.getId(), new DatabaseHelper2.OnNoteLoadListener() { //TODO common with trash
+                    helper.getNote(false, note.getId(), new DatabaseHelper.OnNoteLoadListener() { //TODO common with trash
                         @Override
                         public void onNoteLoaded(Note note) {
                             if(note != null){

@@ -21,7 +21,7 @@ import android.widget.TextView;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.io.File;
@@ -33,7 +33,7 @@ import java.io.OutputStream;
 import java.util.Calendar;
 
 public class SettingsActivity extends AppCompatActivity implements SettingsListFragment.OnItemClickListener,
-        SettingsRestoreListFragment.OnItemClickListener{ //TODO use empty layout as container for fragments
+        SettingsRestoreListFragment.OnItemClickListener{
     private Context context;
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
@@ -320,8 +320,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
             if(aBoolean) {
                 if (dbRestore) {
                     Utils.showToast(context, getString(R.string.notes_restored));
-                    DatabaseHelper2 helper = new DatabaseHelper2(context);
-                    helper.clearWidgetsTable(new DatabaseHelper2.OnFinishListener() {
+                    DatabaseHelper helper = new DatabaseHelper(context);
+                    helper.clearWidgetsTable(new DatabaseHelper.OnFinishListener() {
                         @Override
                         public void onFinished(boolean result) {
                             if(result){
@@ -332,15 +332,6 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                             }
                         }
                     });
-                    /*Utils.clearWidgetsTable(context, new Utils.FinishListener() {
-                        @Override
-                        public void onFinished(boolean result) {
-                            preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
-                                    .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
-                            Utils.updateAllWidgets(context);
-                            onBackPressed();
-                        }
-                    });*/
                 } else {
                     Utils.showToast(context, getString(R.string.settings_restored));
                     preferences.edit().remove(Constants.STARTING_FOLDER_KEY)

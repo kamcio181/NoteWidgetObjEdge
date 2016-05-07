@@ -16,7 +16,7 @@ import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
 import com.apps.home.notewidget.utils.Utils;
 
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 public class WidgetConfigActivity extends AppCompatActivity{
     private int widgetID = 0;
     private RecyclerView notesRecyclerView;
-    private DatabaseHelper2 helper;
+    private DatabaseHelper helper;
     private ArrayList<Note> notes;
 
     @Override
@@ -45,8 +45,8 @@ public class WidgetConfigActivity extends AppCompatActivity{
             Log.e("config onCreate", "widgetId "+ widgetID);
         }
 
-        helper = new DatabaseHelper2(this);
-        helper.getNotes(false, new DatabaseHelper2.OnNotesLoadListener() {
+        helper = new DatabaseHelper(this);
+        helper.getNotes(false, new DatabaseHelper.OnNotesLoadListener() {
             @Override
             public void onNotesLoaded(final ArrayList<Note> notes) {
                 if(notes != null){
@@ -91,7 +91,7 @@ public class WidgetConfigActivity extends AppCompatActivity{
                     Widget widget = new Widget();
                     widget.setWidgetId(widgetID);
                     widget.setNoteId(notes.get(getLayoutPosition()).getId());
-                    helper.createWidget(widget, new DatabaseHelper2.OnItemInsertListener() {
+                    helper.createWidget(widget, new DatabaseHelper.OnItemInsertListener() {
                         @Override
                         public void onItemInserted(long id) {
                             if (id >= 0) {

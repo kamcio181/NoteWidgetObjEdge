@@ -2,26 +2,22 @@ package com.apps.home.notewidget;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
-import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -37,7 +33,7 @@ public class NoteListFragment extends Fragment {
     private SharedPreferences preferences;
     private Context context;
     private Folder folder;
-    private DatabaseHelper2 helper;
+    private DatabaseHelper helper;
     private ArrayList<Note> notes;
 
     public NoteListFragment() {
@@ -68,7 +64,7 @@ public class NoteListFragment extends Fragment {
 
         preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         sortByDate = preferences.getBoolean(Constants.SORT_BY_DATE_KEY, false);
-        helper = new DatabaseHelper2(context);
+        helper = new DatabaseHelper(context);
 
         return inflater.inflate(R.layout.fragment_note_list, container, false);
     }
@@ -144,7 +140,7 @@ public class NoteListFragment extends Fragment {
 
     public void loadNotes(){
 
-        helper.getFolderNotes((int) folder.getId(), sortByDate, new DatabaseHelper2.OnNotesLoadListener() {
+        helper.getFolderNotes((int) folder.getId(), sortByDate, new DatabaseHelper.OnNotesLoadListener() {
             @Override
             public void onNotesLoaded(ArrayList<Note> notes) {
                 if (notes != null) {

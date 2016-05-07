@@ -19,7 +19,7 @@ import android.widget.SearchView;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
 
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
     private SharedPreferences preferences;
     private Context context;
     private ArrayList<Note> notes;
-    private DatabaseHelper2 helper;
+    private DatabaseHelper helper;
 
     private OnItemClickListener mListener;
 
@@ -60,7 +60,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
         preferences = getActivity().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         context = getActivity();
         ((AppCompatActivity)context).invalidateOptionsMenu();
-        helper = new DatabaseHelper2(context);
+        helper = new DatabaseHelper(context);
 
         if (getArguments() != null) {
             textToFind = getArguments().getString(ARG_PARAM1);
@@ -141,7 +141,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
 
     private void search(final String text){
         if(text.length() > 0)
-            helper.searchNotes(titleSearch.isChecked(), contentSearch.isChecked(), text, new DatabaseHelper2.OnNotesLoadListener() {
+            helper.searchNotes(titleSearch.isChecked(), contentSearch.isChecked(), text, new DatabaseHelper.OnNotesLoadListener() {
                 @Override
                 public void onNotesLoaded(ArrayList<Note> notes) {
                     if(notes != null) {

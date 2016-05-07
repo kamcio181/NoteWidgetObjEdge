@@ -15,7 +15,7 @@ import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.DatabaseHelper2;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
 
 public class WidgetProvider extends AppWidgetProvider {
@@ -26,7 +26,7 @@ public class WidgetProvider extends AppWidgetProvider {
     public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
 
     private static final String TAG = "WidgetProvider";
-    private DatabaseHelper2 helper;
+    private DatabaseHelper helper;
     private Widget widget;
     private Note note;
 
@@ -128,7 +128,7 @@ public class WidgetProvider extends AppWidgetProvider {
     }
 
     private void getObjects(final Context context, int widgetId){
-        helper = new DatabaseHelper2(context);
+        helper = new DatabaseHelper(context);
         Log.e(TAG, "getObjects");
 
         widget = helper.getWidgetOnDemand(widgetId);
