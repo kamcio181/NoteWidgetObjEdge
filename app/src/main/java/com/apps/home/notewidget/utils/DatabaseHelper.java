@@ -245,6 +245,51 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new GetFolders(listener).execute();
     }
 
+    public ArrayList<Folder> getFoldersOnDemand(){
+        try {
+            SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+            Log.e("Helper", "get Readable - Folders");
+            String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
+                    + ", f." + Constants.FOLDER_ICON_COL
+                    + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
+                    + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
+                    + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
+                    + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = " + Constants.FALSE
+                    +  " GROUP BY f." + Constants.ID_COL;
+
+            Cursor cursor = db.rawQuery(selectQuery, null);
+
+            int deletedCount = (int) DatabaseUtils.queryNumEntries(db, Constants.NOTES_TABLE, Constants.DELETED_COL + " = ?", new String[]{Integer.toString(Constants.TRUE)});
+            long deletedId = Utils.getTrashNavId(context);
+
+            if(cursor != null && cursor.moveToFirst()){
+
+                ArrayList<Folder> folders = new ArrayList<>(cursor.getCount());
+                do{
+                    Folder folder = new Folder();
+                    folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                    folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
+                    folder.setIcon(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
+                    folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
+                    if(folder.getId() == deletedId)
+                        folder.setCount(deletedCount);
+
+                    folders.add(folder);
+
+                } while (cursor.moveToNext());
+
+                cursor.close();
+                db.close();
+
+                return folders;
+            } else
+                return null;
+        }catch (SQLiteException e){
+            Log.e(TAG, "" + e);
+            return null;
+        }
+    }
+
     public void removeFolder(long folderId, OnItemRemoveListener listener){
         new RemoveFolder(folderId, listener).execute();
     }

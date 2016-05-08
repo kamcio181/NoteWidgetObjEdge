@@ -18,6 +18,7 @@ import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
+import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -61,7 +62,7 @@ public class NoteListFragment extends Fragment {
                              Bundle savedInstanceState) {
         context = getActivity();
         ((AppCompatActivity)context).invalidateOptionsMenu();
-
+        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false); //TODO not working
         preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         sortByDate = preferences.getBoolean(Constants.SORT_BY_DATE_KEY, false);
         helper = new DatabaseHelper(context);

@@ -94,6 +94,7 @@
     <string name="content">Content</string>
     <string name="my_notes">My Notes</string>
     <string name="trash">Trash</string>
+    <string name="unable_to_load_folders_list_try_again_later">Unable to load folders list. Try again later</string>
 
     <string-array name="settings_items">
         <item>Widget configuration</item>

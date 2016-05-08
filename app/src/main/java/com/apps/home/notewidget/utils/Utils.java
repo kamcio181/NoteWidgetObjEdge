@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
@@ -41,7 +42,6 @@ public class Utils {
     private static SharedPreferences preferences;
     private static long myNotesNavId = -1;
     private static long trashNavId = -1;
-    private static Dialog foldersDialog;
     private static ArrayList<Folder> folders;
 
     public static void showToast(Context context, String message){
@@ -212,23 +212,23 @@ public class Utils {
                                              final DialogInterface.OnClickListener action){
 
         DatabaseHelper helper = new DatabaseHelper(context);
-        helper.getFolders(new DatabaseHelper.OnFoldersLoadListener() {
-            @Override
-            public void onFoldersLoaded(ArrayList<Folder> folders) {
-                if (folders != null) {
-                    Utils.folders = folders;
-                    CharSequence[] folderNames = new CharSequence[folders.size()];
-                    for (int i = 0; i < folderNames.length; i++)
-                        folderNames[i] = folders.get(i).getName();
-                    foldersDialog = new AlertDialog.Builder(context).setTitle(title).
-                            setItems(folderNames, action).create();
-                } else {
-                    showToast(context, "Unable to load folders list. Try again later");
-                    foldersDialog = null;
-                }
+        ArrayList<Folder> folders = helper.getFoldersOnDemand();
+        if (folders != null) {
+            folders.remove(1); //Remove trash object
+            if(folders.size() == 1){
+                showToast(context, context.getString(R.string.you_have_only_one_folder));
+                return null;
             }
-        });
-        return foldersDialog;
+            Utils.folders = folders;
+            CharSequence[] folderNames = new CharSequence[folders.size()];
+            for (int i = 0; i < folderNames.length; i++)
+                folderNames[i] = folders.get(i).getName();
+            return new AlertDialog.Builder(context).setTitle(title).
+                    setItems(folderNames, action).create();
+        } else {
+            showToast(context, context.getString(R.string.unable_to_load_folders_list_try_again_later));
+            return null;
+        }
     }
 
     public static void removeAllMenuItems(Menu menu){
