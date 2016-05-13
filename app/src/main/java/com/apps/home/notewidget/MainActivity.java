@@ -32,6 +32,7 @@ import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
+import com.apps.home.notewidget.widget.WidgetManualActivity;
 
 import java.util.ArrayList;
 
@@ -213,7 +214,8 @@ public class MainActivity extends AppCompatActivity
                 handleRestoreOrRemoveFromTrashAction(id, true);
                 break;
             case R.id.action_add_nav_folder:
-                handleAddFolder();
+                //handleAddFolder();
+                startActivity(new Intent(this, WidgetManualActivity.class));
                 break;
             case R.id.action_delete_nav_folder:
                 Utils.getConfirmationDialog(this, getString(R.string.do_you_want_to_delete_this_folder_and_all_associated_notes),

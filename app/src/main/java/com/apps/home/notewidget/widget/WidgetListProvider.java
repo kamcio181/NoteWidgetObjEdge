@@ -24,7 +24,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
         this.context = context;
         appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
-
+        getObjects();
         Log.e("list", "constructor");
     }
 
@@ -40,7 +40,6 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
 
     @Override
     public RemoteViews getViewAt(int position) {
-        getObjects();
 
         int textSize = widget.getTextSize();
         int widgetTheme = widget.getTheme();
@@ -83,7 +82,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
 
     @Override
     public void onDataSetChanged() {
-
+        getObjects();
     }
 
     @Override
