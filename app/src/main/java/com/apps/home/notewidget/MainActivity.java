@@ -214,8 +214,8 @@ public class MainActivity extends AppCompatActivity
                 handleRestoreOrRemoveFromTrashAction(id, true);
                 break;
             case R.id.action_add_nav_folder:
-                //handleAddFolder();
-                startActivity(new Intent(this, WidgetManualActivity.class));
+                handleAddFolder();
+                //startActivity(new Intent(this, WidgetManualActivity.class));
                 break;
             case R.id.action_delete_nav_folder:
                 Utils.getConfirmationDialog(this, getString(R.string.do_you_want_to_delete_this_folder_and_all_associated_notes),

@@ -136,11 +136,13 @@ public class SettingsRestoreListFragment extends Fragment {
                 for (String i : items) {
                     if (i.endsWith(suffix)){
                         files.add(i);
-                        calendar.setTimeInMillis(Long.parseLong(i.substring(0, i.lastIndexOf("_"))));
-                        recyclerViewItems.add(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
                     }
                 }
-                Collections.sort(recyclerViewItems, Collections.reverseOrder());
+                Collections.sort(files, Collections.reverseOrder());
+                for(String i : files){
+                    calendar.setTimeInMillis(Long.parseLong(i.substring(0, i.lastIndexOf("_"))));
+                    recyclerViewItems.add(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+                }
                 return true;
             }
             return false;
