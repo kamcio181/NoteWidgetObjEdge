@@ -107,6 +107,10 @@ public class WidgetConfigActivity extends AppCompatActivity{
                                 Intent intent = new Intent();
                                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetID);
                                 setResult(RESULT_OK, intent);
+
+                                if(!getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).
+                                        getBoolean(Constants.SKIP_WIDGET_MANUAL_DIALOG_KEY, false))
+                                    startActivity(new Intent(WidgetConfigActivity.this, WidgetManualActivity.class));
                             }
                             finish();
                         }

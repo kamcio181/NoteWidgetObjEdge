@@ -37,6 +37,7 @@ public interface Constants {
     String NOTE_TEXT_SIZE_KEY = "noteTextSize";
     String STARTING_FOLDER_KEY = "startingFolder";
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
+    String SKIP_WIDGET_MANUAL_DIALOG_KEY = "skipWidgetManualDialog";
     String RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY = "reloadMainActivityAfterRestore";
 
     String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";

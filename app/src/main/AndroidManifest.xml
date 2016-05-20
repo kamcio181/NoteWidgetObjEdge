@@ -90,7 +90,7 @@
             android:excludeFromRecents="true"
             android:noHistory="true"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
-            android:theme="@style/Base.Theme.AppCompat.Light.Dialog"/>
+            android:theme="@style/AppTheme.AlertDialog" />
     </application>
 
 </manifest>
