@@ -79,7 +79,7 @@ public class WidgetProvider extends AppWidgetProvider {
                     helper.updateWidgetOnDemand(widget, widget.getId());
 
                     AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
-
+                    updateNote(context, appWidgetId);
                     break;
             }
         }
