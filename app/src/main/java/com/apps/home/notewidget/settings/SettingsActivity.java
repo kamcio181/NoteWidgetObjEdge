@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -57,7 +58,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
         }
 
         fragmentManager.beginTransaction().replace(R.id.container,
-                new SettingsListFragment(), Constants.FRAGMENT_SETTINGS_LIST).commit();
+                new SettingsListFragment(), Constants.FRAGMENT_SETTINGS_LIST).
+                setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
     }
 
     @Override
@@ -65,7 +67,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
         if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_WIDGET_CONFIG) != null
                 || fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_RESTORE_LIST) != null)
             fragmentManager.beginTransaction().replace(R.id.container,
-                    new SettingsListFragment(), Constants.FRAGMENT_SETTINGS_LIST).commit();
+                    new SettingsListFragment(), Constants.FRAGMENT_SETTINGS_LIST).
+                    setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
         else
             super.onBackPressed();
     }
@@ -180,7 +183,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 fragmentManager.beginTransaction().replace(R.id.container,
-                        SettingsRestoreListFragment.newInstance(which == 0), Constants.FRAGMENT_SETTINGS_RESTORE_LIST).commit();
+                        SettingsRestoreListFragment.newInstance(which == 0), Constants.FRAGMENT_SETTINGS_RESTORE_LIST).
+                        setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
             }
         }).create();
     }
@@ -190,7 +194,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
         switch (position){
             case 0:
                 fragmentManager.beginTransaction().replace(R.id.container,
-                        new SettingsWidgetConfigFragment(), Constants.FRAGMENT_SETTINGS_WIDGET_CONFIG).commit();
+                        new SettingsWidgetConfigFragment(), Constants.FRAGMENT_SETTINGS_WIDGET_CONFIG).
+                        setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
                 break;
             case 1:
                 getNoteSizeDialog().show();

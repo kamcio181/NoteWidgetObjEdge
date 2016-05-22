@@ -72,7 +72,7 @@ public class WidgetConfigActivity extends AppCompatActivity{
                     });
                 } else{
                     Utils.showToast(WidgetConfigActivity.this,
-                            "Database unavailable or you do not have notes");
+                            getString(R.string.database_unavailable_or_you_do_not_have_notes));
                     finish();
                 }
             }
@@ -87,7 +87,7 @@ public class WidgetConfigActivity extends AppCompatActivity{
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Utils.showToast(WidgetConfigActivity.this, "Creating widget");
+                    Utils.showToast(WidgetConfigActivity.this, getString(R.string.creating_widget));
                     Widget widget = new Widget();
                     widget.setWidgetId(widgetID);
                     widget.setNoteId(notes.get(getLayoutPosition()).getId());

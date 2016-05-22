@@ -166,9 +166,22 @@ public class NoteFragment extends Fragment{
     @Override
     public void onStop() {
         super.onStop();
+        Log.e(TAG, "Stop");
         if(!skipSaving){
             saveNote(false);
         }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.e(TAG, "onDetach");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, "onDestroy");
     }
 
     public void saveNote(final boolean quit){

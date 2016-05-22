@@ -80,7 +80,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Log.e("Helper", "myNotes ");
 
             values.put(Constants.FOLDER_NAME_COL, context.getString(R.string.trash));
-            values.put(Constants.FOLDER_ICON_COL, R.drawable.ic_nav_black_home);
+            values.put(Constants.FOLDER_ICON_COL, R.drawable.ic_nav_black_trash);
 
             editor.putLong(Constants.TRASH_ID_KEY, db.insert(Constants.FOLDER_TABLE, null, values)).apply();
             Log.e("Helper", "trash ");

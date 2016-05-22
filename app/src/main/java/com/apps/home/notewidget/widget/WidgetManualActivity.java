@@ -10,7 +10,6 @@ import android.support.v7.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.ListView;
@@ -22,70 +21,65 @@ import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
 
 public class WidgetManualActivity extends AppCompatActivity{
-    private RelativeLayout modeClickDesc, titleClickDesc, noteClickDesc, modeClickDesc2,
-    incClickDesc, decClickDesc, themeSwitchDesc;
-    private FrameLayout widgetTitleCont, widgetConfigCont;
-    private Button button;
-    private CheckBox checkBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_widget_manual);
-        //setTitle(getString(R.string.tip));
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.activity_widget_manual, null);
 
 
-        modeClickDesc = (RelativeLayout) layout.findViewById(R.id.modeClickDesc);
-        titleClickDesc = (RelativeLayout) layout.findViewById(R.id.titleClickDesc);
-        noteClickDesc = (RelativeLayout) layout.findViewById(R.id.noteClickDesc);
-        widgetTitleCont = (FrameLayout) layout.findViewById(R.id.widgetTitleCont);
-        modeClickDesc2 = (RelativeLayout) layout.findViewById(R.id.modeClickDesc2);
-        incClickDesc = (RelativeLayout) layout.findViewById(R.id.incClickDesc);
-        decClickDesc = (RelativeLayout) layout.findViewById(R.id.decClickDesc);
-        themeSwitchDesc = (RelativeLayout) layout.findViewById(R.id.themeSwitchClickDesc);
-        widgetConfigCont = (FrameLayout) layout.findViewById(R.id.widgetConfigCont);
-        checkBox = (CheckBox) layout.findViewById(R.id.checkBox);
+        final RelativeLayout modeClickDesc = (RelativeLayout) layout.findViewById(R.id.modeClickDesc);
+        final RelativeLayout titleClickDesc = (RelativeLayout) layout.findViewById(R.id.titleClickDesc);
+        final RelativeLayout noteClickDesc = (RelativeLayout) layout.findViewById(R.id.noteClickDesc);
+        final FrameLayout widgetTitleCont = (FrameLayout) layout.findViewById(R.id.widgetTitleCont);
+        final FrameLayout widgetTitleCont2 = (FrameLayout) layout.findViewById(R.id.widgetTitleCont2);
+        final RelativeLayout modeClickDesc2 = (RelativeLayout) layout.findViewById(R.id.modeClickDesc2);
+        final RelativeLayout incClickDesc = (RelativeLayout) layout.findViewById(R.id.incClickDesc);
+        final RelativeLayout decClickDesc = (RelativeLayout) layout.findViewById(R.id.decClickDesc);
+        final RelativeLayout themeSwitchDesc = (RelativeLayout) layout.findViewById(R.id.themeSwitchClickDesc);
+        final FrameLayout widgetConfigCont = (FrameLayout) layout.findViewById(R.id.widgetConfigCont);
+        final FrameLayout widgetConfigCont2 = (FrameLayout) layout.findViewById(R.id.widgetConfigCont2);
+        final CheckBox checkBox = (CheckBox) layout.findViewById(R.id.checkBox);
 
-        widgetTitleCont.addView(LayoutInflater.from(this).inflate(
-                Utils.getLayoutFile(this, getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).
-                        getInt(Constants.WIDGET_THEME_KEY, Constants.WIDGET_THEME_MIUI),
+        widgetTitleCont2.addView(LayoutInflater.from(this).inflate(
+                Utils.getLayoutFile(this, Constants.WIDGET_THEME_LIGHT,
                         Constants.WIDGET_MODE_TITLE),
                 widgetTitleCont, false));
-        widgetConfigCont.addView(LayoutInflater.from(this).inflate(
-                Utils.getLayoutFile(this, getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).
-                                getInt(Constants.WIDGET_THEME_KEY, Constants.WIDGET_THEME_MIUI),
+        widgetConfigCont2.addView(LayoutInflater.from(this).inflate(
+                Utils.getLayoutFile(this, Constants.WIDGET_THEME_LIGHT,
                         Constants.WIDGET_MODE_CONFIG),
                 widgetConfigCont, false));
 
-        TextView modeDesc = (TextView) modeClickDesc.findViewById(R.id.textView6);
-        TextView titleDesc = (TextView) titleClickDesc.findViewById(R.id.textView6);
-        TextView noteDesc = (TextView) noteClickDesc.findViewById(R.id.textView6);
-        TextView modeDesc2 = (TextView) modeClickDesc2.findViewById(R.id.textView6);
-        TextView incDesc = (TextView) incClickDesc.findViewById(R.id.textView6);
-        TextView decDesc = (TextView) decClickDesc.findViewById(R.id.textView6);
-        TextView themeDesc = (TextView) themeSwitchDesc.findViewById(R.id.textView6);
+        final TextView modeDesc = (TextView) modeClickDesc.findViewById(R.id.textView6);
+        final TextView titleDesc = (TextView) titleClickDesc.findViewById(R.id.textView6);
+        final TextView noteDesc = (TextView) noteClickDesc.findViewById(R.id.textView6);
+        final View noteDescVerticalLine = noteClickDesc.findViewById(R.id.verticalLine);
+        final View noteDescVerticalLine2 = noteClickDesc.findViewById(R.id.verticalLine2);
+        final TextView modeDesc2 = (TextView) modeClickDesc2.findViewById(R.id.textView6);
+        final TextView incDesc = (TextView) incClickDesc.findViewById(R.id.textView6);
+        final TextView decDesc = (TextView) decClickDesc.findViewById(R.id.textView6);
+        final TextView themeDesc = (TextView) themeSwitchDesc.findViewById(R.id.textView6);
 
-        TextView title = (TextView) widgetTitleCont.findViewById(R.id.titleTextView);
-        title.setText("Example note title");
-        modeDesc.setText("Change widget mode");
-        titleDesc.setText("Open application");
-        noteDesc.setText("Edit note");
-        modeDesc2.setText("Change widget mode");
-        incDesc.setText("Increase text size");
-        decDesc.setText("Decrease text size");
-        themeDesc.setText("Light/dark theme");
+        final TextView title = (TextView) widgetTitleCont.findViewById(R.id.titleTextView);
+        title.setText(R.string.example_note_title);
+        modeDesc.setText(R.string.change_widget_mode);
+        titleDesc.setText(R.string.open_application);
+        noteDesc.setText(R.string.edit_note);
+        modeDesc2.setText(R.string.change_widget_mode);
+        incDesc.setText(R.string.increase_text_size);
+        decDesc.setText(R.string.decrease_text_size);
+        themeDesc.setText(R.string.light_dark_theme);
+        noteDescVerticalLine.setVisibility(View.GONE);
+        noteDescVerticalLine2.setVisibility(View.GONE);
 
-
-        ListView noteListView = (ListView) widgetTitleCont.findViewById(R.id.noteListView);
+        final ListView noteListView = (ListView) widgetTitleCont.findViewById(R.id.noteListView);
         noteListView.setAdapter(new ArrayAdapter<>(this, R.layout.note_text_light, R.id.noteTextView,
-                new String[]{"\n\n\n" +
-                        "Example note text\nExample note text"}));
+                new String[]{getString(R.string.example_note_text)}));
 
-        ListView noteListView2 = (ListView) widgetConfigCont.findViewById(R.id.noteListView);
+        final ListView noteListView2 = (ListView) widgetConfigCont.findViewById(R.id.noteListView);
         noteListView2.setAdapter(new ArrayAdapter<>(this, R.layout.note_text_light, R.id.noteTextView,
-                new String[]{"\n\n\n\n\n\n\n"}));
+                new String[]{"\n\n\n\n"}));
 
         new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialog)).setTitle(this.getString(R.string.tip)).setView(layout).setCancelable(false).
                 setPositiveButton(this.getString(R.string.i_have_got_it), new DialogInterface.OnClickListener() {

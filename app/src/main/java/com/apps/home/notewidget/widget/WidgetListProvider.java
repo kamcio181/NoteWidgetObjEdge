@@ -15,6 +15,7 @@ import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 
 public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory {
+    private static final String TAG = "ListProvider";
     private Context context = null;
     private int appWidgetId;
     private Widget widget;
@@ -25,7 +26,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
         appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
         getObjects();
-        Log.e("list", "constructor");
+        Log.v(TAG, "constructor");
     }
 
     private void getObjects(){
@@ -46,7 +47,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
         String noteText = note.getNote();
 
         int item = widgetTheme == Constants.WIDGET_THEME_LIGHT? R.layout.note_text_light : R.layout.note_text_dark;
-        Log.e("list", "currentThemeMode " + widgetTheme);
+        Log.v(TAG, "currentThemeMode " + widgetTheme);
         final RemoteViews remoteView = new RemoteViews(
                 context.getPackageName(),item);
 

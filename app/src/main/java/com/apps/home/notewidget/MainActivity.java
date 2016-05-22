@@ -11,6 +11,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -270,6 +271,7 @@ public class MainActivity extends AppCompatActivity
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_about) {
             //TODO open about activity
+            Utils.showToast(this, getString(R.string.created_by));
             Log.e(TAG, "NAV clicked - About Activity");
         } else {
             Log.e(TAG, "NAV clicked - Other");
@@ -288,9 +290,9 @@ public class MainActivity extends AppCompatActivity
         super.onStop();
         exit = false;
         handler.removeCallbacks(exitRunnable);
-
-        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-            ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).saveNote(false);
+        Log.e(TAG, "Stop");
+        /*if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
+            ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).saveNote(false);*/
     }
 
     private void openFolderWithNotes(int id){
@@ -682,7 +684,7 @@ public class MainActivity extends AppCompatActivity
                 actionBar.setTitle(R.string.search);
                 break;
         }
-        fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).commitAllowingStateLoss();
+        fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commitAllowingStateLoss();
         Log.e(TAG, "attached fragment");
         if(fabVisible)
             fab.show();

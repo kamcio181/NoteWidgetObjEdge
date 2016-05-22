@@ -14,7 +14,7 @@
         stworzyć wielopoziomowe notatki.\nZobacz przykład poniżej: \n\u0009- pierwszy poziom notatki\n\u0009
         \u0009+ drugi poziom notatki\n\u0009\u0009\u0009* trzeci poziom notatki\nMożesz wyłączyć tabulatory
         w widgetach na pulpicie w Ustawieniach"</string>
-    <string name="press_back_button_again_to_exit">Naciśnij wstacz jeszcze raz aby wyjść</string>
+    <string name="press_back_button_again_to_exit">Naciśnij wstacz ponownie aby wyjść</string>
     <string name="set_file_name">Ustaw nazwę pliku</string>
     <string name="confirm">Potwierdź</string>
     <string name="untitled">Bez tytułu</string>
@@ -40,12 +40,10 @@
     <string name="choose_new_folder">Choose new folder</string>
     <string name="do_you_want_to_restore_this_note_from_trash">Czy chcesz przywrócić tą notatkę z kosza?</string>
     <string name="search">Szukaj</string>
-    <string name="folder_was_added">Folder dodany</string>
     <string name="all_notes_were_removed">Wszystkie notatki zostały usunięte</string>
     <string name="all_notes_were_restored">Wszystkie notatki zostały przywrócone</string>
     <string name="folder_and_all_associated_notes_were_removed">Usunięto folder i wszystkie powiązane notatki</string>
     <string name="note_is_empty_or_was_not_loaded_yet">Notatka jest pusta lub nie została jeszcze załadowana</string>
-    <string name="choose_search_mode">Wybierz tryb wyszukania</string>
     <string name="help">Pomoc</string>
     <string name="backups_have_to_be_placed_in_below_folder_in_internal_memory">Kopie zapasowe muszą być umieszczone w poniższym folderze w pamięci wewnętrznej\n</string>
     <string name="i_have_got_it">Rozumiem!</string>
@@ -69,7 +67,6 @@
     <string name="widget_configuration">Ustawienia widgetu</string>
     <string name="database_unavailable">Baza danych niedostępna</string>
     <string name="tip">Wskazówka</string>
-    <string name="put_password">Wprowadź hasło</string>
     <string name="you_have_only_one_folder">Masz tylko jeden folder</string>
     <string name="note_was_removed">Usunięto notatkę</string>
     <string name="notes_was_restored">Przywrócono notatkę</string>
@@ -89,12 +86,23 @@
     <string name="widget_theme">MOTYW WIDGETU</string>
     <string name="about">O mnie</string>
     <string name="do_not_show_again">Nie pokazuj więcej</string>
-    <string name="example">Example</string>
+    <string name="example">Przykład</string>
     <string name="title">Tytuł</string>
     <string name="content">Zawartość</string>
     <string name="my_notes">Moje notaki</string>
     <string name="trash">Kosz</string>
-    <string name="unable_to_load_folders_list_try_again_later">Unable to load folders list. Try again later</string>
+    <string name="unable_to_load_folders_list_try_again_later">Nie można załadować folderów. Spróbuj później</string>
+    <string name="example_note_title">Przykładowy tytuł</string>
+    <string name="change_widget_mode">Zmień tryb widgetu</string>
+    <string name="edit_note">Edytuj notatkę</string>
+    <string name="increase_text_size">Zwiększ czcionkę</string>
+    <string name="decrease_text_size">Zmniejsz czcionkę</string>
+    <string name="light_dark_theme">Jasny/ciemy motyw</string>
+    <string name="share_via">Udostępnij</string>
+    <string name="database_unavailable_or_you_do_not_have_notes">Baza danych niedostępna lub nie masz notatek</string>
+    <string name="creating_widget">Tworzenie widgetu</string>
+    <string name="example_note_text">\n\n\nPrzykładowa treść</string>
+    <string name="created_by">Autor: Kamil Kaszubski</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

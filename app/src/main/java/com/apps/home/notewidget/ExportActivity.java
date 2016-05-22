@@ -1,14 +1,19 @@
 package com.apps.home.notewidget;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -47,6 +52,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
     private boolean exit = false;
     private Handler handler = new Handler();
     private Runnable exitRunnable;
+    private String name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,7 +134,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                new SaveToFile().execute(name);
+                saveNote(name);
             }
         };
     }
@@ -153,7 +159,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
                             i++;
                             suffix = Integer.toString(i);
                         }
-                        new SaveToFile().execute(name + suffix + ".txt");
+                        saveNote(name + suffix + ".txt");
                         Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 })
@@ -166,6 +172,33 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
                 }).create();
         Utils.showOrHideKeyboard(dialog.getWindow(), true);
         return dialog;
+    }
+
+    private void saveNote(String name){
+        if(ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED)
+            new SaveToFile().execute(name);
+        else {
+            this.name = name;
+            ActivityCompat.requestPermissions(ExportActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    Constants.EXPORT_PERMISSION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case Constants.EXPORT_PERMISSION: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    new SaveToFile().execute(name);
+
+                } else {
+                    Utils.showToast(context, "Write permission is required to export notes");
+                }
+                break;
+            }
+        }
     }
 
     @Override
@@ -298,9 +331,9 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
     }
 
     public RecyclerViewAdapter(ArrayList<String> items, int dirsCount, OnItemClickListener listener) {
-        this.items = items;
-        this.listener = listener;
-        this.dirsCount = dirsCount;
+        RecyclerViewAdapter.items = items;
+        RecyclerViewAdapter.listener = listener;
+        RecyclerViewAdapter.dirsCount = dirsCount;
     }
 
     @Override
@@ -318,8 +351,8 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
     }
 
     public void changeData(ArrayList<String> items, int dirsCount){
-        this.items = items;
-        this.dirsCount = dirsCount;
+        RecyclerViewAdapter.items = items;
+        RecyclerViewAdapter.dirsCount = dirsCount;
         notifyDataSetChanged();
     }
 

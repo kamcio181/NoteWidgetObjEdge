@@ -271,9 +271,9 @@ public class Utils {
             intent.setType("text/plain");
             intent.putExtra(Intent.EXTRA_TEXT, text);
             intent.putExtra(Constants.TITLE_KEY, title);
-            context.startActivity(Intent.createChooser(intent, "Share via"));
+            context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_via)));
         } else
-            Utils.showToast(context, "Note is empty");
+            Utils.showToast(context, context.getString(R.string.note_is_empty));
     }
 
     public static long getMyNotesNavId(Context context){

@@ -87,13 +87,13 @@ public class WidgetProvider extends AppWidgetProvider {
     }
 
     private void updateNote(Context context, int appWidgetId){
-		Log.e(TAG, "" + appWidgetId);
+		Log.v(TAG, "" + appWidgetId);
         AppWidgetManager mgr = AppWidgetManager.getInstance(context);
         mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.noteListView);
     }
 
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        Log.e(TAG, "onUpdate");
+        Log.v(TAG, "onUpdate");
         for (int appWidgetId : appWidgetIds) {
             if(isConfigured(context, appWidgetId)){
 
@@ -129,18 +129,17 @@ public class WidgetProvider extends AppWidgetProvider {
 
     private void getObjects(final Context context, int widgetId){
         helper = new DatabaseHelper(context);
-        Log.e(TAG, "getObjects");
+        Log.v(TAG, "getObjects");
 
         widget = helper.getWidgetOnDemand(widgetId);
-        Log.e(TAG, "getWidget");
         if(widget != null){
-            Log.e(TAG, "widget Not null");
+            Log.v(TAG, "widget Not null");
             currentTextSize = widget.getTextSize();
             currentThemeMode = widget.getTheme();
             currentWidgetMode = widget.getMode();
 
             note = helper.getNoteOnDemand(false, widget.getNoteId());
-            Log.e(TAG, "getNote");
+            Log.v(TAG, "Note: " + note.getTitle());
 
         }
     }
@@ -152,7 +151,6 @@ public class WidgetProvider extends AppWidgetProvider {
     }
 
     private PendingIntent getConfigPendingIntent(Context context, int appWidgetId){
-        Log.e("WidgetProvider", "config intent");
         Intent configIntent = new Intent(context, WidgetConfigActivity.class);
         configIntent.setAction(WidgetProvider.ACTION_WIDGET_CONFIGURE);
         configIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -167,7 +165,6 @@ public class WidgetProvider extends AppWidgetProvider {
     }
 	
 	private PendingIntent getNoteEditPendingIntent(Context context){
-        Log.e("WidgetProvider", "edit intent");
 		Intent startIntent = new Intent(context, WidgetEditNoteActivity.class);
         startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         return PendingIntent.getActivity(context, 0, startIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -179,16 +176,16 @@ public class WidgetProvider extends AppWidgetProvider {
         RemoteViews views;
 
         if(widget != null && note != null){
-            Log.e("provider", "themeMode " + currentThemeMode + " widgetMode "+currentWidgetMode);
+            Log.v(TAG, "themeMode " + currentThemeMode + " widgetMode " + currentWidgetMode);
             views = new RemoteViews(context.getPackageName(), Utils.getLayoutFile(context, currentThemeMode, currentWidgetMode));
 
             //Set intent for change widget mode
             views.setOnClickPendingIntent(R.id.modeSwitchImageView, getPendingIntentWithAction(context,
                     new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_WIDGET_MODE));
-				
-            Log.e("provider", "list update "+ currentWidgetMode);
+
             //which layout to show on widget
             if(currentWidgetMode == Constants.WIDGET_MODE_TITLE){
+                Log.v(TAG, "Widget Title Mode");
                 //Set note title and intent to change note
                 views.setTextViewText(R.id.titleTextView, note.getTitle());
 
@@ -199,6 +196,7 @@ public class WidgetProvider extends AppWidgetProvider {
                 views.setOnClickPendingIntent(R.id.titleTextView, getOpenAppPendingIntent(context, appWidgetId));
             }
             else {
+                Log.v(TAG, "Widget Config Mode");
                 //Set intent for increase text size
                 views.setOnClickPendingIntent(R.id.increaseTextSizeImageView, getPendingIntentWithAction(context,
                         new Intent(context, WidgetProvider.class), appWidgetId, INCREASE_TEXT_SIZE));
@@ -211,7 +209,7 @@ public class WidgetProvider extends AppWidgetProvider {
                 views.setOnClickPendingIntent(R.id.switchThemeImageView, getPendingIntentWithAction(context,
                         new Intent(context, WidgetProvider.class), appWidgetId, CHANGE_THEME_MODE));
             }
-
+            Log.v(TAG, "Widget Before List View");
             //RemoteViews Service needed to provide adapter for ListView
             Intent svcIntent = new Intent(context, WidgetService.class);
             //passing app widget id to that RemoteViews Service
@@ -222,11 +220,13 @@ public class WidgetProvider extends AppWidgetProvider {
                     svcIntent.toUri(Intent.URI_INTENT_SCHEME)));
             //setting adapter to listView of the widget
             views.setRemoteAdapter(R.id.noteListView, svcIntent);
-            views.setPendingIntentTemplate(R.id.noteListView, getNoteEditPendingIntent(context));
+            Log.v(TAG, "Widget After List View");
 
+            views.setPendingIntentTemplate(R.id.noteListView, getNoteEditPendingIntent(context));
             //setting an empty view in case of no data
             views.setEmptyView(R.id.noteListView, R.id.noteTextView);
         } else {
+            Log.v(TAG, "Widget Empty");
             views = new RemoteViews(context.getPackageName(),
                     currentThemeMode == Constants.WIDGET_THEME_LIGHT? R.layout.appwidget_deleted_note_light
                     : R.layout.appwidget_deleted_note_dark);
