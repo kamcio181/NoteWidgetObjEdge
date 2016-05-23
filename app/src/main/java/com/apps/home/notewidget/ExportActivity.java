@@ -66,13 +66,11 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
 
         note = getIntent().getStringExtra(Intent.EXTRA_TEXT);
         title = getIntent().getStringExtra(Constants.TITLE_KEY);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
         setupToolbarAndFab();
 
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        path = Environment.getExternalStorageDirectory().getAbsolutePath();
-
-        new GetFiles().execute();
+        readFiles();
     }
 
     private void setupToolbarAndFab(){
@@ -181,20 +179,35 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         else {
             this.name = name;
             ActivityCompat.requestPermissions(ExportActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    Constants.EXPORT_PERMISSION);
+                    Constants.WRITE_PERMISSION);
+        }
+    }
+
+    private void readFiles(){
+        if(ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED){
+            path = Environment.getExternalStorageDirectory().getAbsolutePath();
+            new GetFiles().execute();
+        }
+        else {
+            ActivityCompat.requestPermissions(ExportActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    Constants.WRITE_PERMISSION);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case Constants.EXPORT_PERMISSION: {
+            case Constants.WRITE_PERMISSION: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    new SaveToFile().execute(name);
+                    if(name != null)
+                        new SaveToFile().execute(name);
+                    else readFiles();
 
                 } else {
                     Utils.showToast(context, "Write permission is required to export notes");
+                    finish();
                 }
                 break;
             }
@@ -302,7 +315,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
             super.onPostExecute(aBoolean);
 
             if(aBoolean) {
-                Utils.showToast(context, getString(R.string.saving));
+                Utils.showToast(context, getString(R.string.saving_to_txt_file));
                 finish();
             }
             else

@@ -105,6 +105,7 @@
     <string name="creating_widget">Creating widget</string>
     <string name="example_note_text">\n\n\nExample note text</string>
     <string name="created_by">Created by: Kamil Kaszubski</string>
+    <string name="saving_to_txt_file">Saving to txt file</string>
 
     <string-array name="settings_items">
         <item>Widget configuration</item>

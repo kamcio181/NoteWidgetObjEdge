@@ -54,7 +54,7 @@ public interface Constants {
     int FALSE = 0;
     int TRUE = 1;
 
-    int EXPORT_PERMISSION = 1;
+    int WRITE_PERMISSION = 1;
 
     int WIDGET_MODE_TITLE = 0;
     int WIDGET_MODE_CONFIG = 1;

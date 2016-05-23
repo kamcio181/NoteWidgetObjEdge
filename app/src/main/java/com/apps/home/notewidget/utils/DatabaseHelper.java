@@ -1054,10 +1054,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
                         folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
                         folder.setIcon(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
-                        folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
                         if(folder.getId() == deletedId)
                             folder.setCount(deletedCount);
-
+                        else
+                            folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
                         folders.add(folder);
 
                     } while (cursor.moveToNext());
