@@ -1,6 +1,7 @@
 package com.apps.home.notewidget;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<Folder> folders;
     private Note note;
     private ActionBar actionBar;
+    //private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +74,11 @@ public class MainActivity extends AppCompatActivity
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
         helper = new DatabaseHelper(this);
         setResetExitFlagRunnable();
+
+//        progressDialog = new ProgressDialog(this);
+//        progressDialog.setMessage("Loading");
+//        progressDialog.setIndeterminate(true);
+//        progressDialog.show();
 
         myNotesNavId = (int) Utils.getMyNotesNavId(this);
         Log.e(TAG, "my notes id " + myNotesNavId);
@@ -99,15 +106,15 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG, "nav created");
         loadNavViewItems();
 
-        helper.getNotes(true, new DatabaseHelper.OnNotesLoadListener() {
-            @Override
-            public void onNotesLoaded(ArrayList<Note> notes) {
-                if (notes != null) {
-                    for (Note n : notes)
-                        Log.e(TAG, n.toString());
-                }
-            }
-        });
+//        helper.getNotes(true, new DatabaseHelper.OnNotesLoadListener() {
+//            @Override
+//            public void onNotesLoaded(ArrayList<Note> notes) {
+//                if (notes != null) {
+//                    for (Note n : notes)
+//                        Log.e(TAG, n.toString());
+//                }
+//            }
+//        });
     }
 
     private void reloadMainActivityAfterRestore(){
@@ -254,6 +261,8 @@ public class MainActivity extends AppCompatActivity
                     Log.e(TAG, "folders got");
                     addFolderToNavView(folders);
                 }
+//                else
+//                    progressDialog.dismiss();
             }
         });
     }
@@ -751,4 +760,7 @@ public class MainActivity extends AppCompatActivity
         return navigationView.getMenu();
     }
 
+//    public ProgressDialog getProgressDialog() {
+//        return progressDialog;
+//    }
 }

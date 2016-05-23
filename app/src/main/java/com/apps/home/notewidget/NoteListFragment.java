@@ -1,5 +1,6 @@
 package com.apps.home.notewidget;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -164,6 +165,9 @@ public class NoteListFragment extends Fragment {
                 } else {
                     recyclerView.setAdapter(null);
                 }
+//                ProgressDialog progressDialog = ((MainActivity)context).getProgressDialog();
+//                if(progressDialog.isShowing())
+//                    progressDialog.dismiss();
             }
         });
 
