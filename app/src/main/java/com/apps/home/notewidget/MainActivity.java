@@ -1,7 +1,6 @@
 package com.apps.home.notewidget;
 
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -34,7 +33,6 @@ import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
-import com.apps.home.notewidget.widget.WidgetManualActivity;
 
 import java.util.ArrayList;
 
