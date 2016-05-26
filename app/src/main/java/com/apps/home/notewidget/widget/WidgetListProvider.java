@@ -31,17 +31,18 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
 
     private void getObjects(){
         final DatabaseHelper helper = new DatabaseHelper(context);
-
+        Log.v(TAG, "getObjects");
         widget = helper.getWidgetOnDemand(appWidgetId);
 
         if(widget != null){
+            Log.v(TAG, "widget not null");
             note = helper.getNoteOnDemand(false, widget.getNoteId());
         }
     }
 
     @Override
     public RemoteViews getViewAt(int position) {
-
+        Log.v(TAG, "getViewAt");
         int textSize = widget.getTextSize();
         int widgetTheme = widget.getTheme();
         String noteText = note.getNote();
@@ -56,10 +57,12 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
         remoteView.setOnClickFillInIntent(R.id.noteTextView, fillInIntent);
 
         if(!noteText.trim().equals("")){
+            Log.v(TAG, "empty note");
             //Set note text
             boolean skipTabs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getBoolean(Constants.IGNORE_TABS_IN_WIDGETS_KEY, false);
             remoteView.setTextViewText(R.id.noteTextView, Html.fromHtml(skipTabs? noteText.replace("\u0009", "") : noteText));
         } else {
+            Log.v(TAG, "note is not empty");
             remoteView.setTextViewText(R.id.noteTextView, context.getString(R.string.note_is_empty_click_here_to_edit));
         }
         //Set text size

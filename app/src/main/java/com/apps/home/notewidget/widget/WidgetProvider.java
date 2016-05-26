@@ -38,14 +38,17 @@ public class WidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.v(TAG, "onReceive");
 
         int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
         if(isConfigured(context, appWidgetId)) {
+            Log.v(TAG, "isConfigured");
             getObjects(context, appWidgetId);
 
             switch (intent.getAction()) {
                 case INCREASE_TEXT_SIZE:
+                    Log.v(TAG, "increase text size");
                     widget.setTextSize(currentTextSize + 1);
                     helper.updateWidgetOnDemand(widget, widget.getId());
 
@@ -55,6 +58,7 @@ public class WidgetProvider extends AppWidgetProvider {
 
                     break;
                 case DECREASE_TEXT_SIZE:
+                    Log.v(TAG, "decrease text size");
                     if (currentTextSize > 1) {
                         widget.setTextSize(currentTextSize - 1);
                         helper.updateWidgetOnDemand(widget, widget.getId());
@@ -67,6 +71,7 @@ public class WidgetProvider extends AppWidgetProvider {
 
                     break;
                 case CHANGE_WIDGET_MODE:
+                    Log.v(TAG, "widget mode change");
                     widget.setMode(Utils.switchWidgetMode(currentWidgetMode));
                     helper.updateWidgetOnDemand(widget, widget.getId());
 
@@ -75,6 +80,7 @@ public class WidgetProvider extends AppWidgetProvider {
                     break;
 
                 case CHANGE_THEME_MODE:
+                    Log.v(TAG, "widget theme change");
                     widget.setTheme(Utils.switchThemeMode(currentThemeMode));
                     helper.updateWidgetOnDemand(widget, widget.getId());
 
@@ -87,7 +93,7 @@ public class WidgetProvider extends AppWidgetProvider {
     }
 
     private void updateNote(Context context, int appWidgetId){
-		Log.v(TAG, "" + appWidgetId);
+		Log.v(TAG, "updateNote " + appWidgetId);
         AppWidgetManager mgr = AppWidgetManager.getInstance(context);
         mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.noteListView);
     }
@@ -110,7 +116,7 @@ public class WidgetProvider extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
-
+        Log.v(TAG, "onDeleted");
         if (preferences == null)
             preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
@@ -174,6 +180,7 @@ public class WidgetProvider extends AppWidgetProvider {
                                              int appWidgetId) {
         getObjects(context, appWidgetId);
         RemoteViews views;
+        Log.v(TAG, "updateWidgetListView");
 
         if(widget != null && note != null){
             Log.v(TAG, "themeMode " + currentThemeMode + " widgetMode " + currentWidgetMode);
