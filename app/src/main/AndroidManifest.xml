@@ -49,7 +49,6 @@
             android:screenOrientation="portrait"
             android:excludeFromRecents="true"
             android:label="@string/title_activity_widget_config"
-            android:noHistory="true"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
@@ -60,7 +59,6 @@
             android:screenOrientation="portrait"
             android:excludeFromRecents="true"
             android:label="@string/title_activity_widget_edit_note"
-            android:noHistory="true"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustResize"/>
@@ -87,7 +85,6 @@
         <activity android:name=".widget.WidgetManualActivity"
             android:screenOrientation="portrait"
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
             android:theme="@style/AppTheme.AlertDialog" />
     </application>

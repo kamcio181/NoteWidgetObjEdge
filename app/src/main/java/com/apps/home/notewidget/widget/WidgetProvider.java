@@ -37,6 +37,12 @@ public class WidgetProvider extends AppWidgetProvider {
     private int currentThemeMode;
 
     @Override
+    public void onEnabled(Context context) {
+        super.onEnabled(context);
+        Log.v(TAG, "onEnabled");
+    }
+
+    @Override
     public void onReceive(Context context, Intent intent) {
         Log.v(TAG, "onReceive");
 
@@ -103,11 +109,13 @@ public class WidgetProvider extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             if(isConfigured(context, appWidgetId)){
 
+                updateNote(context, appWidgetId);
+
                 RemoteViews views = updateWidgetListView(context, appWidgetId);
 
                 appWidgetManager.updateAppWidget(appWidgetId, views);
 
-                updateNote(context, appWidgetId);
+
             }
         }
         super.onUpdate(context, appWidgetManager, appWidgetIds);
