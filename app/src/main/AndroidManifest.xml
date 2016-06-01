@@ -48,6 +48,7 @@
             android:name=".widget.WidgetConfigActivity"
             android:screenOrientation="portrait"
             android:excludeFromRecents="true"
+            android:noHistory="true"
             android:label="@string/title_activity_widget_config"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask">
             <intent-filter>
@@ -58,6 +59,7 @@
             android:name=".widget.WidgetEditNoteActivity"
             android:screenOrientation="portrait"
             android:excludeFromRecents="true"
+            android:noHistory="true"
             android:label="@string/title_activity_widget_edit_note"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
             android:theme="@style/AppTheme.NoActionBar"
