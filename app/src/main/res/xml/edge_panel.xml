@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cocktail-provider
+    previewImage="@mipmap/ic_launcher"
+    label="@string/edge_list_name"
+    description="@string/description_edge_list"
+    cocktailWidth="550"
+    configure="com.apps.home.notewidget.edge.EdgeConfigActivity"
+    launchOnClick="com.apps.home.notewidget.MainActivity">
+</cocktail-provider>

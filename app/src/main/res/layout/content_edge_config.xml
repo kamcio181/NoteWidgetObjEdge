@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.apps.home.notewidget.edge.EdgeConfigActivity"
+    tools:showIn="@layout/activity_edge_config">
+    <android.support.v7.widget.SwitchCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ignore tabs in edge panel"
+        android:id="@+id/switch1"
+        android:checked="false"
+        android:layout_marginBottom="10dp"/>
+    <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/recycler_view1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_below="@+id/switch1"
+        android:layout_toLeftOf="@+id/recycler_view2"
+        android:layout_marginRight="10dp" />
+    <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/recycler_view2"
+        android:layout_width="138dp"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_below="@+id/switch1"
+        android:layout_alignParentRight="true"
+        android:background="@color/edgePanelBackground" />
+</RelativeLayout>

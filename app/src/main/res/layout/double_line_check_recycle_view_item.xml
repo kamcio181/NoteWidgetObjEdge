@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:paddingBottom="16dp"
+    android:paddingTop="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?android:attr/selectableItemBackground" >
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/checkBox2"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="16dp" />
+
+    <com.apps.home.notewidget.customviews.RobotoTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Medium Text"
+        android:id="@+id/textView2"
+        android:layout_alignParentTop="true"
+        android:textSize="16sp"
+        android:textColor="#DD000000"
+        android:singleLine="true"
+        android:layout_marginLeft="72dp"
+        android:layout_marginRight="16dp" />
+
+    <com.apps.home.notewidget.customviews.RobotoTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Small Text"
+        android:id="@+id/textView3"
+        android:layout_alignParentBottom="true"
+        android:textSize="14sp"
+        android:textColor="#8A000000"
+        android:singleLine="true"
+        android:layout_marginLeft="72dp"
+        android:layout_marginRight="16dp" />
+</RelativeLayout>
