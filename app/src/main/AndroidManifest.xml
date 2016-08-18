@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.apps.home.notewidget">
 
+    <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -46,30 +47,30 @@
 
         <activity
             android:name=".widget.WidgetConfigActivity"
-            android:screenOrientation="portrait"
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:label="@string/title_activity_widget_config"
+            android:noHistory="true"
+            android:screenOrientation="portrait"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".widget.WidgetEditNoteActivity"
-            android:screenOrientation="portrait"
+            android:name=".EditNoteActivity"
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:label="@string/title_activity_widget_edit_note"
+            android:noHistory="true"
+            android:screenOrientation="portrait"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ExportActivity"
-            android:screenOrientation="portrait"
             android:excludeFromRecents="true"
             android:exported="false"
             android:label="@string/title_activity_export"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -83,12 +84,39 @@
             android:name=".settings.SettingsActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
-
-        <activity android:name=".widget.WidgetManualActivity"
-            android:screenOrientation="portrait"
+        <activity
+            android:name=".widget.WidgetManualActivity"
             android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
             android:theme="@style/AppTheme.AlertDialog" />
+        <activity
+            android:name=".edge.EdgeConfigActivity"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:screenOrientation="portrait"
+            android:taskAffinity="com.apps.home.NoteWidget.EdgeTask"
+            android:label="@string/title_activity_edge_config"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <receiver
+            android:name=".edge.EdgePanelProvider">
+            <intent-filter>
+                <action android:name="com.samsung.android.cocktail.v2.action.COCKTAIL_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.appwidget.action.INCREASE_TEXT_SIZE" />
+                <action android:name="android.appwidget.action.DECREASE_TEXT_SIZE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="com.samsung.android.cocktail.provider"
+                android:resource="@xml/edge_panel" />
+        </receiver>
+
+        <service
+            android:name=".edge.EdgeListService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 
 </manifest>

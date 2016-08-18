@@ -104,6 +104,8 @@
     <string name="example_note_text">\n\n\nPrzykładowa treść</string>
     <string name="created_by">Autor: Kamil Kaszubski</string>
     <string name="saving_to_txt_file">Zapisywanie do pliku tekstowego</string>
+    <string name="edge_list_name">Edge List</string>
+    <string name="description_edge_list">Sample description</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

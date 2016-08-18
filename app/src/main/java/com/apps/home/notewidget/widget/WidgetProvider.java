@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.apps.home.notewidget.EditNoteActivity;
 import com.apps.home.notewidget.MainActivity;
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
@@ -23,7 +24,7 @@ public class WidgetProvider extends AppWidgetProvider {
     public static final String DECREASE_TEXT_SIZE = "android.appwidget.action.DECREASE_TEXT_SIZE";
     public static final String CHANGE_WIDGET_MODE = "android.appwidget.action.CHANGE_WIDGET_MODE";
     public static final String CHANGE_THEME_MODE = "android.appwidget.action.CHANGE_THEME_MODE";
-    public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
+    public static final String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
 
     private static final String TAG = "WidgetProvider";
     private DatabaseHelper helper;
@@ -111,11 +112,7 @@ public class WidgetProvider extends AppWidgetProvider {
 
                 updateNote(context, appWidgetId);
 
-                RemoteViews views = updateWidgetListView(context, appWidgetId);
-
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-
-
+                appWidgetManager.updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
             }
         }
         super.onUpdate(context, appWidgetManager, appWidgetIds);
@@ -179,7 +176,7 @@ public class WidgetProvider extends AppWidgetProvider {
     }
 	
 	private PendingIntent getNoteEditPendingIntent(Context context){
-		Intent startIntent = new Intent(context, WidgetEditNoteActivity.class);
+		Intent startIntent = new Intent(context, EditNoteActivity.class);
         startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         return PendingIntent.getActivity(context, 0, startIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 	}

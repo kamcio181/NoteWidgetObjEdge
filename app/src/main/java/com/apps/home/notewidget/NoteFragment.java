@@ -195,6 +195,7 @@ public class NoteFragment extends Fragment{
                     isNewNote = false;
                     Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
                     Utils.updateConnectedWidgets(context, note.getId());
+                    Utils.updateAllEdgePanels(context);
                     if(quit)
                         ((AppCompatActivity)context).onBackPressed();
                 }
@@ -205,6 +206,7 @@ public class NoteFragment extends Fragment{
                 @Override
                 public void onItemUpdated(int numberOfRows) {
                     Utils.updateConnectedWidgets(context, note.getId());
+                    Utils.updateAllEdgePanels(context);
                     if(quit)
                         ((AppCompatActivity)context).onBackPressed();
                 }
@@ -226,6 +228,7 @@ public class NoteFragment extends Fragment{
             public void onItemUpdated(int numberOfRows) {
                 if (numberOfRows > 0) {
                     Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
+                    Utils.updateAllEdgePanels(context);
                     Menu menu = ((MainActivity) context).getNavigationViewMenu();
                     Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                     Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);

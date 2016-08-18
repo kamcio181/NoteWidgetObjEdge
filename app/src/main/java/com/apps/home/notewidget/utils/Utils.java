@@ -27,9 +27,12 @@ import android.widget.Toast;
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.edge.EdgePanelProvider;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.widget.WidgetProvider;
+import com.samsung.android.sdk.look.cocktailbar.SlookCocktailManager;
+import com.samsung.android.sdk.look.cocktailbar.SlookCocktailProvider;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -250,6 +253,13 @@ public class Utils {
         ComponentName componentName = new ComponentName(context, WidgetProvider.class);
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         widgetProvider.onUpdate(context, appWidgetManager, appWidgetManager.getAppWidgetIds(componentName));
+    }
+
+    public static void updateAllEdgePanels(Context context){ //TODO usage
+        EdgePanelProvider edgePanelProvider = new EdgePanelProvider();
+        ComponentName componentName = new ComponentName(context, EdgePanelProvider.class);
+        SlookCocktailManager cocktailManager = SlookCocktailManager.getInstance(context);
+        edgePanelProvider.onUpdate(context, cocktailManager, cocktailManager.getCocktailIds(componentName));
     }
 
     public static String capitalizeFirstLetter(String text){

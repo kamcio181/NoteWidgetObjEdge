@@ -34,6 +34,7 @@ public interface Constants {
     String SEARCH_IN_TITLE = "titleSearch";
     String SEARCH_IN_CONTENT = "contentSearch";
     String IGNORE_TABS_IN_WIDGETS_KEY = "ignoreTabsInWidget";
+    String IGNORE_TABS_IN_EDGE_PANEL_KEY = "ignoreTabsInEdgePanel";
     String NOTE_TEXT_SIZE_KEY = "noteTextSize";
     String STARTING_FOLDER_KEY = "startingFolder";
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";

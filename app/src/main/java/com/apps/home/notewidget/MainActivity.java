@@ -319,6 +319,7 @@ public class MainActivity extends AppCompatActivity
                         if (folders != null) {
                             Utils.setFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 0); //Set count to 0 for trash
                             Utils.updateAllWidgets(context);
+                            Utils.updateAllEdgePanels(context);
                             Menu menu = getNavigationViewMenu();
                             for (Folder f : folders) {
                                 Utils.incrementFolderCount(menu, (int) f.getId(), f.getCount());
@@ -360,6 +361,7 @@ public class MainActivity extends AppCompatActivity
 
                                 Utils.showToast(context, context.getString(R.string.notes_was_restored));
                                 Utils.updateConnectedWidgets(context, note.getId());
+                                Utils.updateAllEdgePanels(context);
                                 Utils.incrementFolderCount(getNavigationViewMenu(), (int) note.getFolderId(), 1);
 
                                 if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
@@ -405,6 +407,7 @@ public class MainActivity extends AppCompatActivity
                                 public void onItemRemoved(int numberOfRows) {
                                     Utils.showToast(context, getString(R.string.folder_and_all_associated_notes_were_removed));
                                     Utils.updateAllWidgets(context);
+                                    Utils.updateAllEdgePanels(context);
                                     removeMenuItem(navigationView.getMenu(), folderId);
                                     if (preferences.getInt(Constants.STARTING_FOLDER_KEY, -1) == folderId)
                                         preferences.edit().remove(Constants.STARTING_FOLDER_KEY).apply();
@@ -510,6 +513,7 @@ public class MainActivity extends AppCompatActivity
                                 public void onItemUpdated(int numberOfRows) {
                                     if (numberOfRows > 0) {
                                         Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
+                                        Utils.updateAllEdgePanels(context);
                                         Menu menu = getNavigationViewMenu();
                                         Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                                         Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);

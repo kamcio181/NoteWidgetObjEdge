@@ -31,16 +31,12 @@ public class WidgetService extends RemoteViewsService {
         Log.e(TAG, "onTaskRemoved " + id);
         super.onTaskRemoved(rootIntent);
     }
-    /**
-* So pretty simple just defining the Adapter of the listview
-* here Adapter is ListProvider
-* */
 
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
         id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
         Log.e(TAG, "getView " + id);
-        return (new WidgetListProvider(this.getApplicationContext(), intent));
+        return (new WidgetListProvider(this, intent));
     }
 }

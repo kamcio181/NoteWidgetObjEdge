@@ -15,6 +15,7 @@
     <item name="ic_theme_mode_black" type="drawable">@mipmap/ic_contrast_box_black_18dp</item>
     <item name="ic_back_arrow_white" type="drawable">@mipmap/ic_arrow_left_white_18dp</item>
     <item name="ic_back_arrow_black" type="drawable">@mipmap/ic_arrow_left_black_18dp</item>
+    <item name="ic_settings_white" type="drawable">@mipmap/ic_settings_white_18dp</item>
     <item name="ic_nav_black_home" type="drawable">@mipmap/ic_home_black_24dp</item>
     <item name="ic_nav_black_folder" type="drawable">@mipmap/ic_folder_black_24dp</item>
     <item name="ic_nav_black_trash" type="drawable">@mipmap/ic_delete_black_24dp</item>

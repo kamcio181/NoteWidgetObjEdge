@@ -333,6 +333,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                                 preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
                                         .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
                                 Utils.updateAllWidgets(context);
+                                Utils.updateAllEdgePanels(context);
                                 onBackPressed();
                             }
                         }
@@ -342,6 +343,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                     preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
                             .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
                     Utils.updateAllWidgets(context);
+                    Utils.updateAllEdgePanels(context);
                     onBackPressed();
                 }
             } else

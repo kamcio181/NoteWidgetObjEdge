@@ -198,6 +198,51 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public ArrayList<Note> getNotesOnDemand(boolean includeDeleted){
+        try {
+            SQLiteDatabase db = getReadableDatabase();
+
+            String selectQuery;
+
+            if(includeDeleted)
+                selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE;
+            else
+                selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE "
+                        +Constants.DELETED_COL + " = " + Constants.FALSE;
+
+            Cursor cursor = db.rawQuery(selectQuery, null);
+
+            if(cursor != null){
+                cursor.moveToFirst();
+                Note note;
+                ArrayList<Note> notes = new ArrayList<>();
+                do {
+                    note = new Note();
+                    note.setId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                    note.setCreatedAt(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
+                    note.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
+                    note.setNote(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
+                    note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL)));
+                    note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
+
+                    notes.add(note);
+                }
+                while (cursor.moveToNext());
+
+
+
+                cursor.close();
+                db.close();
+
+                return notes;
+            } else
+                return null;
+        }catch (SQLiteException e){
+            Utils.showToast(context, context.getString(R.string.database_unavailable));
+            return null;
+        }
+    }
+
     public void getNotes(boolean includeDeleted, OnNotesLoadListener listener){
         new GetNotes(includeDeleted, listener).execute();
     }
