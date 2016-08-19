@@ -2,6 +2,7 @@ package com.apps.home.notewidget;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -186,7 +187,7 @@ public class NoteFragment extends Fragment{
 
     public void saveNote(final boolean quit){
         Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
-        if(isNewNote) {//TODO ENCRYPTION
+        if(isNewNote) {
             note.setNote(noteEditText.getText().toString());
             helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
                 @Override
@@ -194,8 +195,8 @@ public class NoteFragment extends Fragment{
                     note.setId(id);
                     isNewNote = false;
                     Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
-                    Utils.updateConnectedWidgets(context, note.getId());
-                    Utils.updateAllEdgePanels(context);
+//                    Utils.updateConnectedWidgets(context, note.getId());
+//                    Utils.updateAllEdgePanels(context);
                     if(quit)
                         ((AppCompatActivity)context).onBackPressed();
                 }
@@ -229,6 +230,9 @@ public class NoteFragment extends Fragment{
                 if (numberOfRows > 0) {
                     Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
                     Utils.updateAllEdgePanels(context);
+                    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+                    preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES,preferences.getString(Constants.EDGE_VISIBLE_NOTES,"").replace(";" + note.getId() + ";", ";")).apply();
+
                     Menu menu = ((MainActivity) context).getNavigationViewMenu();
                     Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                     Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);

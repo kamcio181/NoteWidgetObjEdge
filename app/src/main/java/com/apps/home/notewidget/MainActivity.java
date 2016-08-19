@@ -277,7 +277,6 @@ public class MainActivity extends AppCompatActivity
             Log.e(TAG, "NAV clicked - Settings");
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_about) {
-            //TODO open about activity
             Utils.showToast(this, getString(R.string.created_by));
             Log.e(TAG, "NAV clicked - About Activity");
         } else {
@@ -514,6 +513,8 @@ public class MainActivity extends AppCompatActivity
                                     if (numberOfRows > 0) {
                                         Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
                                         Utils.updateAllEdgePanels(context);
+                                        preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES,preferences.getString(Constants.EDGE_VISIBLE_NOTES,"").replace(";" + note.getId() + ";", ";")).apply();
+
                                         Menu menu = getNavigationViewMenu();
                                         Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                                         Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);

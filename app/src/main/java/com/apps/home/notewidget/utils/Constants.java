@@ -52,6 +52,9 @@ public interface Constants {
     String FRAGMENT_SETTINGS_WIDGET_CONFIG = "SettingsWidgetConfigFragment";
     String FRAGMENT_SETTINGS_RESTORE_LIST = "SettingsRestoreListFragment";
 
+    String EDGE_VISIBLE_NOTES = "EdgeVisibleNotes";
+    String EDGE_NOTES_ORDER = "EdgeNotesOrder";
+
     int FALSE = 0;
     int TRUE = 1;
 

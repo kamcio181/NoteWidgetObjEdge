@@ -255,7 +255,7 @@ public class Utils {
         widgetProvider.onUpdate(context, appWidgetManager, appWidgetManager.getAppWidgetIds(componentName));
     }
 
-    public static void updateAllEdgePanels(Context context){ //TODO usage
+    public static void updateAllEdgePanels(Context context){
         EdgePanelProvider edgePanelProvider = new EdgePanelProvider();
         ComponentName componentName = new ComponentName(context, EdgePanelProvider.class);
         SlookCocktailManager cocktailManager = SlookCocktailManager.getInstance(context);

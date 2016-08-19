@@ -331,7 +331,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                         public void onFinished(boolean result) {
                             if(result){
                                 preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
-                                        .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
+                                        .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).remove(Constants.EDGE_VISIBLE_NOTES).apply();
                                 Utils.updateAllWidgets(context);
                                 Utils.updateAllEdgePanels(context);
                                 onBackPressed();
@@ -341,7 +341,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 } else {
                     Utils.showToast(context, getString(R.string.settings_restored));
                     preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
-                            .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).apply();
+                            .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).remove(Constants.EDGE_VISIBLE_NOTES).apply();
                     Utils.updateAllWidgets(context);
                     Utils.updateAllEdgePanels(context);
                     onBackPressed();

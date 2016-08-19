@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v7.widget.LinearLayoutManager;
 import android.text.Html;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -14,6 +15,7 @@ import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.DividerItemDecoration;
 
 import java.util.ArrayList;
 
@@ -36,8 +38,42 @@ public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
     private void getObjects(Context context){
         final DatabaseHelper helper = new DatabaseHelper(context);
         Log.v(TAG, "getObjects");
-        notes = helper.getNotesOnDemand(false);
         SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        ArrayList<Note> notes = helper.getNotesOnDemand(false);
+        String notesVisibleOnEdge = preferences.getString(Constants.EDGE_VISIBLE_NOTES, "");
+        ArrayList<Note> notesVisible = new ArrayList<>();
+        this.notes = new ArrayList<>();
+        String order = preferences.getString(Constants.EDGE_NOTES_ORDER, null);
+        String[] orderArray = new String[0];
+        if(order != null)
+            orderArray = order.trim().split(";");
+
+        if(notesVisibleOnEdge.length()>2){
+            for(Note n : notes){
+                if(notesVisibleOnEdge.contains(";" + n.getId() + ";")){
+                    notesVisible.add(n);
+                    notesVisibleOnEdge = notesVisibleOnEdge.replace(";" + n.getId() + ";", ";");
+                }
+            }
+            if(orderArray.length>0) {
+                for (String idString : orderArray) {
+                    int id = Integer.parseInt(idString);
+                    for (int j = 0; j < notesVisible.size(); j++) {
+                        if (id == notesVisible.get(j).getId()) {
+                            this.notes.add(notesVisible.get(j));
+                            notesVisible.remove(j);
+                            break;
+                        }
+                    }
+                }
+                this.notes.addAll(notesVisible);
+            } else {
+                this.notes = notesVisible;
+            }
+        }
+
+
+
         noteSize = preferences.getInt("TextSize"+cocktailId, 10);
         titleSize = 1.4f * noteSize;
     }

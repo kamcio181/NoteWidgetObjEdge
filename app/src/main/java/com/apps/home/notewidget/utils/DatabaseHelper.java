@@ -212,7 +212,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             Cursor cursor = db.rawQuery(selectQuery, null);
 
-            if(cursor != null){
+            if(cursor != null && cursor.getCount() != 0){
                 cursor.moveToFirst();
                 Note note;
                 ArrayList<Note> notes = new ArrayList<>();
@@ -236,7 +236,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 return notes;
             } else
-                return null;
+                return new ArrayList<>();
         }catch (SQLiteException e){
             Utils.showToast(context, context.getString(R.string.database_unavailable));
             return null;
@@ -643,7 +643,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String selectQuery;
 
                 if(folderId != Utils.getTrashNavId(context)) //is not trash
-                    selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +//TODO check query
+                    selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
                                 Constants.FOLDER_ID_COL + " = " + folderId + " AND " +
                                 Constants.DELETED_COL + " = " + Constants.FALSE + " ORDER BY LOWER(" + orderColumn +") ASC";
                 else
@@ -906,6 +906,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         protected Integer doInBackground(Void... params) {
             try {
                 SQLiteDatabase db = DatabaseHelper.this.getWritableDatabase();
+
+                Cursor cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL}, Constants.FOLDER_ID_COL + " = ? AND " +
+                        Constants.DELETED_COL + " = ?", new String[]{Long.toString(folderId), Integer.toString(Constants.FALSE)}, null, null, null);
+
+                if(cursor != null && cursor.getCount() !=0){
+                    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+                    String checked = preferences.getString(Constants.EDGE_VISIBLE_NOTES, "");
+                    if(checked.length()>2){
+                        cursor.moveToFirst();
+                        for(int i = 0; i < cursor.getCount(); i++) {
+                            long id = cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL));
+                            checked = checked.replace(";" + id + ";", ";");
+                            cursor.moveToNext();
+                        }
+                        preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES, checked).apply();
+                    }
+                }
 
                 int rows = db.delete(Constants.NOTES_TABLE, Constants.FOLDER_ID_COL + " = ? AND " +
                         Constants.DELETED_COL + " = ?", new String[]{Long.toString(folderId), Integer.toString(Constants.FALSE)});
