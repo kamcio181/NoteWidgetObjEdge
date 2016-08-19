@@ -376,7 +376,7 @@ class EdgeAdapter extends RecyclerView.Adapter<EdgeAdapter.ViewHolder> {
         return builder.toString().substring(0, builder.length()-1);
     }
 }
-
+//https://github.com/iPaulPro/Android-ItemTouchHelper-Demo/tree/master/app/src/main/java/co/paulburke/android/itemtouchhelperdemo
 class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
     public static final float ALPHA_FULL = 1.0f;
