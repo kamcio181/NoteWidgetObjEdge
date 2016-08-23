@@ -181,11 +181,10 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 //                        new BackupData().execute(2);
 //                        break;
 //                }
-                if(ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        == PackageManager.PERMISSION_GRANTED){
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED) {
                     new BackupData().execute(which);
-                }
-                else {
+                } else {
                     backupMode = which;
                     ActivityCompat.requestPermissions(SettingsActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                             Constants.WRITE_PERMISSION);
@@ -196,13 +195,13 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
     @Override
     protected void onResume() {
-        super.onResume();
         if(resetFragment){
             resetFragment = false;
             fragmentManager.beginTransaction().replace(R.id.container,
                     new SettingsListFragment(), Constants.FRAGMENT_SETTINGS_LIST).
                     setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
         }
+        super.onResume();
     }
 
     @Override

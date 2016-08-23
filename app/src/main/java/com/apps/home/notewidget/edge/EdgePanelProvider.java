@@ -18,10 +18,10 @@ import com.samsung.android.sdk.look.cocktailbar.SlookCocktailProvider;
 
 public class EdgePanelProvider extends SlookCocktailProvider {
     private static final String TAG = "EdgePanelProvider";
-    public static final String INCREASE_TEXT_SIZE = "android.edgepanel.action.INCREASE_TEXT_SIZE";
-    public static final String DECREASE_TEXT_SIZE = "android.edgepanel.action.DECREASE_TEXT_SIZE";
-    public static final String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
-    public static SharedPreferences preferences;
+    private static final String INCREASE_TEXT_SIZE = "android.edgepanel.action.INCREASE_TEXT_SIZE";
+    private static final String DECREASE_TEXT_SIZE = "android.edgepanel.action.DECREASE_TEXT_SIZE";
+    private static final String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
+    private static SharedPreferences preferences;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -42,6 +42,7 @@ public class EdgePanelProvider extends SlookCocktailProvider {
 
                     updateListView(context, cocktailId);
 
+                    context.sendBroadcast(new Intent(EdgeConfigActivity.UPDATE_NOTE_TEXT_SIZE));
                     break;
                 case DECREASE_TEXT_SIZE:
                     Log.v(TAG, "decrease text size");
@@ -51,6 +52,8 @@ public class EdgePanelProvider extends SlookCocktailProvider {
                         Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize - 1));
 
                         updateListView(context, cocktailId);
+
+                        context.sendBroadcast(new Intent(EdgeConfigActivity.UPDATE_NOTE_TEXT_SIZE));
                     } else
                         Utils.showToast(context, context.getString(R.string.text_size_cannot_be_lower_than_1));
 
@@ -64,7 +67,7 @@ public class EdgePanelProvider extends SlookCocktailProvider {
     public void onVisibilityChanged(Context context, int cocktailId, int visibility) {
         Log.i(TAG, "onVisibilityChanged");
         if(visibility == SlookCocktailManager.COCKTAIL_VISIBILITY_SHOW){
-            context.sendBroadcast(new Intent("Update"));
+            context.sendBroadcast(new Intent(EdgeConfigActivity.SAVE_CHANGES_ACTION));
         }
         super.onVisibilityChanged(context, cocktailId, visibility);
     }

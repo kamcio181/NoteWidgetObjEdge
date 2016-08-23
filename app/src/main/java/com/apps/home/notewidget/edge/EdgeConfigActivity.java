@@ -39,6 +39,8 @@ import java.util.Calendar;
 import java.util.Collections;
 
 public class EdgeConfigActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener{
+    public static final String SAVE_CHANGES_ACTION = "com.apps.home.notewidget.SAVE_CHANGES_ACTION";
+    public static final String UPDATE_NOTE_TEXT_SIZE = "com.apps.home.notewidget.UPDATE_NOTE_TEXT_SIZE";
     private static final String TAG = "EdgeConfigActivity";
     private static SharedPreferences preferences;
     private static RecyclerView notesRV, edgeRV;
@@ -116,7 +118,8 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
             }
         });
 
-        IntentFilter intentFilter = new IntentFilter("Update");
+        IntentFilter intentFilter = new IntentFilter(SAVE_CHANGES_ACTION);
+        intentFilter.addAction(UPDATE_NOTE_TEXT_SIZE);
         receiver = new EdgeVisibilityReceiver();
         registerReceiver(receiver, intentFilter);
     }
@@ -193,7 +196,17 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
     class EdgeVisibilityReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent arg1) {
-            saveSettings();
+            if(arg1 != null){
+                switch (arg1.getAction()){
+                    case EdgeConfigActivity.SAVE_CHANGES_ACTION:
+                        saveSettings();
+                        break;
+                    case EdgeConfigActivity.UPDATE_NOTE_TEXT_SIZE:
+                            EdgeAdapter.reloadTextSize();
+                            edgeRV.getAdapter().notifyDataSetChanged();
+                        break;
+                }
+            }
         }
     }
 
@@ -279,6 +292,10 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
             EdgeAdapter.ignoreTabs = ignoreTabs;
         }
 
+        public static void reloadTextSize(){
+            EdgeAdapter.noteSize = preferences.getInt("TextSize", 10);
+            titleSize = 1.4f * noteSize;
+        }
 
         class ViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder{
             public View tile;
