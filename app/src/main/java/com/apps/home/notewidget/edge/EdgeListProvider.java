@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v7.widget.LinearLayoutManager;
 import android.text.Html;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -12,10 +11,8 @@ import android.widget.RemoteViewsService;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
-import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
-import com.apps.home.notewidget.utils.DividerItemDecoration;
 
 import java.util.ArrayList;
 
@@ -74,7 +71,7 @@ public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
 
 
 
-        noteSize = preferences.getInt("TextSize"+cocktailId, 10);
+        noteSize = preferences.getInt("TextSize", 10);
         titleSize = 1.4f * noteSize;
     }
 

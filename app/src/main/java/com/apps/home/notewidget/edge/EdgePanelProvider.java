@@ -9,11 +9,10 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.EditNoteActivity;
+import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
-import com.apps.home.notewidget.widget.WidgetConfigActivity;
 import com.samsung.android.sdk.look.cocktailbar.SlookCocktailManager;
 import com.samsung.android.sdk.look.cocktailbar.SlookCocktailProvider;
 
@@ -32,12 +31,12 @@ public class EdgePanelProvider extends SlookCocktailProvider {
 
         int cocktailId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
-        int currentTextSize = preferences.getInt("TextSize"+cocktailId, 10);
+        int currentTextSize = preferences.getInt("TextSize", 10);
             switch (intent.getAction()) {
                 case INCREASE_TEXT_SIZE:
                     Log.v(TAG, "increase text size");
 
-                    preferences.edit().putInt("TextSize"+cocktailId, (currentTextSize + 1)).apply();
+                    preferences.edit().putInt("TextSize", (currentTextSize + 1)).apply();
 
                     Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize + 1));
 
@@ -47,7 +46,7 @@ public class EdgePanelProvider extends SlookCocktailProvider {
                 case DECREASE_TEXT_SIZE:
                     Log.v(TAG, "decrease text size");
                     if (currentTextSize > 1) {
-                        preferences.edit().putInt("TextSize"+cocktailId, (currentTextSize - 1)).apply();
+                        preferences.edit().putInt("TextSize", (currentTextSize - 1)).apply();
 
                         Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize - 1));
 
@@ -64,6 +63,9 @@ public class EdgePanelProvider extends SlookCocktailProvider {
     @Override
     public void onVisibilityChanged(Context context, int cocktailId, int visibility) {
         Log.i(TAG, "onVisibilityChanged");
+        if(visibility == SlookCocktailManager.COCKTAIL_VISIBILITY_SHOW){
+            context.sendBroadcast(new Intent("Update"));
+        }
         super.onVisibilityChanged(context, cocktailId, visibility);
     }
 

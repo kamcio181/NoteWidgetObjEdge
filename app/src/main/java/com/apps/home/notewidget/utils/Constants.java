@@ -58,6 +58,7 @@ public interface Constants {
     int FALSE = 0;
     int TRUE = 1;
 
+    int READ_PERMISSION = 0;
     int WRITE_PERMISSION = 1;
 
     int WIDGET_MODE_TITLE = 0;

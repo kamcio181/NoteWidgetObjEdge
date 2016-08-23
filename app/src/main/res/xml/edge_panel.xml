@@ -3,6 +3,7 @@
     previewImage="@mipmap/ic_launcher"
     label="@string/edge_list_name"
     description="@string/description_edge_list"
+    permitVisibilityChanged="true"
     cocktailWidth="550"
     configure="com.apps.home.notewidget.edge.EdgeConfigActivity"
     launchOnClick="com.apps.home.notewidget.MainActivity">

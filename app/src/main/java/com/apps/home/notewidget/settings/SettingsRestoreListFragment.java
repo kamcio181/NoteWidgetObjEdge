@@ -1,9 +1,14 @@
 package com.apps.home.notewidget.settings;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +18,7 @@ import android.view.ViewGroup;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
 import com.apps.home.notewidget.utils.Utils;
 
@@ -103,7 +109,17 @@ public class SettingsRestoreListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        if(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED){
+            new GetFiles().execute();
+        }
+        else {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    Constants.READ_PERMISSION);
+        }
+    }
 
+    public void loadFiles(){
         new GetFiles().execute();
     }
 

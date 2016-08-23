@@ -1,12 +1,13 @@
 package com.apps.home.notewidget.edge;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SwitchCompat;
@@ -17,7 +18,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -29,6 +29,9 @@ import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
+import com.apps.home.notewidget.utils.ItemTouchHelperAdapter;
+import com.apps.home.notewidget.utils.ItemTouchHelperViewHolder;
+import com.apps.home.notewidget.utils.SimpleItemTouchHelperCallback;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
@@ -38,9 +41,11 @@ import java.util.Collections;
 public class EdgeConfigActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener{
     private static final String TAG = "EdgeConfigActivity";
     private static SharedPreferences preferences;
-    private RecyclerView notesRV, edgeRV;
-    private SwitchCompat ignoreTabsSwitch;
-    private ItemTouchHelper itemTouchHelper;
+    private static RecyclerView notesRV, edgeRV;
+    private static SwitchCompat ignoreTabsSwitch;
+    private static ItemTouchHelper itemTouchHelper;
+    private static EdgeVisibilityReceiver receiver;
+    private static boolean settingsChanged = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,45 +67,14 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
             @Override
             public void onNotesLoaded(final ArrayList<Note> notes) {
                 if(notes != null){
-                    String notesVisibleOnEdge = preferences.getString(Constants.EDGE_VISIBLE_NOTES, "");
-                    String order = preferences.getString(Constants.EDGE_NOTES_ORDER, null);
-                    String[] orderArray = new String[0];
-                    if(order != null)
-                        orderArray = order.trim().split(";");
+                    String notesVisibleOnEdge = preferences.getString(Constants.EDGE_VISIBLE_NOTES, null);
 
+                    final ArrayList<Note> orderedList = getOrderedList(notes, notesVisibleOnEdge, preferences.getString(Constants.EDGE_NOTES_ORDER, null));
 
                     edgeRV.setLayoutManager(new LinearLayoutManager(EdgeConfigActivity.this));
                     edgeRV.addItemDecoration(new DividerItemDecoration(EdgeConfigActivity.this, DividerItemDecoration.VERTICAL_LIST));
                     edgeRV.setHasFixedSize(true);
-
-                    String dummy = notesVisibleOnEdge;
-                    final ArrayList<Note> visibleNotes = new ArrayList<>();
-                    ArrayList<Note> orderedNotes = new ArrayList<>();
-                    if(dummy.length()>2){
-                        for(Note n : notes){
-                            if(dummy.contains(";" + n.getId() + ";")){
-                                visibleNotes.add(n);
-                                dummy = dummy.replace(";" + n.getId() + ";", ";");
-                            }
-                        }
-                        if(orderArray.length>0) {
-                            for (String idString : orderArray) {
-                                int id = Integer.parseInt(idString);
-                                for (int j = 0; j < visibleNotes.size(); j++) {
-                                    if (id == visibleNotes.get(j).getId()) {
-                                        orderedNotes.add(visibleNotes.get(j));
-                                        visibleNotes.remove(j);
-                                        break;
-                                    }
-                                }
-                            }
-                            orderedNotes.addAll(visibleNotes);
-                        } else {
-                            orderedNotes = visibleNotes;
-                        }
-                    }
-
-                    edgeRV.setAdapter(new EdgeAdapter(orderedNotes, ignoreTabs, new EdgeAdapter.OnStartDragListener() {
+                    edgeRV.setAdapter(new EdgeAdapter(orderedList, ignoreTabs, preferences.getInt("TextSize", 10), new EdgeAdapter.OnStartDragListener() {
                         @Override
                         public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
                             itemTouchHelper.startDrag(viewHolder);
@@ -117,13 +91,14 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
                     notesRV.setAdapter(new CheckableItemsAdapter(notes, notesVisibleOnEdge, new CheckableItemsAdapter.OnItemCheckListener() {
                         @Override
                         public void onItemChecked(Note note, boolean checked) {
+                            settingsChanged = true;
                             if(checked){
-                                visibleNotes.add(note);
-                                edgeRV.getAdapter().notifyItemInserted(visibleNotes.size()-1);
+                                orderedList.add(note);
+                                edgeRV.getAdapter().notifyItemInserted(orderedList.size()-1);
                             } else {
                                 int position = EdgeAdapter.getItemPosition(note.getId());
                                 if(position >=0) {
-                                    visibleNotes.remove(position);
+                                    orderedList.remove(position);
                                     edgeRV.getAdapter().notifyItemRemoved(position);
                                 } else {
                                     Utils.showToast(EdgeConfigActivity.this, "invalid ID");
@@ -141,26 +116,45 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
             }
         });
 
+        IntentFilter intentFilter = new IntentFilter("Update");
+        receiver = new EdgeVisibilityReceiver();
+        registerReceiver(receiver, intentFilter);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+    private ArrayList<Note> getOrderedList(ArrayList<Note> notes, String notesToBeDisplayed, String orderString){
+        if(notesToBeDisplayed != null && notesToBeDisplayed.length()>2){
+            ArrayList<Note> visibleNotes = new ArrayList<>();
+            for(Note n : notes){
+                if(notesToBeDisplayed.contains(";" + n.getId() + ";")){
+                    visibleNotes.add(n);
+                    notesToBeDisplayed = notesToBeDisplayed.replace(";" + n.getId() + ";", ";");
+                }
+            }
 
-        getMenuInflater().inflate(R.menu.config_menu, menu);
-        return true;
-    }
+            if(orderString == null)
+                return visibleNotes;
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+            String[] orderArray = orderString.trim().split(";");
 
-        switch (id) {
-            case R.id.action_apply:
-                finish();
-                break;
+            ArrayList<Note> orderedNotes = new ArrayList<>();
+            if(orderArray.length>0) {
+                for (String idString : orderArray) {
+                    long id = Long.parseLong(idString);
+                    for (int j = 0; j < visibleNotes.size(); j++) {
+                        if (id == visibleNotes.get(j).getId()) {
+                            orderedNotes.add(visibleNotes.get(j));
+                            visibleNotes.remove(j);
+                            break;
+                        }
+                    }
+                }
+                orderedNotes.addAll(visibleNotes);
+                return orderedNotes;
+            } else {
+                return visibleNotes;
+            }
         }
-        return true;
+        return new ArrayList<>();
     }
 
 
@@ -168,7 +162,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         switch (buttonView.getId()){
             case R.id.switch1:
-                preferences.edit().putBoolean(Constants.IGNORE_TABS_IN_EDGE_PANEL_KEY, isChecked).apply();
+                settingsChanged = true;
                 EdgeAdapter.setIgnoreTabs(isChecked);
                 edgeRV.getAdapter().notifyDataSetChanged();
                 break;
@@ -178,176 +172,134 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
     @Override
     protected void onStop() {
         super.onStop();
-        if(notesRV.getAdapter()!= null) {
-            Log.e(TAG, "adapter is present");
-            preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES, ((CheckableItemsAdapter) notesRV.getAdapter()).getCheckedNotes()).putString(Constants.EDGE_NOTES_ORDER, ((EdgeAdapter)edgeRV.getAdapter()).getNotesOrder()).apply();
+        unregisterReceiver(receiver);
+        saveSettings();
+    }
 
+    private void saveSettings(){
+        if(settingsChanged) {
+            if (notesRV.getAdapter() != null) {
+                Log.e(TAG, "adapter is present");
+                preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES, ((CheckableItemsAdapter) notesRV.getAdapter()).getCheckedNotes())
+                        .putString(Constants.EDGE_NOTES_ORDER, ((EdgeAdapter) edgeRV.getAdapter()).getNotesOrder())
+                        .putBoolean(Constants.IGNORE_TABS_IN_EDGE_PANEL_KEY, ignoreTabsSwitch.isChecked()).apply();
+
+            }
+            Utils.updateAllEdgePanels(this);
         }
-        Utils.updateAllEdgePanels(this);
-    }
-}
-class CheckableItemsAdapter extends RecyclerView.Adapter<CheckableItemsAdapter.ViewHolder> {
-    private static final String TAG = "CheckableItemsAdapter";
-    private static ArrayList<Note> notes;
-    private static boolean[] checkedArray;
-    private static OnItemCheckListener listener;
-
-    public interface OnItemCheckListener{
-        void onItemChecked(Note note, boolean checked);
+        settingsChanged = false;
     }
 
-    public CheckableItemsAdapter(ArrayList<Note> notes, String checked, OnItemCheckListener listener) {//checked format ";int;int;int;"
-        CheckableItemsAdapter.notes = notes;
-        CheckableItemsAdapter.listener = listener;
-        Log.e(TAG, "checked " + checked);
-        checkedArray = new boolean[notes.size()];
-        for(int i = 0; i < checkedArray.length; i++) {
-            long id = notes.get(i).getId();
-            checkedArray[i] = checked.contains(";" + id + ";");
-            checked = checked.replace(";" + id + ";", ";");
-            Log.e(TAG, "i " + checkedArray[i]);
+    class EdgeVisibilityReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent arg1) {
+            saveSettings();
         }
     }
 
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_check_recycle_view_item, parent, false));
-    }
+    static class EdgeAdapter extends RecyclerView.Adapter<EdgeAdapter.ViewHolder> implements ItemTouchHelperAdapter{
+        private static final String TAG = "EdgeAdapter";
+        private static ArrayList<Note> notes;
+        private static boolean ignoreTabs;
+        private static OnStartDragListener listener;
+        private static float noteSize;
+        private static float titleSize;
 
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        Note note = notes.get(position);
-        holder.titleTV.setText(note.getTitle());
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(note.getCreatedAt());
-        holder.contentTV.setText(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
-        holder.checkBox.setChecked(checkedArray[position]);
-    }
+        public interface OnStartDragListener{
+            void onStartDrag(RecyclerView.ViewHolder viewHolder);
+        }
 
-    @Override
-    public int getItemCount() {
-        return notes.size();
-    }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
-        public CheckBox checkBox;
-        public TextView titleTV;
-        public TextView contentTV;
+        public EdgeAdapter(ArrayList<Note> notes, boolean ignoreTabs, float noteSize, OnStartDragListener listener) {//checked format ";int;int;int;"
+            EdgeAdapter.notes = notes;
+            EdgeAdapter.ignoreTabs = ignoreTabs;
+            setHasStableIds(true);
+            EdgeAdapter.listener = listener;
+            EdgeAdapter.noteSize = noteSize;
+            titleSize = 1.4f * noteSize;
 
-        public ViewHolder(final View itemView) {
-            super(itemView);
-            titleTV = (TextView) itemView.findViewById(R.id.textView2);
-            contentTV = (TextView) itemView.findViewById(R.id.textView3);
-            checkBox = (CheckBox) itemView.findViewById(R.id.checkBox2);
+            Log.i(TAG, "Constructor ");
+        }
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    boolean checked = !checkedArray[getLayoutPosition()];
-                    checkedArray[getLayoutPosition()] = checked;
-                    CheckableItemsAdapter.this.notifyItemChanged(getLayoutPosition());
-                    if(listener != null)
-                        listener.onItemChecked(notes.get(getLayoutPosition()), checked);
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.edge_list_item, parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, int position) {
+            Note note = notes.get(position);
+            holder.titleTV.setText(note.getTitle());
+            holder.contentTV.setText(Html.fromHtml(ignoreTabs? note.getNote().replace("\u0009", "") : note.getNote()));
+
+            holder.titleTV.setTextSize(titleSize);
+            holder.contentTV.setTextSize(noteSize);
+
+//        holder.tile.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if(MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN){
+//                    listener.onStartDrag(holder);
+//                }
+//                return false;
+//            }
+//        });
+        }
+
+        public boolean onItemMove(int fromPosition, int toPosition) {
+            Log.i(TAG, "onItemMove");
+            settingsChanged = true;
+            Collections.swap(notes, fromPosition, toPosition);
+            notifyItemMoved(fromPosition, toPosition);
+            return true;
+        }
+
+        @Override
+        public int getItemCount() {
+            Log.i(TAG, "count " + notes.size());
+            return notes.size();
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return notes.get(position).getId();
+        }
+
+        public static int getItemPosition(long id){
+            for (int i = 0; i < notes.size(); i++){
+                if(notes.get(i).getId() == id) {
+                    Log.i(TAG, "ID found");
+                    return i;
                 }
-            });
-        }
-    }
-
-    public String getCheckedNotes() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(";");
-        Log.e(TAG, checkedArray.toString());
-        for(int i = 0; i<checkedArray.length; i++){
-            Log.e(TAG, "" +checkedArray[i]);
-            if(checkedArray[i]){
-                builder.append(notes.get(i).getId()).append(";");
             }
+            return -1;
         }
-        return builder.toString();
-    }
-}
 
-class EdgeAdapter extends RecyclerView.Adapter<EdgeAdapter.ViewHolder> {
-    private static final String TAG = "EdgeAdapter";
-    private static ArrayList<Note> notes;
-    private static boolean ignoreTabs;
-    private final OnStartDragListener listener;
-
-    public interface OnStartDragListener{
-        void onStartDrag(RecyclerView.ViewHolder viewHolder);
-    }
-
-
-    public EdgeAdapter(ArrayList<Note> notes, boolean ignoreTabs, OnStartDragListener listener) {//checked format ";int;int;int;"
-        EdgeAdapter.notes = notes;
-        EdgeAdapter.ignoreTabs = ignoreTabs;
-        setHasStableIds(true);
-        this.listener = listener;
-    }
-
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.edge_list_item, parent, false));
-    }
-
-    @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        Note note = notes.get(position);
-        holder.titleTV.setText(note.getTitle());
-        holder.contentTV.setText(Html.fromHtml(ignoreTabs? note.getNote().replace("\u0009", "") : note.getNote()));
-
-        holder.tile.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN){
-                    listener.onStartDrag(holder);
-                }
-                return false;
-            }
-        });
-    }
-
-    public boolean onItemMove(int fromPosition, int toPosition) {
-        Collections.swap(notes, fromPosition, toPosition);
-        notifyItemMoved(fromPosition, toPosition);
-        return true;
-    }
-
-    @Override
-    public int getItemCount() {
-        return notes.size();
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return notes.get(position).getId();
-    }
-
-    public static int getItemPosition(long id){
-        for (int i = 0; i < notes.size(); i++){
-            if(notes.get(i).getId() == id) {
-                Log.e(TAG, "ID found");
-                return i;
-            }
+        public static void setIgnoreTabs(boolean ignoreTabs) {
+            EdgeAdapter.ignoreTabs = ignoreTabs;
         }
-        return -1;
-    }
-
-    public static void setIgnoreTabs(boolean ignoreTabs) {
-        EdgeAdapter.ignoreTabs = ignoreTabs;
-    }
 
 
-    class ViewHolder extends RecyclerView.ViewHolder {
-        public View tile;
-        public TextView titleTV;
-        public TextView contentTV;
+        class ViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder{
+            public View tile;
+            public TextView titleTV;
+            public TextView contentTV;
 
-        public ViewHolder(final View itemView) {
-            super(itemView);
-            this.tile = itemView;
-            titleTV = (TextView) itemView.findViewById(R.id.textView7);
-            contentTV = (TextView) itemView.findViewById(R.id.textView);
+            public ViewHolder(final View itemView) {
+                super(itemView);
+                this.tile = itemView;
+                titleTV = (TextView) itemView.findViewById(R.id.textView7);
+                contentTV = (TextView) itemView.findViewById(R.id.textView);
+
+                itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Log.i(TAG, "LongClick");
+                        if(listener!=null)
+                            listener.onStartDrag(ViewHolder.this);
+                        return true;
+                    }
+                });
 
 //            itemView.setOnClickListener(new View.OnClickListener() {
 //                @Override
@@ -356,114 +308,114 @@ class EdgeAdapter extends RecyclerView.Adapter<EdgeAdapter.ViewHolder> {
 //                    CheckableItemsAdapter.this.notifyItemChanged(getLayoutPosition());
 //                }
 //            });
+            }
+
+            public void onItemSelected(){
+                tile.setBackgroundColor(Color.CYAN);
+            }
+
+            public void onItemClear(){
+                tile.setBackgroundColor(0);
+            }
         }
-
-        public void onItemSelected(){
-            tile.setBackgroundColor(Color.CYAN);
-        }
-
-        public void onItemClear(){
-            tile.setBackgroundColor(0);
-        }
-    }
-    public String getNotesOrder() {
-        StringBuilder builder = new StringBuilder();
-        for(int i = 0; i<notes.size(); i++){
-            builder.append(notes.get(i).getId()).append(";");
-        }
-
-        Log.e(TAG, builder.toString().substring(0, builder.length()-1));
-        return builder.toString().substring(0, builder.length()-1);
-    }
-}
-//https://github.com/iPaulPro/Android-ItemTouchHelper-Demo/tree/master/app/src/main/java/co/paulburke/android/itemtouchhelperdemo
-class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
-
-    public static final float ALPHA_FULL = 1.0f;
-
-    private final EdgeAdapter mAdapter;
-
-    public SimpleItemTouchHelperCallback(EdgeAdapter adapter) {
-        mAdapter = adapter;
-    }
-
-    @Override
-    public boolean isLongPressDragEnabled() {
-        return true;
-    }
-
-    @Override
-    public boolean isItemViewSwipeEnabled() {
-        return true;
-    }
-
-    @Override
-    public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        // Set movement flags based on the layout manager
-        if (recyclerView.getLayoutManager() instanceof GridLayoutManager) {
-            final int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
-            final int swipeFlags = 0;
-            return makeMovementFlags(dragFlags, swipeFlags);
-        } else {
-            final int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
-            final int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
-            return makeMovementFlags(dragFlags, swipeFlags);
+        public String getNotesOrder() {
+            StringBuilder builder = new StringBuilder();
+            for(int i = 0; i<notes.size(); i++){
+                builder.append(notes.get(i).getId()).append(";");
+            }
+            Log.i(TAG, "GetNotesOrder length: " + builder.toString().length());
+            return builder.toString().length() == 0? null : builder.toString().substring(0, builder.length()-1);
         }
     }
 
-    @Override
-    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder source, RecyclerView.ViewHolder target) {
-        if (source.getItemViewType() != target.getItemViewType()) {
-            return false;
+    static class CheckableItemsAdapter extends RecyclerView.Adapter<CheckableItemsAdapter.ViewHolder> {
+        private static final String TAG = "CheckableItemsAdapter";
+        private static ArrayList<Note> notes;
+        private static boolean[] checkedArray;
+        private static OnItemCheckListener listener;
+
+        public interface OnItemCheckListener{
+            void onItemChecked(Note note, boolean checked);
         }
 
-        // Notify the adapter of the move
-        mAdapter.onItemMove(source.getAdapterPosition(), target.getAdapterPosition());
-        return true;
-    }
+        public CheckableItemsAdapter(ArrayList<Note> notes, String checked, OnItemCheckListener listener) {//checked format ";int;int;int;"
+            CheckableItemsAdapter.notes = notes;
+            CheckableItemsAdapter.listener = listener;
 
-    @Override
-    public void onSwiped(RecyclerView.ViewHolder viewHolder, int i) {
-        // Notify the adapter of the dismissal
-//        mAdapter.onItemDismiss(viewHolder.getAdapterPosition());
-    }
-
-    @Override
-    public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-        if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-            // Fade out the view as it is swiped out of the parent's bounds
-            final float alpha = ALPHA_FULL - Math.abs(dX) / (float) viewHolder.itemView.getWidth();
-            viewHolder.itemView.setAlpha(alpha);
-            viewHolder.itemView.setTranslationX(dX);
-        } else {
-            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-        }
-    }
-
-    @Override
-    public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-        // We only want the active item to change
-        if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
-            if (viewHolder instanceof EdgeAdapter.ViewHolder) {
-                // Let the view holder know that this item is being moved or dragged
-                EdgeAdapter.ViewHolder itemViewHolder = (EdgeAdapter.ViewHolder) viewHolder;
-                itemViewHolder.onItemSelected();
+            Log.e(TAG, "checked " + checked);
+            checkedArray = new boolean[notes.size()];
+            if(checked == null) {
+                for (int i = 0; i < checkedArray.length; i++)
+                    checkedArray[i] = false;
+            } else {
+                for (int i = 0; i < checkedArray.length; i++) {
+                    long id = notes.get(i).getId();
+                    checkedArray[i] = checked.contains(";" + id + ";");
+                    checked = checked.replace(";" + id + ";", ";");
+                    Log.e(TAG, "i " + checkedArray[i]);
+                }
             }
         }
 
-        super.onSelectedChanged(viewHolder, actionState);
-    }
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_check_recycle_view_item, parent, false));
+        }
 
-    @Override
-    public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        super.clearView(recyclerView, viewHolder);
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            Note note = notes.get(position);
+            holder.titleTV.setText(note.getTitle());
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(note.getCreatedAt());
+            holder.contentTV.setText(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+            holder.checkBox.setChecked(checkedArray[position]);
+        }
 
-        viewHolder.itemView.setAlpha(ALPHA_FULL);
+        @Override
+        public int getItemCount() {
+            return notes.size();
+        }
 
-        if (viewHolder instanceof EdgeAdapter.ViewHolder) {
-            // Tell the view holder it's time to restore the idle state
-            EdgeAdapter.ViewHolder itemViewHolder = (EdgeAdapter.ViewHolder) viewHolder;
-            itemViewHolder.onItemClear();
+        class ViewHolder extends RecyclerView.ViewHolder {
+            public CheckBox checkBox;
+            public TextView titleTV;
+            public TextView contentTV;
+
+            public ViewHolder(final View itemView) {
+                super(itemView);
+                titleTV = (TextView) itemView.findViewById(R.id.textView2);
+                contentTV = (TextView) itemView.findViewById(R.id.textView3);
+                checkBox = (CheckBox) itemView.findViewById(R.id.checkBox2);
+
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        boolean checked = !checkedArray[getLayoutPosition()];
+                        checkedArray[getLayoutPosition()] = checked;
+                        CheckableItemsAdapter.this.notifyItemChanged(getLayoutPosition());
+                        if(listener != null)
+                            listener.onItemChecked(notes.get(getLayoutPosition()), checked);
+                    }
+                });
+            }
+        }
+
+        public String getCheckedNotes() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(";");
+            Log.e(TAG, checkedArray.toString());
+            for(int i = 0; i<checkedArray.length; i++){
+                Log.e(TAG, "" +checkedArray[i]);
+                if(checkedArray[i]){
+                    builder.append(notes.get(i).getId()).append(";");
+                }
+            }
+            return builder.toString().length() == 1? null : builder.toString();
         }
     }
 }
+
+
+
+

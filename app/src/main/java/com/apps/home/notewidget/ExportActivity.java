@@ -184,13 +184,13 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void readFiles(){
-        if(ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        if(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED){
             path = Environment.getExternalStorageDirectory().getAbsolutePath();
             new GetFiles().execute();
         }
         else {
-            ActivityCompat.requestPermissions(ExportActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+            ActivityCompat.requestPermissions(ExportActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     Constants.WRITE_PERMISSION);
         }
     }

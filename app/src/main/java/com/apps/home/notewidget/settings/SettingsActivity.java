@@ -1,13 +1,19 @@
 package com.apps.home.notewidget.settings;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -39,6 +45,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
     private Toolbar toolbar;
+    private int backupMode;
+    private boolean resetFragment = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,20 +170,71 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
         return builder.setTitle(getString(R.string.backup)).setItems(new CharSequence[]{getString(R.string.data), getString(R.string.settings), getString(R.string.data_and_settings)}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 0:
-                        new BackupData().execute(0);
-                        break;
-                    case 1:
-                        new BackupData().execute(1);
-                        break;
-                    case 2:
-                        new BackupData().execute(2);
-                        break;
+//                switch (which) {
+//                    case 0:
+//                        new BackupData().execute(0);
+//                        break;
+//                    case 1:
+//                        new BackupData().execute(1);
+//                        break;
+//                    case 2:
+//                        new BackupData().execute(2);
+//                        break;
+//                }
+                if(ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED){
+                    new BackupData().execute(which);
+                }
+                else {
+                    backupMode = which;
+                    ActivityCompat.requestPermissions(SettingsActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            Constants.WRITE_PERMISSION);
                 }
             }
         }).create();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(resetFragment){
+            resetFragment = false;
+            fragmentManager.beginTransaction().replace(R.id.container,
+                    new SettingsListFragment(), Constants.FRAGMENT_SETTINGS_LIST).
+                    setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case Constants.WRITE_PERMISSION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    new BackupData().execute(backupMode);
+
+                } else {
+                    Utils.showToast(context, "Write permission is required to perform backup");
+                }
+                break;
+            case Constants.READ_PERMISSION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Fragment fragment = fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_RESTORE_LIST);
+                    if(fragment != null){
+                        ((SettingsRestoreListFragment)fragment).loadFiles();
+                    }
+
+                } else {
+                    Utils.showToast(context, "Read permission is required to load backups");
+                    resetFragment = true;
+                }
+                break;
+
+        }
+    }
+
+
 
     private Dialog getRestoreDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
