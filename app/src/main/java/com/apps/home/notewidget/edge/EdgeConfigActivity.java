@@ -118,11 +118,6 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
                 }
             }
         });
-
-        IntentFilter intentFilter = new IntentFilter(SAVE_CHANGES_ACTION);
-        intentFilter.addAction(UPDATE_NOTE_TEXT_SIZE);
-        receiver = new EdgeVisibilityReceiver();
-        registerReceiver(receiver, intentFilter);
     }
 
     private ArrayList<Note> getOrderedList(ArrayList<Note> notes, String notesToBeDisplayed, String orderString){
@@ -177,9 +172,22 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
     }
 
     @Override
+    protected void onStart(){
+        super.onStart();
+        IntentFilter intentFilter = new IntentFilter(SAVE_CHANGES_ACTION);
+        intentFilter.addAction(UPDATE_NOTE_TEXT_SIZE);
+        receiver = new EdgeVisibilityReceiver();
+        registerReceiver(receiver, intentFilter);
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
-        unregisterReceiver(receiver);
+        try {
+            unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e){
+            Log.e(TAG, "Receiver already unregistered");
+        }
         saveSettings();
     }
 
