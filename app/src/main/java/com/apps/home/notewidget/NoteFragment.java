@@ -231,7 +231,7 @@ public class NoteFragment extends Fragment{
                     Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
                     Utils.updateAllEdgePanels(context);
                     SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-                    preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES,preferences.getString(Constants.EDGE_VISIBLE_NOTES,"").replace(";" + note.getId() + ";", ";")).apply();
+                    preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY,preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY,"").replace(";" + note.getId() + ";", ";")).apply();
 
                     Menu menu = ((MainActivity) context).getNavigationViewMenu();
                     Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);

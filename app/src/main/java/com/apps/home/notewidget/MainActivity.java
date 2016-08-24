@@ -513,7 +513,7 @@ public class MainActivity extends AppCompatActivity
                                     if (numberOfRows > 0) {
                                         Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
                                         Utils.updateAllEdgePanels(context);
-                                        preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES,preferences.getString(Constants.EDGE_VISIBLE_NOTES,"").replace(";" + note.getId() + ";", ";")).apply();
+                                        preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY,preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY,"").replace(";" + note.getId() + ";", ";")).apply();
 
                                         Menu menu = getNavigationViewMenu();
                                         Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);

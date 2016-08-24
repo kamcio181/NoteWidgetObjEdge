@@ -34,7 +34,6 @@ public interface Constants {
     String SEARCH_IN_TITLE = "titleSearch";
     String SEARCH_IN_CONTENT = "contentSearch";
     String IGNORE_TABS_IN_WIDGETS_KEY = "ignoreTabsInWidget";
-    String IGNORE_TABS_IN_EDGE_PANEL_KEY = "ignoreTabsInEdgePanel";
     String NOTE_TEXT_SIZE_KEY = "noteTextSize";
     String STARTING_FOLDER_KEY = "startingFolder";
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
@@ -52,8 +51,12 @@ public interface Constants {
     String FRAGMENT_SETTINGS_WIDGET_CONFIG = "SettingsWidgetConfigFragment";
     String FRAGMENT_SETTINGS_RESTORE_LIST = "SettingsRestoreListFragment";
 
-    String EDGE_VISIBLE_NOTES = "EdgeVisibleNotes";
-    String EDGE_NOTES_ORDER = "EdgeNotesOrder";
+    String EDGE_VISIBLE_NOTES_KEY = "EdgeVisibleNotes";
+    String EDGE_NOTES_ORDER_KEY = "EdgeNotesOrder";
+    String EDGE_TEXT_SIZE_KEY = "TextSize";
+    String EDGE_IGNORE_TABS_KEY = "ignoreTabsInEdgePanel";
+    String EDGE_HIDE_CONTENT_KEY = "hideContent";
+    String EDGE_WAS_LOCKED_KEY = "wasLocked";
 
     int FALSE = 0;
     int TRUE = 1;

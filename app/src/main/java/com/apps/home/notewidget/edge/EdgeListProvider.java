@@ -37,10 +37,10 @@ public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
         Log.v(TAG, "getObjects");
         SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         ArrayList<Note> notes = helper.getNotesOnDemand(false);
-        String notesVisibleOnEdge = preferences.getString(Constants.EDGE_VISIBLE_NOTES, "");
+        String notesVisibleOnEdge = preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY, "");
         ArrayList<Note> notesVisible = new ArrayList<>();
         this.notes = new ArrayList<>();
-        String order = preferences.getString(Constants.EDGE_NOTES_ORDER, null);
+        String order = preferences.getString(Constants.EDGE_NOTES_ORDER_KEY, null);
         String[] orderArray = new String[0];
         if(order != null)
             orderArray = order.trim().split(";");
@@ -71,7 +71,7 @@ public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
 
 
 
-        noteSize = preferences.getInt("TextSize", 10);
+        noteSize = preferences.getInt(Constants.EDGE_TEXT_SIZE_KEY, 10);
         titleSize = 1.4f * noteSize;
     }
 
@@ -92,7 +92,7 @@ public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
         if(!noteText.trim().equals("")){
             Log.v(TAG, "note is not empty");
             //Set note text
-            boolean skipTabs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getBoolean(Constants.IGNORE_TABS_IN_EDGE_PANEL_KEY, false);
+            boolean skipTabs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getBoolean(Constants.EDGE_IGNORE_TABS_KEY, false);
             remoteView.setTextViewText(R.id.textView, Html.fromHtml(skipTabs? noteText.replace("\u0009", "") : noteText));
         } else {
             Log.v(TAG, "empty note");

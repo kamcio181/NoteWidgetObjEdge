@@ -13,7 +13,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/checkBox2"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="16dp" />
+        android:layout_marginLeft="16dp"
+        android:longClickable="false"
+        android:clickable="false" />
 
     <com.apps.home.notewidget.customviews.RobotoTextView
         android:layout_width="wrap_content"

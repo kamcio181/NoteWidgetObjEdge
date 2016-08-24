@@ -912,7 +912,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 if(cursor != null && cursor.getCount() !=0){
                     SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-                    String checked = preferences.getString(Constants.EDGE_VISIBLE_NOTES, "");
+                    String checked = preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY, "");
                     if(checked.length()>2){
                         cursor.moveToFirst();
                         for(int i = 0; i < cursor.getCount(); i++) {
@@ -920,7 +920,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             checked = checked.replace(";" + id + ";", ";");
                             cursor.moveToNext();
                         }
-                        preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES, checked).apply();
+                        preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY, checked).apply();
                     }
                 }
 

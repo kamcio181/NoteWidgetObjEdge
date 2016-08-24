@@ -1,5 +1,6 @@
 package com.apps.home.notewidget.edge;
 
+import android.app.KeyguardManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
@@ -31,12 +32,12 @@ public class EdgePanelProvider extends SlookCocktailProvider {
 
         int cocktailId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
-        int currentTextSize = preferences.getInt("TextSize", 10);
+        int currentTextSize = preferences.getInt(Constants.EDGE_TEXT_SIZE_KEY, 10);
             switch (intent.getAction()) {
                 case INCREASE_TEXT_SIZE:
                     Log.v(TAG, "increase text size");
 
-                    preferences.edit().putInt("TextSize", (currentTextSize + 1)).apply();
+                    preferences.edit().putInt(Constants.EDGE_TEXT_SIZE_KEY, (currentTextSize + 1)).apply();
 
                     Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize + 1));
 
@@ -47,7 +48,7 @@ public class EdgePanelProvider extends SlookCocktailProvider {
                 case DECREASE_TEXT_SIZE:
                     Log.v(TAG, "decrease text size");
                     if (currentTextSize > 1) {
-                        preferences.edit().putInt("TextSize", (currentTextSize - 1)).apply();
+                        preferences.edit().putInt(Constants.EDGE_TEXT_SIZE_KEY, (currentTextSize - 1)).apply();
 
                         Utils.showToast(context, context.getString(R.string.text_size) + (currentTextSize - 1));
 
@@ -69,12 +70,31 @@ public class EdgePanelProvider extends SlookCocktailProvider {
         if(visibility == SlookCocktailManager.COCKTAIL_VISIBILITY_SHOW){
             context.sendBroadcast(new Intent(EdgeConfigActivity.SAVE_CHANGES_ACTION));
         }
-        super.onVisibilityChanged(context, cocktailId, visibility);
+
+        if(preferences == null)
+            preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        boolean previousState = preferences.getBoolean(Constants.EDGE_WAS_LOCKED_KEY, false);
+        KeyguardManager myKM = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        boolean currentState = myKM.inKeyguardRestrictedInputMode();
+
+        if(previousState != currentState){
+            preferences.edit().putBoolean(Constants.EDGE_WAS_LOCKED_KEY, currentState).apply();
+            if(preferences.getBoolean(Constants.EDGE_HIDE_CONTENT_KEY, false))
+                Utils.updateAllEdgePanels(context);
+        }
+
+        super.onVisibilityChanged(context, cocktailId, visibility); // check if screen is locked and if previously was locked and update if needed
     }
 
     @Override
     public void onDisabled(Context context) {
         Log.i(TAG, "onDisabled");
+        if(preferences == null)
+            preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        preferences.edit().remove(Constants.EDGE_HIDE_CONTENT_KEY).remove(Constants.EDGE_WAS_LOCKED_KEY)
+                .remove(Constants.EDGE_VISIBLE_NOTES_KEY).remove(Constants.EDGE_NOTES_ORDER_KEY)
+                .remove(Constants.EDGE_TEXT_SIZE_KEY).remove(Constants.EDGE_IGNORE_TABS_KEY).apply();
+
         super.onDisabled(context);
     }
 
@@ -88,40 +108,46 @@ public class EdgePanelProvider extends SlookCocktailProvider {
     public void onUpdate(Context context, SlookCocktailManager cocktailManager, int[] cocktailIds) {
         Log.i(TAG, "onUpdate");
         super.onUpdate(context, cocktailManager, cocktailIds);
-
-
+        if(preferences == null)
+            preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
 
         for(int id : cocktailIds) {
             updateListView(context, id);
 
-            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.edge_panel);
+            RemoteViews remoteViews;
 
-            //Set intent for increase text size
-            remoteViews.setOnClickPendingIntent(R.id.increaseTextSizeImageView, getPendingIntentWithAction(context,
-                    new Intent(context, EdgePanelProvider.class), id, INCREASE_TEXT_SIZE));
+            KeyguardManager myKM = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+            if(preferences.getBoolean(Constants.EDGE_HIDE_CONTENT_KEY, false) && myKM.inKeyguardRestrictedInputMode()) {
+                remoteViews = new RemoteViews(context.getPackageName(), R.layout.edge_panel_hidden_content);
+            } else {
+                remoteViews = new RemoteViews(context.getPackageName(), R.layout.edge_panel);
 
-            //Set intent for decrease text size
-            remoteViews.setOnClickPendingIntent(R.id.decreaseTextSizeImageView, getPendingIntentWithAction(context,
-                    new Intent(context, EdgePanelProvider.class), id, DECREASE_TEXT_SIZE));
+                //Set intent for increase text size
+                remoteViews.setOnClickPendingIntent(R.id.increaseTextSizeImageView, getPendingIntentWithAction(context,
+                        new Intent(context, EdgePanelProvider.class), id, INCREASE_TEXT_SIZE));
 
-            remoteViews.setOnClickPendingIntent(R.id.openConfigurationImageView, getConfigPendingIntent(context, id));
+                //Set intent for decrease text size
+                remoteViews.setOnClickPendingIntent(R.id.decreaseTextSizeImageView, getPendingIntentWithAction(context,
+                        new Intent(context, EdgePanelProvider.class), id, DECREASE_TEXT_SIZE));
 
-            //RemoteViews Service needed to provide adapter for ListView
-            Intent svcIntent = new Intent(context, EdgeListService.class);
-            //passing app widget id to that RemoteViews Service
-            svcIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id);
-            //setting a unique Uri to the intent
-            //don't know its purpose to me right now
-            svcIntent.setData(Uri.parse(
-                    svcIntent.toUri(Intent.URI_INTENT_SCHEME)));
-            //setting adapter to listView of the widget
-            remoteViews.setRemoteAdapter(R.id.listView, svcIntent);
-            Log.v(TAG, "Widget After List View");
+                remoteViews.setOnClickPendingIntent(R.id.openConfigurationImageView, getConfigPendingIntent(context, id));
 
-            remoteViews.setPendingIntentTemplate(R.id.listView, getNoteEditPendingIntent(context));
-            //setting an empty view in case of no data
-            remoteViews.setEmptyView(R.id.listView, R.id.noteTextView);
+                //RemoteViews Service needed to provide adapter for ListView
+                Intent svcIntent = new Intent(context, EdgeListService.class);
+                //passing app widget id to that RemoteViews Service
+                svcIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id);
+                //setting a unique Uri to the intent
+                //don't know its purpose to me right now
+                svcIntent.setData(Uri.parse(
+                        svcIntent.toUri(Intent.URI_INTENT_SCHEME)));
+                //setting adapter to listView of the widget
+                remoteViews.setRemoteAdapter(R.id.listView, svcIntent);
+                Log.v(TAG, "Widget After List View");
 
+                remoteViews.setPendingIntentTemplate(R.id.listView, getNoteEditPendingIntent(context));
+                //setting an empty view in case of no data
+                remoteViews.setEmptyView(R.id.listView, R.id.noteTextView);
+            }
             cocktailManager.updateCocktail(id, remoteViews);
         }
     }

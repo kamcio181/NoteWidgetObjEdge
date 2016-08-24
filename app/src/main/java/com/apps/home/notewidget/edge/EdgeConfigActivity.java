@@ -16,8 +16,6 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -44,7 +42,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
     private static final String TAG = "EdgeConfigActivity";
     private static SharedPreferences preferences;
     private static RecyclerView notesRV, edgeRV;
-    private static SwitchCompat ignoreTabsSwitch;
+    private static SwitchCompat ignoreTabsSwitch, hideContentOnLockScreenSwitch;
     private static ItemTouchHelper itemTouchHelper;
     private static EdgeVisibilityReceiver receiver;
     private static boolean settingsChanged = false;
@@ -57,26 +55,29 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
 
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
         ignoreTabsSwitch = (SwitchCompat) findViewById(R.id.switch1);
+        hideContentOnLockScreenSwitch = (SwitchCompat) findViewById(R.id.switch2);
         notesRV = (RecyclerView) findViewById(R.id.recycler_view1);
         edgeRV = (RecyclerView) findViewById(R.id.recycler_view2);
 
         ignoreTabsSwitch.setOnCheckedChangeListener(this);
+        hideContentOnLockScreenSwitch.setOnCheckedChangeListener(this);
         final boolean ignoreTabs = preferences.getBoolean(Constants.IGNORE_TABS_IN_WIDGETS_KEY, false);
         ignoreTabsSwitch.setChecked(ignoreTabs);
+        hideContentOnLockScreenSwitch.setChecked(preferences.getBoolean(Constants.EDGE_HIDE_CONTENT_KEY, false));
 
         DatabaseHelper helper = new DatabaseHelper(this);
         helper.getNotes(false, new DatabaseHelper.OnNotesLoadListener() {
             @Override
             public void onNotesLoaded(final ArrayList<Note> notes) {
                 if(notes != null){
-                    String notesVisibleOnEdge = preferences.getString(Constants.EDGE_VISIBLE_NOTES, null);
+                    String notesVisibleOnEdge = preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY, null);
 
-                    final ArrayList<Note> orderedList = getOrderedList(notes, notesVisibleOnEdge, preferences.getString(Constants.EDGE_NOTES_ORDER, null));
+                    final ArrayList<Note> orderedList = getOrderedList(notes, notesVisibleOnEdge, preferences.getString(Constants.EDGE_NOTES_ORDER_KEY, null));
 
                     edgeRV.setLayoutManager(new LinearLayoutManager(EdgeConfigActivity.this));
                     edgeRV.addItemDecoration(new DividerItemDecoration(EdgeConfigActivity.this, DividerItemDecoration.VERTICAL_LIST));
                     edgeRV.setHasFixedSize(true);
-                    edgeRV.setAdapter(new EdgeAdapter(orderedList, ignoreTabs, preferences.getInt("TextSize", 10), new EdgeAdapter.OnStartDragListener() {
+                    edgeRV.setAdapter(new EdgeAdapter(orderedList, ignoreTabs, preferences.getInt(Constants.EDGE_TEXT_SIZE_KEY, 10), new EdgeAdapter.OnStartDragListener() {
                         @Override
                         public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
                             itemTouchHelper.startDrag(viewHolder);
@@ -163,11 +164,14 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        settingsChanged = true;
         switch (buttonView.getId()){
             case R.id.switch1:
-                settingsChanged = true;
                 EdgeAdapter.setIgnoreTabs(isChecked);
                 edgeRV.getAdapter().notifyDataSetChanged();
+                break;
+            case R.id.switch2:
+                //Dummy case for switch 2
                 break;
         }
     }
@@ -183,9 +187,10 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         if(settingsChanged) {
             if (notesRV.getAdapter() != null) {
                 Log.e(TAG, "adapter is present");
-                preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES, ((CheckableItemsAdapter) notesRV.getAdapter()).getCheckedNotes())
-                        .putString(Constants.EDGE_NOTES_ORDER, ((EdgeAdapter) edgeRV.getAdapter()).getNotesOrder())
-                        .putBoolean(Constants.IGNORE_TABS_IN_EDGE_PANEL_KEY, ignoreTabsSwitch.isChecked()).apply();
+                preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY, ((CheckableItemsAdapter) notesRV.getAdapter()).getCheckedNotes())
+                        .putString(Constants.EDGE_NOTES_ORDER_KEY, ((EdgeAdapter) edgeRV.getAdapter()).getNotesOrder())
+                        .putBoolean(Constants.EDGE_IGNORE_TABS_KEY, ignoreTabsSwitch.isChecked())
+                        .putBoolean(Constants.EDGE_HIDE_CONTENT_KEY, hideContentOnLockScreenSwitch.isChecked()).apply();
 
             }
             Utils.updateAllEdgePanels(this);
@@ -247,16 +252,6 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
 
             holder.titleTV.setTextSize(titleSize);
             holder.contentTV.setTextSize(noteSize);
-
-//        holder.tile.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if(MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN){
-//                    listener.onStartDrag(holder);
-//                }
-//                return false;
-//            }
-//        });
         }
 
         public boolean onItemMove(int fromPosition, int toPosition) {
@@ -293,7 +288,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         }
 
         public static void reloadTextSize(){
-            EdgeAdapter.noteSize = preferences.getInt("TextSize", 10);
+            EdgeAdapter.noteSize = preferences.getInt(Constants.EDGE_TEXT_SIZE_KEY, 10);
             titleSize = 1.4f * noteSize;
         }
 
@@ -317,14 +312,6 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
                         return true;
                     }
                 });
-
-//            itemView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    checkedArray[getLayoutPosition()] = !checkedArray[getLayoutPosition()];
-//                    CheckableItemsAdapter.this.notifyItemChanged(getLayoutPosition());
-//                }
-//            });
             }
 
             public void onItemSelected(){
