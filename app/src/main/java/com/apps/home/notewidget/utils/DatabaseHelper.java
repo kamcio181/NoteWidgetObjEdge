@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     private Context context;
     private SearchNotes searchNotes;
 
@@ -84,26 +84,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             editor.putLong(Constants.TRASH_ID_KEY, db.insert(Constants.FOLDER_TABLE, null, values)).apply();
             Log.e("Helper", "trash ");
+        }
 
-            //db.close();
+        if(oldVersion <2) {
+            db.execSQL("ALTER TABLE " + Constants.NOTES_TABLE + " ADD COLUMN " + Constants.TYPE_COL + " INTEGER;");
 
-            /*Folder folder = new Folder(context.getString(R.string.my_notes), R.drawable.ic_nav_black_home);
-            createFolder(folder, new OnItemInsertListener() {
-                @Override
-                public void onItemInserted(long id) {
-                    editor.putLong(Constants.MY_NOTES_ID_KEY, id).apply();
-                    Log.e("Helper", "myNotes "+id);
-                }
-            });
-            folder = new Folder(context.getString(R.string.trash), R.drawable.ic_nav_black_trash);
-            createFolder(folder, new OnItemInsertListener() {
-                @Override
-                public void onItemInserted(long id) {
-                    editor.putLong(Constants.TRASH_ID_KEY, id).apply();
-                    Log.e("Helper", "trash " + id);
-                }
-            });*/
-            Log.e("Helper", "created");
+            ContentValues values = new ContentValues();
+            values.put(Constants.TYPE_COL, Constants.TYPE_NOTE);
+            updateNotesWithValueOnDemand(db, values);
         }
     }
 
@@ -157,6 +145,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void getNote(boolean includeDeleted, long noteId, OnNoteLoadListener listener){
         new GetNote(includeDeleted, noteId, listener).execute();
+    }
+
+    private long updateNotesWithValueOnDemand(SQLiteDatabase db, ContentValues contentValues){
+        try {
+
+            return db.update(Constants.NOTES_TABLE, contentValues, null, null);
+        }catch (SQLiteException e){
+            Log.e(TAG, ""+e);
+            return -1;
+        }
     }
 
     public Note getNoteOnDemand(boolean includeDeleted, long noteId){

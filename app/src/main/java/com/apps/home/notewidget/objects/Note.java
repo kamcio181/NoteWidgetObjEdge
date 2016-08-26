@@ -10,24 +10,27 @@ public class Note implements Serializable {
     private String note;
     private long folderId;
     private int deletedState;
+    private int type;
 
     public Note() {
     }
 
-    public Note(long id, long createdAt, String title, String note, long folderId, int deletedState) {
+    public Note(long id, long createdAt, String title, String note, long folderId, int deletedState, int type) {
         this.id = id;
         this.createdAt = createdAt;
         this.title = title;
         this.note = note;
         this.folderId = folderId;
         this.deletedState = deletedState;
+        this.type = type;
     }
 
-    public Note(long createdAt, String title, long folderId, int deletedState) {
+    public Note(long createdAt, String title, long folderId, int deletedState, int type) {
         this.createdAt = createdAt;
         this.title = title;
         this.folderId = folderId;
         this.deletedState = deletedState;
+        this.type = type;
     }
 
     public void setId(long id) {
@@ -54,6 +57,9 @@ public class Note implements Serializable {
         this.deletedState = deletedState;
     }
 
+    public void setType(int type) {
+        this.type = type; }
+
     public long getId() {
         return id;
     }
@@ -78,8 +84,11 @@ public class Note implements Serializable {
         return deletedState;
     }
 
+    public int getType() {
+        return type; }
+
     public String toString(){
         return "i: " + id + " ,c: " + createdAt + " ,t: " + title + " ,n: " + note + " ,f: "
-                + folderId + " ,d: " + deletedState;
+                + folderId + " ,d: " + deletedState + ", t: " + type;
     }
 }

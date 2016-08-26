@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:paddingLeft="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?android:attr/selectableItemBackground" >
+
+    <com.apps.home.notewidget.customviews.RobotoEditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText"
+        android:textSize="16sp"
+        android:textColor="#DD000000"
+        android:singleLine="true"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/imageView"
+        android:hint="New item" />
+
+    <ImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:id="@+id/imageView"
+        android:src="@drawable/ic_reorder_handle_grey"
+        android:layout_alignParentRight="true"
+        android:padding="16dp" />
+
+</RelativeLayout>

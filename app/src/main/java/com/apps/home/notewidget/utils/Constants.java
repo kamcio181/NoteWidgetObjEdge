@@ -9,8 +9,7 @@ public interface Constants {
     String NOTE_TEXT_COL = "noteText";
     String FOLDER_ID_COL = "folderId";
     String DELETED_COL = "deleted";
-    String ENCRYPTED_COL = "encrypted";
-    String SALT_COL = "salt";
+    String TYPE_COL = "type";
 
     String WIDGETS_TABLE = "WIDGETS";
     String WIDGET_ID_COL = "widgetId";
@@ -45,6 +44,7 @@ public interface Constants {
 
     String FRAGMENT_LIST = "ListFragment";
     String FRAGMENT_NOTE = "NoteFragment";
+    String FRAGMENT_LIST_NOTE = "ListNoteFragment";
     String FRAGMENT_TRASH_NOTE = "TrashNoteFragment";
     String FRAGMENT_SEARCH = "SearchFragment";
     String FRAGMENT_SETTINGS_LIST = "SettingsListFragment";
@@ -60,6 +60,14 @@ public interface Constants {
 
     int FALSE = 0;
     int TRUE = 1;
+
+    int HEADER_VIEW = 0;
+    int NEW_ITEM_VIEW = 1;
+    int ENABLED_ITEM_VIEW = 2;
+    int DISABLED_ITEM_VIEW = 3;
+
+    int TYPE_NOTE = 0;
+    int TYPE_LIST = 1;
 
     int READ_PERMISSION = 0;
     int WRITE_PERMISSION = 1;

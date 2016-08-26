@@ -646,11 +646,28 @@ public class MainActivity extends AppCompatActivity
             case R.id.fab:
                 switch (fragmentManager.findFragmentById(R.id.container).getTag()){
                     case Constants.FRAGMENT_LIST:
-                        attachFragment(Constants.FRAGMENT_NOTE, true);
+                        getNoteTypeDialog().show();
                         break;
                 }
                 break;
         }
+    }
+
+    private Dialog getNoteTypeDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        return builder.setItems(new CharSequence[]{"Note", "List"}, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        attachFragment(Constants.FRAGMENT_NOTE, true);
+                        break;
+                    case 1:
+                        attachFragment(Constants.FRAGMENT_LIST_NOTE, true);
+                        break;
+                }
+            }
+        }).create();
     }
 
     private void attachFragment(String fragment) {
@@ -682,9 +699,19 @@ public class MainActivity extends AppCompatActivity
                 setOnTitleClickListener(true);
                 if(isNew) {
                     note = new Note();
+                    note.setType(Constants.TYPE_NOTE);
                     note.setFolderId(folderId);
                 }
                 fragmentToAttach = NoteFragment.newInstance(isNew, note);
+                break;
+            case Constants.FRAGMENT_LIST_NOTE:
+                setOnTitleClickListener(true);
+                if(isNew){
+                    note = new Note();
+                    note.setType(Constants.TYPE_LIST);
+                    note.setFolderId(folderId);
+                }
+                fragmentToAttach = ListFragment.newInstance(isNew, note);
                 break;
             case Constants.FRAGMENT_TRASH_NOTE:
                 setOnTitleClickListener(false);
@@ -711,8 +738,10 @@ public class MainActivity extends AppCompatActivity
         if(!longClick) {
             if (folderId != trashNavId)
                 attachFragment(Constants.FRAGMENT_NOTE, false);
-            else
+            else if (note.getType() == Constants.TYPE_NOTE)
                 attachFragment(Constants.FRAGMENT_TRASH_NOTE);
+            else
+                attachFragment(Constants.FRAGMENT_LIST_NOTE);//TODO
         } else {
             getNoteActionDialog().show();
         }
@@ -725,8 +754,10 @@ public class MainActivity extends AppCompatActivity
         this.note = note;
         if(note.getDeletedState() == Constants.TRUE)
             attachFragment(Constants.FRAGMENT_TRASH_NOTE, false);
-        else
+        else if (note.getType() == Constants.TYPE_NOTE)
             attachFragment(Constants.FRAGMENT_NOTE);
+        else
+            attachFragment(Constants.FRAGMENT_LIST_NOTE);//TODO
     }
 
     @Override

@@ -148,7 +148,7 @@ public class EdgePanelProvider extends SlookCocktailProvider {
                 //setting an empty view in case of no data
                 remoteViews.setEmptyView(R.id.listView, R.id.noteTextView);
             }
-            cocktailManager.updateCocktail(id, remoteViews);
+            cocktailManager.updateCocktail(id, remoteViews); //TODO help info
         }
     }
 
