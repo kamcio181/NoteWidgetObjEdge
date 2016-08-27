@@ -3,20 +3,27 @@ package com.apps.home.notewidget;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Html;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
@@ -25,6 +32,10 @@ import com.apps.home.notewidget.objects.ShoppingListItem;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
+import com.apps.home.notewidget.utils.ItemTouchHelperAdapter;
+import com.apps.home.notewidget.utils.ItemTouchHelperViewHolder;
+import com.apps.home.notewidget.utils.OnStartDragListener;
+import com.apps.home.notewidget.utils.SimpleItemTouchHelperCallback;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
@@ -47,6 +58,7 @@ public class ListFragment extends Fragment{
     private Note note;
     private DatabaseHelper helper;
     private ActionBar actionBar;
+    private ItemTouchHelper itemTouchHelper;
 
 
     public ListFragment() {
@@ -93,7 +105,7 @@ public class ListFragment extends Fragment{
 
         recyclerView = (RecyclerView) view;
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
-        recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
+//        recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
         recyclerView.setHasFixedSize(true);
 
 
@@ -114,10 +126,10 @@ public class ListFragment extends Fragment{
             itemList.add(new ShoppingListItem(null, Constants.NEW_ITEM_VIEW));
             itemList.add(new ShoppingListItem("Items bought", Constants.HEADER_VIEW));
 
-            recyclerView.setAdapter(new ListRecyclerAdapter(itemList, 0, new ListRecyclerAdapter.OnItemClickListener() {
+            recyclerView.setAdapter(new ListRecyclerAdapter(itemList, 0, new OnStartDragListener() {
                 @Override
-                public void onItemClick(View view, int position, boolean longClick) {
-                    //TODO
+                public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+                    itemTouchHelper.startDrag(viewHolder);
                 }
             }));
         } else {
@@ -141,14 +153,17 @@ public class ListFragment extends Fragment{
             }
 
             recyclerView.setAdapter(new ListRecyclerAdapter(itemList, toBuyNumberOfItems,
-                    new ListRecyclerAdapter.OnItemClickListener() {
+                    new OnStartDragListener() {
                 @Override
-                public void onItemClick(View view, int position, boolean longClick) {
-
+                public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+                    itemTouchHelper.startDrag(viewHolder);
                 }
-            })); //TODO
+            }));
         }
 
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback((ItemTouchHelperAdapter) recyclerView.getAdapter());
+        itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
 
         setTitleAndSubtitle();
     }
@@ -273,18 +288,21 @@ public class ListFragment extends Fragment{
 //    }
 }
 
-class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder> {
-    private static OnItemClickListener listener;
+class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder>
+        implements ItemTouchHelperAdapter{
+    private OnStartDragListener listener;
     private ArrayList<ShoppingListItem> items;
     private int activeItemsCount;
 
-
-    public interface OnItemClickListener{
-        void onItemClick(View view, int position, boolean longClick);
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition) {
+        Collections.swap(items, fromPosition, toPosition);
+        notifyDataSetChanged();
+        return true;
     }
 
     public ListRecyclerAdapter(ArrayList<ShoppingListItem> items, int activeItemsCount,
-                               OnItemClickListener listener) {
+                               OnStartDragListener listener) {
         this.items = items;
         this.activeItemsCount = activeItemsCount;
         this.listener = listener;
@@ -296,13 +314,19 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 //        notifyDataSetChanged();
 //    }
 
+
+
     @Override
     public SingleLineWithHandleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = new View(parent.getContext());
         switch (viewType){
             case Constants.DISABLED_ITEM_VIEW:
+                Log.e("ListFragment", "Disabled item");
+                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_line_disabled_recycler_view_item, parent, false);
+
+                break;
             case Constants.ENABLED_ITEM_VIEW:
-                Log.e("ListFragment", "Normal item");
+                Log.e("ListFragment", "Enabled item");
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_line_with_handle_recycle_view_item, parent, false);
                     break;
             case Constants.HEADER_VIEW:
@@ -322,14 +346,16 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     public void onBindViewHolder(SingleLineWithHandleViewHolder holder, int position) {
         switch (holder.getItemViewType()){
             case Constants.DISABLED_ITEM_VIEW:
+                onBindDisabledItemViewHolder(holder, position);
+                break;
             case Constants.ENABLED_ITEM_VIEW:
-                onBindItemViewHolder(holder, position);
+                onBindEnabledItemViewHolder(holder, position);
                 break;
             case Constants.HEADER_VIEW:
                 onBindHeaderViewHolder(holder, position);
                 break;
             case Constants.NEW_ITEM_VIEW:
-                onBindNewItemViewHolder(holder, position);
+                onBindNewItemViewHolder(holder);
                 break;
         }
     }
@@ -338,39 +364,92 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         holder.header.setText(items.get(position).getContent());
     }
 
-    private void onBindNewItemViewHolder(final SingleLineWithHandleViewHolder holder, int position){
+    private void onBindNewItemViewHolder(final SingleLineWithHandleViewHolder holder){
         holder.confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(holder.newItemEditText.getText().toString().length() >0){
-                    items.add(activeItemsCount + 1, new ShoppingListItem(holder.newItemEditText.getText().toString(), Constants.ENABLED_ITEM_VIEW)); //+1 because header is 1st item
-                    holder.newItemEditText.setText("");
-                    notifyItemInserted(activeItemsCount);
-                    activeItemsCount++;
+                    insertItem(holder);
                 }
             }
         });
+        holder.newItemEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_GO) {
+                    if(holder.newItemEditText.getText().toString().length() > 0){
+                        insertItem(holder);
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+
+//        holder.newItemEditText.setOnKeyListener(new View.OnKeyListener() {
+//            @Override
+//            public boolean onKey(View v, int keyCode, KeyEvent event) {
+//                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN && holder.newItemEditText.getText().toString().length() > 0) {
+//                    insertItem(holder);
+//                }
+//                return true;
+//            }
+//        });
     }
 
-    private void onBindItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
+    private void insertItem(SingleLineWithHandleViewHolder holder){
+        items.add(activeItemsCount + 1, new ShoppingListItem(holder.newItemEditText.getText().toString(), Constants.ENABLED_ITEM_VIEW)); //+1 because header is 1st item
+        holder.newItemEditText.setText("");
+        activeItemsCount++;
+        notifyDataSetChanged();
+    }
+
+    private void onBindEnabledItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
         holder.titleTextView.setText(items.get(position).getContent());
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(holder.getItemViewType() == Constants.ENABLED_ITEM_VIEW){
-                    items.get(position).setViewType(Constants.DISABLED_ITEM_VIEW);
-                    items.add(items.remove(position)); //TODO
-                    activeItemsCount--;
-                    notifyItemMoved(position, items.size()-1);
-                } else {
-                    items.get(position).setViewType(Constants.ENABLED_ITEM_VIEW);
-                    items.add(activeItemsCount, items.remove(position));
-                    activeItemsCount++;
-                    notifyItemMoved(position, activeItemsCount-1);
-                }
+                Log.e("adapter", "position " +position);
+                items.get(position).setViewType(Constants.DISABLED_ITEM_VIEW);
+                ShoppingListItem item = items.remove(position);
+                items.add(item);
+                activeItemsCount--;
+                notifyDataSetChanged();
             }
         });
+
+        holder.handle.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (MotionEventCompat.getActionMasked(event) ==
+                        MotionEvent.ACTION_DOWN) {
+                    if(listener != null)
+                        listener.onStartDrag(holder);
+                }
+                return false;
+            }
+        });
+    }
+
+    private void onBindDisabledItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
+        holder.titleTextView.setText(items.get(position).getContent());
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("adapter", "position " +position);
+
+                items.get(position).setViewType(Constants.ENABLED_ITEM_VIEW);
+                items.add(activeItemsCount+1, items.remove(position));
+                activeItemsCount++;
+                notifyDataSetChanged();
+            }
+        });
+
+        if(position == items.size()-1)
+            holder.divider.setVisibility(View.GONE);
+        else
+            holder.divider.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -383,9 +462,9 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         return items.get(position).getViewType();
     }
 
-    static class SingleLineWithHandleViewHolder extends RecyclerView.ViewHolder{
+    static class SingleLineWithHandleViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder {
         public RobotoTextView titleTextView, header;
-        public ImageView handle, confirm;
+        public ImageView handle, confirm, divider;
         public RobotoEditText newItemEditText;
 
         public SingleLineWithHandleViewHolder(final View itemView){
@@ -413,6 +492,17 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             header = (RobotoTextView) itemView.findViewById(R.id.textView);
             newItemEditText = (RobotoEditText) itemView.findViewById(R.id.editText);
             confirm = (ImageView) itemView.findViewById(R.id.imageView);
+            divider = (ImageView) itemView.findViewById(R.id.imageView3);
+        }
+
+        @Override
+        public void onItemSelected() {
+            itemView.setBackgroundColor(Color.CYAN);
+        }
+
+        @Override
+        public void onItemClear() {
+            itemView.setBackgroundColor(0);
         }
     }
 

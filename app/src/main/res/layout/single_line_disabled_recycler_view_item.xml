@@ -6,26 +6,17 @@
     android:focusable="true"
     android:background="?android:attr/selectableItemBackground" >
 
-    <com.apps.home.notewidget.customviews.RobotoEditText
+    <com.apps.home.notewidget.customviews.RobotoTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
+        android:text="Medium Text"
+        android:id="@+id/textView2"
         android:textSize="16sp"
-        android:textColor="#DD000000"
+        android:textColor="@color/colorAccent"
         android:singleLine="true"
         android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/imageView"
-        android:hint="New item"
         android:layout_marginLeft="16dp"
-        android:imeOptions="actionGo" />
-
-    <ImageView
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:id="@+id/imageView"
-        android:src="@drawable/ic_add_item_grey"
-        android:layout_alignParentRight="true"
-        android:padding="16dp" />
+        android:layout_marginRight="16dp" />
 
     <ImageView
         android:layout_width="match_parent"

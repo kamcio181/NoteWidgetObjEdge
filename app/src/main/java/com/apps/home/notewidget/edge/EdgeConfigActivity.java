@@ -29,6 +29,7 @@ import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
 import com.apps.home.notewidget.utils.ItemTouchHelperAdapter;
 import com.apps.home.notewidget.utils.ItemTouchHelperViewHolder;
+import com.apps.home.notewidget.utils.OnStartDragListener;
 import com.apps.home.notewidget.utils.SimpleItemTouchHelperCallback;
 import com.apps.home.notewidget.utils.Utils;
 
@@ -77,7 +78,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
                     edgeRV.setLayoutManager(new LinearLayoutManager(EdgeConfigActivity.this));
                     edgeRV.addItemDecoration(new DividerItemDecoration(EdgeConfigActivity.this, DividerItemDecoration.VERTICAL_LIST));
                     edgeRV.setHasFixedSize(true);
-                    edgeRV.setAdapter(new EdgeAdapter(orderedList, ignoreTabs, preferences.getInt(Constants.EDGE_TEXT_SIZE_KEY, 10), new EdgeAdapter.OnStartDragListener() {
+                    edgeRV.setAdapter(new EdgeAdapter(orderedList, ignoreTabs, preferences.getInt(Constants.EDGE_TEXT_SIZE_KEY, 10), new OnStartDragListener() {
                         @Override
                         public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
                             itemTouchHelper.startDrag(viewHolder);
@@ -230,11 +231,6 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         private static OnStartDragListener listener;
         private static float noteSize;
         private static float titleSize;
-
-        public interface OnStartDragListener{
-            void onStartDrag(RecyclerView.ViewHolder viewHolder);
-        }
-
 
         public EdgeAdapter(ArrayList<Note> notes, boolean ignoreTabs, float noteSize, OnStartDragListener listener) {//checked format ";int;int;int;"
             EdgeAdapter.notes = notes;
