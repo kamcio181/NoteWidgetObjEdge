@@ -32,10 +32,13 @@ import com.apps.home.notewidget.objects.ShoppingListItem;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
+import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.ItemTouchHelperAdapter;
 import com.apps.home.notewidget.utils.ItemTouchHelperViewHolder;
+import com.apps.home.notewidget.utils.NoteUpdateListener;
 import com.apps.home.notewidget.utils.OnStartDragListener;
 import com.apps.home.notewidget.utils.SimpleItemTouchHelperCallback;
+import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
@@ -44,7 +47,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 
-public class ListFragment extends Fragment{
+public class ListFragment extends Fragment implements TitleChangeListener, NoteUpdateListener, FolderChangeListener{
     private static final String TAG = "ListFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -133,32 +136,7 @@ public class ListFragment extends Fragment{
                 }
             }));
         } else {
-            String content = note.getNote();
-            int toBuyNumberOfItems = Integer.parseInt(content.substring(0, content.indexOf("<br/>")));
-            ArrayList<String> items = new ArrayList<>();
-            items.addAll(Arrays.asList(content.split("<br/>")));
-            items.remove(0);
-
-            ArrayList<ShoppingListItem> itemList = new ArrayList<>(items.size()+3);
-
-            itemList.add(new ShoppingListItem("Items to buy", Constants.HEADER_VIEW));
-            for (int i = 0; i<toBuyNumberOfItems; i++){
-                itemList.add(new ShoppingListItem(items.get(i), Constants.ENABLED_ITEM_VIEW));
-            }
-            itemList.add(new ShoppingListItem(null, Constants.NEW_ITEM_VIEW));
-            itemList.add(new ShoppingListItem("Items bought", Constants.HEADER_VIEW));
-
-            for (int i = toBuyNumberOfItems; i<items.size(); i++){
-                itemList.add(new ShoppingListItem(items.get(i), Constants.DISABLED_ITEM_VIEW));
-            }
-
-            recyclerView.setAdapter(new ListRecyclerAdapter(itemList, toBuyNumberOfItems,
-                    new OnStartDragListener() {
-                @Override
-                public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
-                    itemTouchHelper.startDrag(viewHolder);
-                }
-            }));
+            setRecyclerViewItems();
         }
 
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback((ItemTouchHelperAdapter) recyclerView.getAdapter());
@@ -168,16 +146,43 @@ public class ListFragment extends Fragment{
         setTitleAndSubtitle();
     }
 
+    private void setRecyclerViewItems(){
+        String content = note.getNote();
+        int activeItemsCount = Integer.parseInt(content.substring(0, content.indexOf("<br/>")));
+        ArrayList<String> items = new ArrayList<>();
+        items.addAll(Arrays.asList(content.split("<br/>")));
+        items.remove(0);
+
+        ArrayList<ShoppingListItem> itemList = new ArrayList<>(items.size()+3);
+
+        itemList.add(new ShoppingListItem("Items to buy", Constants.HEADER_VIEW));
+        for (int i = 0; i<activeItemsCount; i++){
+            itemList.add(new ShoppingListItem(items.get(i), Constants.ENABLED_ITEM_VIEW));
+        }
+        itemList.add(new ShoppingListItem(null, Constants.NEW_ITEM_VIEW));
+        itemList.add(new ShoppingListItem("Items bought", Constants.HEADER_VIEW));
+
+        for (int i = activeItemsCount; i<items.size(); i++){
+            itemList.add(new ShoppingListItem(items.get(i), Constants.DISABLED_ITEM_VIEW));
+        }
+
+        if(recyclerView.getAdapter() == null)
+            recyclerView.setAdapter(new ListRecyclerAdapter(itemList, activeItemsCount,
+                    new OnStartDragListener() {
+                        @Override
+                        public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+                            itemTouchHelper.startDrag(viewHolder);
+                        }
+                    }));
+        else
+            ((ListRecyclerAdapter)recyclerView.getAdapter()).setItems(itemList, activeItemsCount);
+    }
+
 //    public void updateNoteTextSize(){ //TODO tile size
 //        noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
 //                context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
 //    }
 
-//    public void setNote(Note note){
-//        this.note = note;
-//        noteEditText.setText(Html.fromHtml(note.getNote()));
-//        actionBar.setTitle(note.getTitle());
-//    }
 
     private void setTitleAndSubtitle(){
         actionBar = ((AppCompatActivity) context).getSupportActionBar();
@@ -190,14 +195,14 @@ public class ListFragment extends Fragment{
         }
     }
 
-//    @Override
-//    public void onStop() {
-//        super.onStop();
-//        Log.e(TAG, "Stop");
-//        if(!skipSaving){
-//            saveNote(false);
-//        }
-//    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.e(TAG, "Stop");
+        if(!skipSaving){
+            saveList(false);
+        }
+    }
 
     @Override
     public void onDetach() {
@@ -211,41 +216,52 @@ public class ListFragment extends Fragment{
         Log.e(TAG, "onDestroy");
     }
 
+    @Override
+    public void onTitleChanged(String newTitle) {
+        note.setTitle(newTitle);
+    }
+
+    @Override
+    public void onNoteUpdate(Note newNote) {
+        this.note = newNote;
+        setRecyclerViewItems();
+        actionBar.setTitle(note.getTitle());
+    }
 
 
-//    public void saveNote(final boolean quit){
-//        Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
-//        if(isNewNote) {
-//            note.setNote(noteEditText.getText().toString());
-//            helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
-//                @Override
-//                public void onItemInserted(long id) {
-//                    note.setId(id);
-//                    isNewNote = false;
-//                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
-////                    Utils.updateConnectedWidgets(context, note.getId());
-////                    Utils.updateAllEdgePanels(context);
-//                    if(quit)
-//                        ((AppCompatActivity)context).onBackPressed();
-//                }
-//            });
-//        } else{
-//            note.setNote(noteEditText.getText().toString());
-//            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
-//                @Override
-//                public void onItemUpdated(int numberOfRows) {
-//                    Utils.updateConnectedWidgets(context, note.getId());
-//                    Utils.updateAllEdgePanels(context);
-//                    if(quit)
-//                        ((AppCompatActivity)context).onBackPressed();
-//                }
-//            });
-//        }
-//    }
+    public void saveList(final boolean quit){
+        Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
+        note.setNote(((ListRecyclerAdapter)recyclerView.getAdapter()).getStringFromList());
+        if(isNewNote) {
 
-//    public void setFolderId(int folderId) {
-//        note.setFolderId(folderId);
-//    }
+            helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
+                @Override
+                public void onItemInserted(long id) {
+                    note.setId(id);
+                    isNewNote = false;
+                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
+
+                    if(quit)
+                        ((AppCompatActivity)context).onBackPressed();
+                }
+            });
+        } else{
+            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
+                @Override
+                public void onItemUpdated(int numberOfRows) {
+                    Utils.updateConnectedWidgets(context, note.getId());
+                    Utils.updateAllEdgePanels(context);
+                    if(quit)
+                        ((AppCompatActivity)context).onBackPressed();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onFolderChanged(int newFolderId) {
+        note.setFolderId(newFolderId);
+    }
 //
 //    public void deleteNote() {
 //        skipSaving = true;
@@ -276,9 +292,6 @@ public class ListFragment extends Fragment{
 //        ((AppCompatActivity)context).onBackPressed();
 //    }
 //
-//    public void titleChanged(String title) {
-//        note.setTitle(title);
-//    }
 //
 //    public String getNoteText(){
 //        if(noteEditText.getText().length() == 0) {
@@ -290,6 +303,7 @@ public class ListFragment extends Fragment{
 
 class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder>
         implements ItemTouchHelperAdapter{
+    private static final String TAG = "ListRecyclerAdapter";
     private OnStartDragListener listener;
     private ArrayList<ShoppingListItem> items;
     private int activeItemsCount;
@@ -309,12 +323,11 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         setHasStableIds(true);
     }
 
-//    public void setNotes(ArrayList<Note> notes){
-//        this.notes = notes;
-//        notifyDataSetChanged();
-//    }
-
-
+    public void setItems(ArrayList<ShoppingListItem> items, int activeItemsCount){
+        this.items = items;
+        this.activeItemsCount = activeItemsCount;
+        notifyDataSetChanged();
+    }
 
     @Override
     public SingleLineWithHandleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -384,16 +397,6 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
                 return false;
             }
         });
-
-//        holder.newItemEditText.setOnKeyListener(new View.OnKeyListener() {
-//            @Override
-//            public boolean onKey(View v, int keyCode, KeyEvent event) {
-//                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN && holder.newItemEditText.getText().toString().length() > 0) {
-//                    insertItem(holder);
-//                }
-//                return true;
-//            }
-//        });
     }
 
     private void insertItem(SingleLineWithHandleViewHolder holder){
@@ -511,8 +514,15 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         return items.get(position).getId();
     }
 
-    public int getActiveItemsCount() {
-        return activeItemsCount;
+    public String getStringFromList() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(activeItemsCount).append("<br/>");
+        for (int i = 1; i < activeItemsCount + 1; i++)
+            builder.append(items.get(i).getContent()).append("<br/>");
+        for (int i = activeItemsCount + 3; i < items.size(); i++)
+            builder.append(items.get(i).getContent()).append("<br/>");
+        Log.e(TAG, "items " + builder.toString());
+        return builder.toString();
     }
 }
 

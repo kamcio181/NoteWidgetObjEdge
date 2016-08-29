@@ -42,9 +42,9 @@ public interface Constants {
     String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";
     String NOTE_TEXT_SIZE_UPDATED = "noteTextSizeUpdated";
 
-    String FRAGMENT_LIST = "ListFragment";
+    String FRAGMENT_FOLDER = "ListFragment";
     String FRAGMENT_NOTE = "NoteFragment";
-    String FRAGMENT_LIST_NOTE = "ListNoteFragment";
+    String FRAGMENT_LIST = "ListNoteFragment";
     String FRAGMENT_TRASH_NOTE = "TrashNoteFragment";
     String FRAGMENT_SEARCH = "SearchFragment";
     String FRAGMENT_SETTINGS_LIST = "SettingsListFragment";

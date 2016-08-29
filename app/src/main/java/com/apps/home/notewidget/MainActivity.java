@@ -32,13 +32,16 @@ import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.FolderChangeListener;
+import com.apps.home.notewidget.utils.NoteUpdateListener;
+import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, NoteListFragment.OnItemClickListener,
+        implements NavigationView.OnNavigationItemSelectedListener, FolderFragment.OnNoteClickListener,
         View.OnClickListener, SearchFragment.OnItemClickListener{
     private static final String TAG = "MainActivity";
     private Context context;
@@ -72,11 +75,6 @@ public class MainActivity extends AppCompatActivity
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
         helper = new DatabaseHelper(this);
         setResetExitFlagRunnable();
-
-//        progressDialog = new ProgressDialog(this);
-//        progressDialog.setMessage("Loading");
-//        progressDialog.setIndeterminate(true);
-//        progressDialog.show();
 
         myNotesNavId = (int) Utils.getMyNotesNavId(this);
         Log.e(TAG, "my notes id " + myNotesNavId);
@@ -117,7 +115,7 @@ public class MainActivity extends AppCompatActivity
 
     private void reloadMainActivityAfterRestore(){
         folderId = myNotesNavId;
-        attachFragment(Constants.FRAGMENT_LIST);
+        attachFragment(Constants.FRAGMENT_FOLDER);
         loadNavViewItems();
     }
 
@@ -130,16 +128,17 @@ public class MainActivity extends AppCompatActivity
         } else {
             switch (attachedFragment) {
                 case Constants.FRAGMENT_NOTE:
+                case Constants.FRAGMENT_LIST:
                 case Constants.FRAGMENT_TRASH_NOTE:
                     if(textToFind.length()==0)
-                        attachFragment(Constants.FRAGMENT_LIST);
+                        attachFragment(Constants.FRAGMENT_FOLDER);
                     else
                         attachFragment(Constants.FRAGMENT_SEARCH);
                     break;
                 case Constants.FRAGMENT_SEARCH:
-                    attachFragment(Constants.FRAGMENT_LIST);
+                    attachFragment(Constants.FRAGMENT_FOLDER);
                     break;
-                case Constants.FRAGMENT_LIST:
+                case Constants.FRAGMENT_FOLDER:
                     if(!exit){
                         exit = true;
                         handler.postDelayed(exitRunnable, 5000);
@@ -170,7 +169,7 @@ public class MainActivity extends AppCompatActivity
                 case Constants.FRAGMENT_SEARCH:
                     getMenuInflater().inflate(R.menu.menu_empty, menu);
                     break;
-                case Constants.FRAGMENT_LIST:
+                case Constants.FRAGMENT_FOLDER:
                     if (folderId == myNotesNavId)
                         getMenuInflater().inflate(R.menu.menu_my_notes_list, menu);
                     else if (folderId == trashNavId)
@@ -180,6 +179,9 @@ public class MainActivity extends AppCompatActivity
                     break;
                 case Constants.FRAGMENT_NOTE:
                     getMenuInflater().inflate(R.menu.menu_note, menu);
+                    break;
+                case Constants.FRAGMENT_LIST:
+                    //TODO note + some actions from original app
                     break;
                 case Constants.FRAGMENT_TRASH_NOTE:
                     getMenuInflater().inflate(R.menu.menu_note_trash, menu);
@@ -247,7 +249,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setOrderType(Boolean orderByDate){
-        ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).setSortByDate(orderByDate);
+        ((FolderFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).setSortByDate(orderByDate);
     }
 
     public void loadNavViewItems(){
@@ -259,8 +261,6 @@ public class MainActivity extends AppCompatActivity
                     Log.e(TAG, "folders got");
                     addFolderToNavView(folders);
                 }
-//                else
-//                    progressDialog.dismiss();
             }
         });
     }
@@ -297,13 +297,11 @@ public class MainActivity extends AppCompatActivity
         exit = false;
         handler.removeCallbacks(exitRunnable);
         Log.e(TAG, "Stop");
-        /*if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-            ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).saveNote(false);*/
     }
 
     private void openFolderWithNotes(int id){
         folderId = id;
-        attachFragment(Constants.FRAGMENT_LIST);
+        attachFragment(Constants.FRAGMENT_FOLDER);
         navigationView.setCheckedItem(folderId);
     }
 
@@ -325,7 +323,7 @@ public class MainActivity extends AppCompatActivity
                             }
                             Utils.showToast(context, getString(R.string.all_notes_were_restored));
 
-                            ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).clearRecyclerViewAdapter();
+                            ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).clearRecyclerViewAdapter();
                         }
                     }
                 });
@@ -337,7 +335,7 @@ public class MainActivity extends AppCompatActivity
                                 Utils.setFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 0); //Set count to 0 for trash
                                 Utils.showToast(context, getString(R.string.all_notes_were_removed));
 
-                                ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).clearRecyclerViewAdapter();
+                                ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).clearRecyclerViewAdapter();
                             }
                         }
                     });
@@ -363,8 +361,8 @@ public class MainActivity extends AppCompatActivity
                                 Utils.updateAllEdgePanels(context);
                                 Utils.incrementFolderCount(getNavigationViewMenu(), (int) note.getFolderId(), 1);
 
-                                if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
-                                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null) {
+                                    ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
                                 } else if (actionBarMenuItemClicked) {
                                     onBackPressed();
                                 }
@@ -380,8 +378,8 @@ public class MainActivity extends AppCompatActivity
 
                                 Utils.showToast(context, context.getString(R.string.note_was_removed));
 
-                                if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null) {
-                                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null) {
+                                    ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
                                 } else if (actionBarMenuItemClicked) {
                                     onBackPressed();
                                 }
@@ -436,19 +434,21 @@ public class MainActivity extends AppCompatActivity
                             Utils.decrementFolderCount(menu, folderId, 1);
 
                             if (actionBarMenuItemClicked) {
-                                //Change folder id for note which is currently visible
-                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-                                    ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).setFolderId((int) note.getFolderId());
-
                                 //Update current folderId for folder fragment displayed onBackPressed
                                 folderId = (int) note.getFolderId();
                                 navigationView.setCheckedItem(folderId);
+
+                                //Change folder id for note which is currently visible
+                                Fragment fragment = fragmentManager.findFragmentById(R.id.container);
+                                String fragmentTag = fragment.getTag();
+                                if (fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST))
+                                    ((FolderChangeListener) fragment).onFolderChanged(folderId);
                             } else {
-                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
-                                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
+                                    ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
                             }
                         } else
-                            note.setFolderId(folderId);
+                            note.setFolderId(folderId); //TODO if this is needed?
                     }
                 });
             }
@@ -467,7 +467,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 Utils.getNameDialog(context, actionBar.getTitle().toString(),
-                        fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null ? getString(R.string.set_note_title) : getString(R.string.set_folder_name),
+                        fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null ? getString(R.string.set_folder_name) : getString(R.string.set_note_title),
                         new Utils.OnNameSet() {
                             @Override
                             public void onNameSet(String name) {
@@ -493,11 +493,11 @@ public class MainActivity extends AppCompatActivity
                     switch (which){
                         case 0:
                             //open
-                            onItemClicked(note, false);
+                            onNoteClicked(note, false);
                             break;
                         case 1:
                             //share
-                            Utils.sendShareIntent(context, Html.fromHtml(note.getNote()).toString(), note.getTitle());
+                            Utils.sendShareIntent(context, Html.fromHtml(note.getNote()).toString(), note.getTitle()); //TODO pass only active items from list
                             break;
                         case 2:
                             //move to other folder
@@ -518,8 +518,8 @@ public class MainActivity extends AppCompatActivity
                                         Menu menu = getNavigationViewMenu();
                                         Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
                                         Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
-                                        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
-                                            ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
+                                        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
+                                            ((FolderFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
                                     }
                                 }
                             });
@@ -600,7 +600,7 @@ public class MainActivity extends AppCompatActivity
 
         navigationView.setCheckedItem(folderId);
         Log.e(TAG, "menu created");
-        attachFragment(Constants.FRAGMENT_LIST);
+        attachFragment(Constants.FRAGMENT_FOLDER);
     }
 
     private void addMenuCustomItem(Menu m, int id, int order, String name, int icon, int count){
@@ -621,12 +621,11 @@ public class MainActivity extends AppCompatActivity
 	private void setNoteTitleOrFolderName(String title){
 		title = setTitle(title);
 
-        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null) // Note fragment is displayed
-            ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).titleChanged(title);
-        else if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null){
-            ((NoteListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).titleChanged(title);
-            navigationView.getMenu().findItem(folderId).setTitle(title);
-        }
+        Fragment fragment = fragmentManager.findFragmentById(R.id.container);
+        String fragmentTag = fragment.getTag();
+        if(fragmentTag.equals(Constants.FRAGMENT_FOLDER) || fragmentTag.equals(Constants.FRAGMENT_NOTE)
+                || fragmentTag.equals(Constants.FRAGMENT_LIST))
+            ((TitleChangeListener)fragment).onTitleChanged(title);
 	}
 
     private String setTitle(String title){
@@ -645,7 +644,7 @@ public class MainActivity extends AppCompatActivity
         switch(v.getId()){
             case R.id.fab:
                 switch (fragmentManager.findFragmentById(R.id.container).getTag()){
-                    case Constants.FRAGMENT_LIST:
+                    case Constants.FRAGMENT_FOLDER:
                         getNoteTypeDialog().show();
                         break;
                 }
@@ -663,7 +662,7 @@ public class MainActivity extends AppCompatActivity
                         attachFragment(Constants.FRAGMENT_NOTE, true);
                         break;
                     case 1:
-                        attachFragment(Constants.FRAGMENT_LIST_NOTE, true);
+                        attachFragment(Constants.FRAGMENT_LIST, true);
                         break;
                 }
             }
@@ -678,11 +677,11 @@ public class MainActivity extends AppCompatActivity
         Fragment fragmentToAttach = null;
         boolean fabVisible = false;
         switch (fragment){
-            case Constants.FRAGMENT_LIST:
+            case Constants.FRAGMENT_FOLDER:
                 textToFind = "";
                 for (Folder f : folders){
                     if(folderId == f.getId()){
-                        fragmentToAttach = NoteListFragment.newInstance(f);
+                        fragmentToAttach = FolderFragment.newInstance(f);
                         break;
                     }
                 }
@@ -704,7 +703,8 @@ public class MainActivity extends AppCompatActivity
                 }
                 fragmentToAttach = NoteFragment.newInstance(isNew, note);
                 break;
-            case Constants.FRAGMENT_LIST_NOTE:
+            case Constants.FRAGMENT_LIST:
+                Log.e(TAG, "LIST FRAGMENT");
                 setOnTitleClickListener(true);
                 if(isNew){
                     note = new Note();
@@ -731,17 +731,17 @@ public class MainActivity extends AppCompatActivity
             fab.hide();
     }
 
-    //Interface from NoteListFragment
+    //Interface from FolderFragment
     @Override
-    public void onItemClicked(Note note, boolean longClick) {
+    public void onNoteClicked(Note note, boolean longClick) {
         this.note = note;
         if(!longClick) {
-            if (folderId != trashNavId)
-                attachFragment(Constants.FRAGMENT_NOTE, false);
-            else if (note.getType() == Constants.TYPE_NOTE)
+            if (folderId == trashNavId)
                 attachFragment(Constants.FRAGMENT_TRASH_NOTE);
-            else
-                attachFragment(Constants.FRAGMENT_LIST_NOTE);//TODO
+            else if (note.getType() == Constants.TYPE_NOTE)
+                attachFragment(Constants.FRAGMENT_NOTE);
+            else if (note.getType() == Constants.TYPE_LIST)
+                attachFragment(Constants.FRAGMENT_LIST);//TODO
         } else {
             getNoteActionDialog().show();
         }
@@ -756,8 +756,8 @@ public class MainActivity extends AppCompatActivity
             attachFragment(Constants.FRAGMENT_TRASH_NOTE, false);
         else if (note.getType() == Constants.TYPE_NOTE)
             attachFragment(Constants.FRAGMENT_NOTE);
-        else
-            attachFragment(Constants.FRAGMENT_LIST_NOTE);//TODO
+        else if (note.getType() == Constants.TYPE_LIST)
+            attachFragment(Constants.FRAGMENT_LIST);//TODO
     }
 
     @Override
@@ -766,25 +766,27 @@ public class MainActivity extends AppCompatActivity
         if(preferences.getBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, false))
             reloadMainActivityAfterRestore();
         else {
+            final Fragment fragment = fragmentManager.findFragmentById(R.id.container);
+            String fragmentTag = fragment.getTag();
             if (preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
-                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null){
+                if(fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST)){
                     helper.getNote(false, note.getId(), new DatabaseHelper.OnNoteLoadListener() { //TODO common with trash
                         @Override
                         public void onNoteLoaded(Note note) {
                             if(note != null){
                                 MainActivity.this.note = note;
-                                ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).setNote(note);
+                                ((NoteUpdateListener)fragment).onNoteUpdate(note);
                             }
                         }
                     });
                 }
-                else if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST) != null)
-                    ((NoteListFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).reloadList();
-                preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply();
+                else if (fragmentTag.equals(Constants.FRAGMENT_FOLDER))
+                    ((FolderFragment)fragment).reloadList();
+                preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply(); //TODO use receivers
             }
             if (preferences.getBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false)) {
-                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null)
-                    ((NoteFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).updateNoteTextSize();
+                if (fragmentTag.equals(Constants.FRAGMENT_NOTE))
+                    ((NoteFragment) fragment).updateNoteTextSize();
                 preferences.edit().putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false).apply();
             }
         }
@@ -793,8 +795,4 @@ public class MainActivity extends AppCompatActivity
     public Menu getNavigationViewMenu() {
         return navigationView.getMenu();
     }
-
-//    public ProgressDialog getProgressDialog() {
-//        return progressDialog;
-//    }
 }

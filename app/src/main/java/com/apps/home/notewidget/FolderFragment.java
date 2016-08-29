@@ -1,6 +1,5 @@
 package com.apps.home.notewidget;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -9,7 +8,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +18,7 @@ import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
+import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
@@ -27,11 +26,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class NoteListFragment extends Fragment {
-    private static final String TAG = "NoteListFragment";
+public class FolderFragment extends Fragment implements TitleChangeListener{
+    private static final String TAG = "FolderFragment";
     private static final String ARG_PARAM1 = "param1";
     private RecyclerView recyclerView;
-    private OnItemClickListener mListener;
+    private OnNoteClickListener mListener;
     private boolean sortByDate;
     private SharedPreferences preferences;
     private Context context;
@@ -39,12 +38,12 @@ public class NoteListFragment extends Fragment {
     private DatabaseHelper helper;
     private ArrayList<Note> notes;
 
-    public NoteListFragment() {
+    public FolderFragment() {
         // Required empty public constructor
     }
 
-    public static NoteListFragment newInstance(Folder folder) {
-        NoteListFragment fragment = new NoteListFragment();
+    public static FolderFragment newInstance(Folder folder) {
+        FolderFragment fragment = new FolderFragment();
         Bundle args = new Bundle();
         args.putSerializable(ARG_PARAM1, folder);
         fragment.setArguments(args);
@@ -88,19 +87,14 @@ public class NoteListFragment extends Fragment {
         }
     }
 
-    public void titleChanged(String title){
-        folder.setName(title);
-        helper.updateFolder(folder, null);
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnItemClickListener) {
-            mListener = (OnItemClickListener) context;
+        if (context instanceof OnNoteClickListener) {
+            mListener = (OnNoteClickListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnItemClickListener");
+                    + " must implement OnNoteClickListener");
         }
     }
 
@@ -117,6 +111,12 @@ public class NoteListFragment extends Fragment {
             Collections.sort(notes, new NotesComparator(sortByDate));
             recyclerView.getAdapter().notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public void onTitleChanged(String newTitle) {
+        folder.setName(newTitle);
+        helper.updateFolder(folder, null);
     }
 
     class NotesComparator implements Comparator<Note>{
@@ -147,7 +147,7 @@ public class NoteListFragment extends Fragment {
             @Override
             public void onNotesLoaded(ArrayList<Note> notes) {
                 if (notes != null) {
-                    NoteListFragment.this.notes = notes;
+                    FolderFragment.this.notes = notes;
                     if (recyclerView.getAdapter() == null) {
                         recyclerView.setLayoutManager(new LinearLayoutManager(context));
                         recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
@@ -156,12 +156,12 @@ public class NoteListFragment extends Fragment {
                                     @Override
                                     public void onItemClick(View view, int position, boolean longClick) {
                                         if (mListener != null) {
-                                            mListener.onItemClicked(NoteListFragment.this.notes.get(position), longClick);
+                                            mListener.onNoteClicked(FolderFragment.this.notes.get(position), longClick);
                                         }
                                     }
                                 }));
                     } else {
-                        ((NotesRecyclerAdapter) recyclerView.getAdapter()).setNotes(NoteListFragment.this.notes);
+                        ((NotesRecyclerAdapter) recyclerView.getAdapter()).setNotes(FolderFragment.this.notes);
                     }
                 } else {
                     recyclerView.setAdapter(null);
@@ -183,8 +183,8 @@ public class NoteListFragment extends Fragment {
             recyclerView.setAdapter(null);
     }
 
-    public interface OnItemClickListener {
-        void onItemClicked(Note note, boolean longClick);
+    public interface OnNoteClickListener {
+        void onNoteClicked(Note note, boolean longClick);
     }
 }
 

@@ -2,6 +2,7 @@ package com.apps.home.notewidget;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -14,6 +15,7 @@ import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 
@@ -78,8 +80,11 @@ public class EditNoteActivity extends AppCompatActivity{
     private void setNoteTitle(String title){
         title = setTitle(title);
 
-        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE) != null) // Note fragment is displayed
-            ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).titleChanged(title);
+        Fragment fragment = fragmentManager.findFragmentById(R.id.container);
+        String fragmentTag = fragment.getTag();
+        if(fragmentTag.equals(Constants.FRAGMENT_FOLDER) || fragmentTag.equals(Constants.FRAGMENT_NOTE)
+                || fragmentTag.equals(Constants.FRAGMENT_LIST))
+            ((TitleChangeListener)fragment).onTitleChanged(title);
     }
 
     private String setTitle(String title){

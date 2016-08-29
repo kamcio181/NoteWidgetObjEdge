@@ -21,12 +21,15 @@ import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.FolderChangeListener;
+import com.apps.home.notewidget.utils.NoteUpdateListener;
+import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.Calendar;
 import java.util.regex.Pattern;
 
-public class NoteFragment extends Fragment{
+public class NoteFragment extends Fragment implements TitleChangeListener, NoteUpdateListener, FolderChangeListener{
     private static final String TAG = "NoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -105,12 +108,6 @@ public class NoteFragment extends Fragment{
     public void updateNoteTextSize(){
         noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
                 context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
-    }
-
-    public void setNote(Note note){
-        this.note = note;
-        noteEditText.setText(Html.fromHtml(note.getNote()));
-        actionBar.setTitle(note.getTitle());
     }
 
     private void setTitleAndSubtitle(){
@@ -215,9 +212,6 @@ public class NoteFragment extends Fragment{
         }
     }
 
-    public void setFolderId(int folderId) {
-        note.setFolderId(folderId);
-    }
 
     public void deleteNote() {
         skipSaving = true;
@@ -248,15 +242,28 @@ public class NoteFragment extends Fragment{
         ((AppCompatActivity)context).onBackPressed();
     }
 
-    public void titleChanged(String title) {
-        note.setTitle(title);
-    }
-
     public String getNoteText(){
         if(noteEditText.getText().length() == 0) {
             Utils.showToast(context, context.getString(R.string.note_is_empty_or_was_not_loaded_yet));
         }
         return noteEditText.getText().toString();
+    }
+
+    @Override
+    public void onTitleChanged(String newTitle) {
+        note.setTitle(newTitle);
+    }
+
+    @Override
+    public void onNoteUpdate(Note newNote) {
+        this.note = newNote;
+        noteEditText.setText(Html.fromHtml(newNote.getNote()));
+        actionBar.setTitle(newNote.getTitle());
+    }
+
+    @Override
+    public void onFolderChanged(int newFolderId) {
+        note.setFolderId(newFolderId);
     }
 }
 
