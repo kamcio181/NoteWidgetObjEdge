@@ -30,13 +30,17 @@ import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.ShoppingListItem;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.ContentGetter;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.DeleteListener;
+import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
 import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.ItemTouchHelperAdapter;
 import com.apps.home.notewidget.utils.ItemTouchHelperViewHolder;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
 import com.apps.home.notewidget.utils.OnStartDragListener;
+import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.SimpleItemTouchHelperCallback;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
@@ -47,7 +51,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 
-public class ListFragment extends Fragment implements TitleChangeListener, NoteUpdateListener, FolderChangeListener{
+public class ListFragment extends Fragment implements TitleChangeListener, NoteUpdateListener,
+        FolderChangeListener, DeleteListener, DiscardChangesListener, SaveListener, ContentGetter{
     private static final String TAG = "ListFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -108,13 +113,11 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
 
         recyclerView = (RecyclerView) view;
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
-//        recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
         recyclerView.setHasFixedSize(true);
 
 
 
         newLine = System.getProperty("line.separator");
-        //TODO init recycler view
 
         Log.e(TAG, "skip start " + skipTextCheck);
         if(isNewNote) {
@@ -200,7 +203,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         super.onStop();
         Log.e(TAG, "Stop");
         if(!skipSaving){
-            saveList(false);
+            saveNote(false);
         }
     }
 
@@ -228,8 +231,44 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         actionBar.setTitle(note.getTitle());
     }
 
+    @Override
+    public void onFolderChanged(int newFolderId) {
+        note.setFolderId(newFolderId);
+    }
 
-    public void saveList(final boolean quit){
+    @Override
+    public void deleteNote() {
+        skipSaving = true;
+        Utils.showToast(context, context.getString(R.string.moving_to_trash));
+        note.setNote(((ListRecyclerAdapter)recyclerView.getAdapter()).getStringFromList());
+        note.setDeletedState(Constants.TRUE);
+        helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
+            @Override
+            public void onItemUpdated(int numberOfRows) {
+                if (numberOfRows > 0) {
+                    Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
+                    Utils.updateAllEdgePanels(context);
+                    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+                    preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY,preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY,"").replace(";" + note.getId() + ";", ";")).apply();
+
+                    Menu menu = ((MainActivity) context).getNavigationViewMenu();
+                    Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
+                    Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
+                }
+                ((AppCompatActivity)context).onBackPressed();
+            }
+        });
+    }
+
+    @Override
+    public void discardChanges() {
+        skipSaving = true;
+        Utils.showToast(context, context.getString(R.string.closed_without_saving));
+        ((AppCompatActivity)context).onBackPressed();
+    }
+
+    @Override
+    public void saveNote(final boolean quitAfterSaving) {
         Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
         note.setNote(((ListRecyclerAdapter)recyclerView.getAdapter()).getStringFromList());
         if(isNewNote) {
@@ -241,7 +280,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
                     isNewNote = false;
                     Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
 
-                    if(quit)
+                    if(quitAfterSaving)
                         ((AppCompatActivity)context).onBackPressed();
                 }
             });
@@ -251,7 +290,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
                 public void onItemUpdated(int numberOfRows) {
                     Utils.updateConnectedWidgets(context, note.getId());
                     Utils.updateAllEdgePanels(context);
-                    if(quit)
+                    if(quitAfterSaving)
                         ((AppCompatActivity)context).onBackPressed();
                 }
             });
@@ -259,46 +298,13 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     }
 
     @Override
-    public void onFolderChanged(int newFolderId) {
-        note.setFolderId(newFolderId);
+    public String getContent() {
+        String content = ((ListRecyclerAdapter)recyclerView.getAdapter()).getActiveItemsFromList();
+        if(content.length() == 0) {
+            Utils.showToast(context, context.getString(R.string.note_is_empty_or_was_not_loaded_yet));
+        }
+        return content;
     }
-//
-//    public void deleteNote() {
-//        skipSaving = true;
-//        Utils.showToast(context, context.getString(R.string.moving_to_trash));
-//        note.setNote(noteEditText.getText().toString());
-//        note.setDeletedState(Constants.TRUE);
-//        helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
-//            @Override
-//            public void onItemUpdated(int numberOfRows) {
-//                if (numberOfRows > 0) {
-//                    Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
-//                    Utils.updateAllEdgePanels(context);
-//                    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-//                    preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY,preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY,"").replace(";" + note.getId() + ";", ";")).apply();
-//
-//                    Menu menu = ((MainActivity) context).getNavigationViewMenu();
-//                    Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
-//                    Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
-//                }
-//                ((AppCompatActivity)context).onBackPressed();
-//            }
-//        });
-//    }
-
-//    public void discardChanges(){
-//        skipSaving = true;
-//        Utils.showToast(context, context.getString(R.string.closed_without_saving));
-//        ((AppCompatActivity)context).onBackPressed();
-//    }
-//
-//
-//    public String getNoteText(){
-//        if(noteEditText.getText().length() == 0) {
-//            Utils.showToast(context, context.getString(R.string.note_is_empty_or_was_not_loaded_yet));
-//        }
-//        return noteEditText.getText().toString();
-//    }
 }
 
 class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder>
@@ -521,6 +527,14 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             builder.append(items.get(i).getContent()).append("<br/>");
         for (int i = activeItemsCount + 3; i < items.size(); i++)
             builder.append(items.get(i).getContent()).append("<br/>");
+        Log.e(TAG, "items " + builder.toString());
+        return builder.toString();
+    }
+
+    public String getActiveItemsFromList() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 1; i < activeItemsCount + 1; i++)
+            builder.append(items.get(i).getContent()).append("\n");
         Log.e(TAG, "items " + builder.toString());
         return builder.toString();
     }

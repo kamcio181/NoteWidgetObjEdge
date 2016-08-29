@@ -31,9 +31,13 @@ import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.ContentGetter;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.DeleteListener;
+import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
+import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
@@ -61,6 +65,7 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<Folder> folders;
     private Note note;
     private ActionBar actionBar;
+    private int fragmentContainerId = R.id.container;
     //private ProgressDialog progressDialog;
 
     @Override
@@ -122,7 +127,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        String attachedFragment = fragmentManager.findFragmentById(R.id.container).getTag();
+        String attachedFragment = fragmentManager.findFragmentById(fragmentContainerId).getTag();
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -164,8 +169,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        if(fragmentManager.findFragmentById(R.id.container) != null) {
-            switch (fragmentManager.findFragmentById(R.id.container).getTag()) {
+        if(fragmentManager.findFragmentById(fragmentContainerId) != null) {
+            switch (fragmentManager.findFragmentById(fragmentContainerId).getTag()) {
                 case Constants.FRAGMENT_SEARCH:
                     getMenuInflater().inflate(R.menu.menu_empty, menu);
                     break;
@@ -206,10 +211,10 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_delete:
             case R.id.action_discard_changes:
                 if(id == R.id.action_delete){
-                    ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).deleteNote();
+                    ((DeleteListener)fragmentManager.findFragmentById(fragmentContainerId)).deleteNote();
                 }
                 else
-                    ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
+                    ((DiscardChangesListener)fragmentManager.findFragmentById(fragmentContainerId)).discardChanges();
                 break;
             case R.id.action_delete_all:
             case R.id.action_restore_all:
@@ -236,12 +241,12 @@ public class MainActivity extends AppCompatActivity
                 attachFragment(Constants.FRAGMENT_SEARCH);
                 break;
             case R.id.action_share:
-                Utils.sendShareIntent(this, ((NoteFragment) fragmentManager.
-                        findFragmentByTag(Constants.FRAGMENT_NOTE)).getNoteText(),
+                Utils.sendShareIntent(this, ((ContentGetter) fragmentManager.
+                        findFragmentById(fragmentContainerId)).getContent(),
                         actionBar.getTitle().toString());
                 break;
             case R.id.action_save:
-                ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).saveNote(true);
+                ((SaveListener)fragmentManager.findFragmentById(fragmentContainerId)).saveNote(true);
                 break;
         }
 
@@ -439,7 +444,7 @@ public class MainActivity extends AppCompatActivity
                                 navigationView.setCheckedItem(folderId);
 
                                 //Change folder id for note which is currently visible
-                                Fragment fragment = fragmentManager.findFragmentById(R.id.container);
+                                Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
                                 String fragmentTag = fragment.getTag();
                                 if (fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST))
                                     ((FolderChangeListener) fragment).onFolderChanged(folderId);
@@ -621,7 +626,7 @@ public class MainActivity extends AppCompatActivity
 	private void setNoteTitleOrFolderName(String title){
 		title = setTitle(title);
 
-        Fragment fragment = fragmentManager.findFragmentById(R.id.container);
+        Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
         String fragmentTag = fragment.getTag();
         if(fragmentTag.equals(Constants.FRAGMENT_FOLDER) || fragmentTag.equals(Constants.FRAGMENT_NOTE)
                 || fragmentTag.equals(Constants.FRAGMENT_LIST))
@@ -643,7 +648,7 @@ public class MainActivity extends AppCompatActivity
     public void onClick(View v) {
         switch(v.getId()){
             case R.id.fab:
-                switch (fragmentManager.findFragmentById(R.id.container).getTag()){
+                switch (fragmentManager.findFragmentById(fragmentContainerId).getTag()){
                     case Constants.FRAGMENT_FOLDER:
                         getNoteTypeDialog().show();
                         break;
@@ -723,7 +728,7 @@ public class MainActivity extends AppCompatActivity
                 actionBar.setTitle(R.string.search);
                 break;
         }
-        fragmentManager.beginTransaction().replace(R.id.container, fragmentToAttach, fragment).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commitAllowingStateLoss();
+        fragmentManager.beginTransaction().replace(fragmentContainerId, fragmentToAttach, fragment).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commitAllowingStateLoss();
         Log.e(TAG, "attached fragment");
         if(fabVisible)
             fab.show();
@@ -766,7 +771,7 @@ public class MainActivity extends AppCompatActivity
         if(preferences.getBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, false))
             reloadMainActivityAfterRestore();
         else {
-            final Fragment fragment = fragmentManager.findFragmentById(R.id.container);
+            final Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
             String fragmentTag = fragment.getTag();
             if (preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
                 if(fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST)){

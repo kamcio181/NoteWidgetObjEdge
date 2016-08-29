@@ -10,11 +10,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.apps.home.notewidget.NoteFragment;
-import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.ContentGetter;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
@@ -26,6 +26,7 @@ public class EditNoteActivity extends AppCompatActivity{
     private FragmentManager fragmentManager;
     private Toolbar toolbar;
     private boolean skipSaving = false;
+    private int fragmentContainerId = R.id.container;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +50,12 @@ public class EditNoteActivity extends AppCompatActivity{
             helper.getNote(false, noteId, new DatabaseHelper.OnNoteLoadListener() {
                 @Override
                 public void onNoteLoaded(Note note) {
-                    if(note != null)
-                        fragmentManager.beginTransaction().replace(R.id.container,
-                            NoteFragment.newInstance(false, note), Constants.FRAGMENT_NOTE).commit();
+                    if(note != null) {
+                        Fragment fragment = note.getType() == Constants.TYPE_NOTE ? NoteFragment.newInstance(false, note)
+                                : ListFragment.newInstance(false, note);
+                        fragmentManager.beginTransaction().replace(fragmentContainerId, fragment,
+                                Constants.FRAGMENT_NOTE).commit();
+                    }
                 }
             });
 
@@ -80,7 +84,7 @@ public class EditNoteActivity extends AppCompatActivity{
     private void setNoteTitle(String title){
         title = setTitle(title);
 
-        Fragment fragment = fragmentManager.findFragmentById(R.id.container);
+        Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
         String fragmentTag = fragment.getTag();
         if(fragmentTag.equals(Constants.FRAGMENT_FOLDER) || fragmentTag.equals(Constants.FRAGMENT_NOTE)
                 || fragmentTag.equals(Constants.FRAGMENT_LIST))
@@ -128,15 +132,15 @@ public class EditNoteActivity extends AppCompatActivity{
         switch (id){
             case R.id.action_discard_changes:
                 skipSaving = true;
-                ((NoteFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_NOTE)).discardChanges();
+                ((DiscardChangesListener)fragmentManager.findFragmentById(fragmentContainerId)).discardChanges();
                 finish();
                 break;
             case R.id.action_save:
                 finish();
                 break;
             case R.id.action_share:
-                Utils.sendShareIntent(this, ((NoteFragment) fragmentManager.
-                                findFragmentByTag(Constants.FRAGMENT_NOTE)).getNoteText(),
+                Utils.sendShareIntent(this, ((ContentGetter) fragmentManager.
+                                findFragmentById(fragmentContainerId)).getContent(),
                         getSupportActionBar().getTitle().toString());
                 break;
         }

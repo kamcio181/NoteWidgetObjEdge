@@ -20,16 +20,21 @@ import android.view.ViewGroup;
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
+import com.apps.home.notewidget.utils.ContentGetter;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.DeleteListener;
+import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
+import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.Calendar;
 import java.util.regex.Pattern;
 
-public class NoteFragment extends Fragment implements TitleChangeListener, NoteUpdateListener, FolderChangeListener{
+public class NoteFragment extends Fragment implements TitleChangeListener, NoteUpdateListener,
+        FolderChangeListener, DeleteListener, DiscardChangesListener, SaveListener, ContentGetter{
     private static final String TAG = "NoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -182,37 +187,24 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
         Log.e(TAG, "onDestroy");
     }
 
-    public void saveNote(final boolean quit){
-        Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
-        if(isNewNote) {
-            note.setNote(noteEditText.getText().toString());
-            helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
-                @Override
-                public void onItemInserted(long id) {
-                    note.setId(id);
-                    isNewNote = false;
-                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
-//                    Utils.updateConnectedWidgets(context, note.getId());
-//                    Utils.updateAllEdgePanels(context);
-                    if(quit)
-                        ((AppCompatActivity)context).onBackPressed();
-                }
-            });
-        } else{
-            note.setNote(noteEditText.getText().toString());
-            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
-                @Override
-                public void onItemUpdated(int numberOfRows) {
-                    Utils.updateConnectedWidgets(context, note.getId());
-                    Utils.updateAllEdgePanels(context);
-                    if(quit)
-                        ((AppCompatActivity)context).onBackPressed();
-                }
-            });
-        }
+    @Override
+    public void onTitleChanged(String newTitle) {
+        note.setTitle(newTitle);
     }
 
+    @Override
+    public void onNoteUpdate(Note newNote) {
+        this.note = newNote;
+        noteEditText.setText(Html.fromHtml(newNote.getNote()));
+        actionBar.setTitle(newNote.getTitle());
+    }
 
+    @Override
+    public void onFolderChanged(int newFolderId) {
+        note.setFolderId(newFolderId);
+    }
+
+    @Override
     public void deleteNote() {
         skipSaving = true;
         Utils.showToast(context, context.getString(R.string.moving_to_trash));
@@ -236,34 +228,48 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
         });
     }
 
-    public void discardChanges(){
+    @Override
+    public void discardChanges() {
         skipSaving = true;
         Utils.showToast(context, context.getString(R.string.closed_without_saving));
         ((AppCompatActivity)context).onBackPressed();
     }
 
-    public String getNoteText(){
+    @Override
+    public void saveNote(final boolean quitAfterSaving) {
+        Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
+        if(isNewNote) {
+            note.setNote(noteEditText.getText().toString());
+            helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
+                @Override
+                public void onItemInserted(long id) {
+                    note.setId(id);
+                    isNewNote = false;
+                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
+                    if(quitAfterSaving)
+                        ((AppCompatActivity)context).onBackPressed();
+                }
+            });
+        } else{
+            note.setNote(noteEditText.getText().toString());
+            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
+                @Override
+                public void onItemUpdated(int numberOfRows) {
+                    Utils.updateConnectedWidgets(context, note.getId());
+                    Utils.updateAllEdgePanels(context);
+                    if(quitAfterSaving)
+                        ((AppCompatActivity)context).onBackPressed();
+                }
+            });
+        }
+    }
+
+    @Override
+    public String getContent() {
         if(noteEditText.getText().length() == 0) {
             Utils.showToast(context, context.getString(R.string.note_is_empty_or_was_not_loaded_yet));
         }
         return noteEditText.getText().toString();
-    }
-
-    @Override
-    public void onTitleChanged(String newTitle) {
-        note.setTitle(newTitle);
-    }
-
-    @Override
-    public void onNoteUpdate(Note newNote) {
-        this.note = newNote;
-        noteEditText.setText(Html.fromHtml(newNote.getNote()));
-        actionBar.setTitle(newNote.getTitle());
-    }
-
-    @Override
-    public void onFolderChanged(int newFolderId) {
-        note.setFolderId(newFolderId);
     }
 }
 
