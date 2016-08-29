@@ -182,7 +182,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 note.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
                 note.setNote(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
                 note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL)));
-                note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
+                note.setDeletedState(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
+                note.setType(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.TYPE_COL)));
 
                 cursor.close();
                 db.close();
@@ -221,7 +222,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     note.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
                     note.setNote(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
                     note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL)));
-                    note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
+                    note.setDeletedState(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
+                    note.setType(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.TYPE_COL)));
 
                     notes.add(note);
                 }

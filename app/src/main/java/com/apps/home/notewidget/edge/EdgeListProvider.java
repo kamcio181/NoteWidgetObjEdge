@@ -15,6 +15,7 @@ import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
     private static final String TAG = "ListProvider";
@@ -92,8 +93,22 @@ public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
         if(!noteText.trim().equals("")){
             Log.v(TAG, "note is not empty");
             //Set note text
-            boolean skipTabs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getBoolean(Constants.EDGE_IGNORE_TABS_KEY, false);
-            remoteView.setTextViewText(R.id.textView, Html.fromHtml(skipTabs? noteText.replace("\u0009", "") : noteText));
+            if(notes.get(position).getType() == Constants.TYPE_NOTE) {
+                boolean skipTabs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getBoolean(Constants.EDGE_IGNORE_TABS_KEY, false);
+                remoteView.setTextViewText(R.id.textView, Html.fromHtml(skipTabs ? noteText.replace("\u0009", "") : noteText));
+            } else {
+                StringBuilder builder = new StringBuilder();
+
+                int activeItemsCount = Integer.parseInt(noteText.substring(0, noteText.indexOf("<br/>")));
+                ArrayList<String> items = new ArrayList<>();
+                items.addAll(Arrays.asList(noteText.split("<br/>")));
+                items.remove(0);
+
+                for (int i = 0; i<activeItemsCount; i++){
+                    builder.append(items.get(i)).append("\n");
+                    remoteView.setTextViewText(R.id.textView, builder.toString().trim());
+                }
+            }
         } else {
             Log.v(TAG, "empty note");
             remoteView.setTextViewText(R.id.textView, context.getString(R.string.note_is_empty_click_here_to_edit));

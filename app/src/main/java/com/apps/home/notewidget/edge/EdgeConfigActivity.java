@@ -34,6 +34,7 @@ import com.apps.home.notewidget.utils.SimpleItemTouchHelperCallback;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 
@@ -251,8 +252,23 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             Note note = notes.get(position);
+            String noteText = note.getNote();
             holder.titleTV.setText(note.getTitle());
-            holder.contentTV.setText(Html.fromHtml(ignoreTabs? note.getNote().replace("\u0009", "") : note.getNote()));
+            if(note.getType() == Constants.TYPE_NOTE) {
+                holder.contentTV.setText(Html.fromHtml(ignoreTabs ? noteText.replace("\u0009", "") : noteText));
+            } else {
+                StringBuilder builder = new StringBuilder();
+
+                int activeItemsCount = Integer.parseInt(noteText.substring(0, noteText.indexOf("<br/>")));
+                ArrayList<String> items = new ArrayList<>();
+                items.addAll(Arrays.asList(noteText.split("<br/>")));
+                items.remove(0);
+
+                for (int i = 0; i<activeItemsCount; i++){
+                    builder.append(items.get(i)).append("\n");
+                    holder.contentTV.setText(builder.toString().trim());
+                }
+            }
 
             holder.titleTV.setTextSize(titleSize);
             holder.contentTV.setTextSize(noteSize);
