@@ -1,7 +1,10 @@
 package com.apps.home.notewidget;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.nfc.Tag;
@@ -27,6 +30,7 @@ import android.widget.TextView;
 
 import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
+import com.apps.home.notewidget.edge.EdgeConfigActivity;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.ShoppingListItem;
 import com.apps.home.notewidget.utils.Constants;
@@ -67,6 +71,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     private DatabaseHelper helper;
     private ActionBar actionBar;
     private ItemTouchHelper itemTouchHelper;
+    private static EdgeVisibilityReceiver receiver;
 
 
     public ListFragment() {
@@ -198,12 +203,38 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         }
     }
 
+    class EdgeVisibilityReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent arg1) {
+            if(arg1 != null){
+                switch (arg1.getAction()){
+                    case EdgeConfigActivity.SAVE_CHANGES_ACTION:
+                        saveNote(false);
+                        break;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        receiver = new EdgeVisibilityReceiver();
+        context.registerReceiver(receiver, new IntentFilter(EdgeConfigActivity.SAVE_CHANGES_ACTION));
+    }
+
     @Override
     public void onStop() {
         super.onStop();
         Log.e(TAG, "Stop");
         if(!skipSaving){
             saveNote(false);
+        }
+
+        try {
+            context.unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e){
+            Log.e(TAG, "Receiver already unregistered");
         }
     }
 
@@ -272,7 +303,6 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
         note.setNote(((ListRecyclerAdapter)recyclerView.getAdapter()).getStringFromList());
         if(isNewNote) {
-
             helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
                 @Override
                 public void onItemInserted(long id) {

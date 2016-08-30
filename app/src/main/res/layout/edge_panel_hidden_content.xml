@@ -17,6 +17,6 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Content hidden.\nUnlock to view your notes"
         android:id="@+id/emptyTextView"
-        android:padding="5dp" />
+        android:padding="10dp" />
 
 </LinearLayout>
