@@ -49,8 +49,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + Constants.NOTE_TEXT_COL + " TEXT, "
                     + Constants.FOLDER_ID_COL + " INTEGER, "
                     + Constants.DELETED_COL + " INTEGER);");
-//                    + Constants.ENCRYPTED_COL + " TEXT, "
-//                    + Constants.SALT_COL + " INTEGER);");
             Log.e("helper", "created" + Constants.NOTES_TABLE + " table");
 
             db.execSQL("CREATE TABLE " + Constants.WIDGETS_TABLE + " ("
@@ -64,23 +62,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             db.execSQL("CREATE TABLE " + Constants.FOLDER_TABLE + " ("
                     + Constants.ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    + Constants.FOLDER_NAME_COL + " TEXT, "
-                    + Constants.FOLDER_ICON_COL + " INTEGER);");
+                    + Constants.FOLDER_NAME_COL + " TEXT);");
             Log.e("helper", "created" + Constants.FOLDER_TABLE + " table");
 
             final SharedPreferences.Editor editor = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).edit();
 
-            //db = DatabaseHelper.this.getWritableDatabase();
-
             ContentValues values = new ContentValues();
             values.put(Constants.FOLDER_NAME_COL, context.getString(R.string.my_notes));
-            values.put(Constants.FOLDER_ICON_COL, R.drawable.ic_nav_black_home);
 
             editor.putLong(Constants.MY_NOTES_ID_KEY, db.insert(Constants.FOLDER_TABLE, null, values)).apply();
             Log.e("Helper", "myNotes ");
 
             values.put(Constants.FOLDER_NAME_COL, context.getString(R.string.trash));
-            values.put(Constants.FOLDER_ICON_COL, R.drawable.ic_nav_black_trash);
 
             editor.putLong(Constants.TRASH_ID_KEY, db.insert(Constants.FOLDER_TABLE, null, values)).apply();
             Log.e("Helper", "trash ");
@@ -314,7 +307,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     Folder folder = new Folder();
                     folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
                     folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
-                    folder.setIcon(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
                     folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
                     if(folder.getId() == deletedId)
                         folder.setCount(deletedCount);
@@ -865,7 +857,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         Folder folder = new Folder();
                         folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
                         folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
-                        folder.setIcon(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
                         folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
 
                         folders.add(folder);
@@ -971,7 +962,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 ContentValues values = new ContentValues();
                 values.put(Constants.FOLDER_NAME_COL, folder.getName());
-                values.put(Constants.FOLDER_ICON_COL, folder.getIcon());
 
                 long folderId = db.insert(Constants.FOLDER_TABLE, null, values);
 
@@ -1064,7 +1054,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     Folder folder = new Folder();
                     folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
                     folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
-                    folder.setIcon(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
                     folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
 
                     cursor.close();
@@ -1120,7 +1109,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         Folder folder = new Folder();
                         folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
                         folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
-                        folder.setIcon(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ICON_COL)));
                         if(folder.getId() == deletedId)
                             folder.setCount(deletedCount);
                         else

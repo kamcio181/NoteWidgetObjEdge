@@ -543,7 +543,7 @@ public class MainActivity extends AppCompatActivity
                     name = getString(R.string.new_folder);
                 else
                     name = Utils.capitalizeFirstLetter(name);
-                final Folder folder = new Folder(name, R.drawable.ic_nav_black_folder);
+                final Folder folder = new Folder(name);
                 helper.createFolder(folder, new DatabaseHelper.OnItemInsertListener() {
                     @Override
                     public void onItemInserted(long id) {
@@ -572,7 +572,7 @@ public class MainActivity extends AppCompatActivity
     private void addFolderToNavView(Folder folder){
 
         Menu menu = getNavigationViewMenu();
-        addMenuCustomItem(menu, (int) folder.getId(), 11, folder.getName(), folder.getIcon(), 0);
+        addMenuCustomItem(menu, (int) folder.getId(), 11, folder.getName(), R.drawable.ic_nav_black_folder, 0);
         folders.add(folder);
 
         openFolderWithNotes((int) folder.getId());
@@ -590,14 +590,18 @@ public class MainActivity extends AppCompatActivity
         for (Folder f : folders){
             long id = f.getId();
             int order = 11;
+            int icon = R.drawable.ic_nav_black_folder;
 
 
-            if(id == myNotesNavId)
+            if(id == myNotesNavId) {
                 order = 10;
-            else if (id == trashNavId)
+                icon = R.drawable.ic_nav_black_home;
+            } else if (id == trashNavId) {
                 order = 10000;
+                icon = R.drawable.ic_nav_black_trash;
+            }
 
-            addMenuCustomItem(menu, (int) id, order, f.getName(), f.getIcon(), f.getCount());
+            addMenuCustomItem(menu, (int) id, order, f.getName(), icon, f.getCount());
         }
 
         if(menu.findItem(folderId) == null)
