@@ -108,17 +108,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         void onNotesLoaded(ArrayList<Note> notes);
     }
 
-    public interface OnFolderLoadListener {
-        void onFolderLoaded(Folder folder);
-    }
+//    public interface OnFolderLoadListener {
+//        void onFolderLoaded(Folder folder);
+//    }
 
     public interface OnFoldersLoadListener {
         void onFoldersLoaded(ArrayList<Folder> folders);
     }
 
-    public interface OnWidgetLoadListener {
-        void onWidgetLoaded(Widget widget);
-    }
+//    public interface OnWidgetLoadListener {
+//        void onWidgetLoaded(Widget widget);
+//    }
 
     public interface OnWidgetsLoadListener {
         void onWidgetsLoaded(ArrayList<Widget> widgets);
@@ -275,9 +275,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new UpdateFolder(folder, listener).execute();
     }
 
-    public void getFolder(long folderId, OnFolderLoadListener listener){
-        new GetFolder(folderId, listener).execute();
-    }
+//    public void getFolder(long folderId, OnFolderLoadListener listener){
+//        new GetFolder(folderId, listener).execute();
+//    }
 
     public void getFolders(OnFoldersLoadListener listener){
         new GetFolders(listener).execute();
@@ -335,9 +335,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new CreateWidget(widget, listener).execute();
     }
 
-    public void updateWidget (Widget widget, long widgetId, OnItemUpdateListener listener){
-        new UpdateWidget(widget, widgetId, listener).execute();
-    }
+//    public void updateWidget (Widget widget, long widgetId, OnItemUpdateListener listener){
+//        new UpdateWidget(widget, widgetId, listener).execute();
+//    }
 
     public int updateWidgetOnDemand (Widget widget, long widgetId){
         try {
@@ -360,13 +360,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void getWidget(long itemId, OnWidgetLoadListener listener){
-        new GetWidget(itemId, listener).execute();
-    }
-
-    public void getWidget(int widgetId, OnWidgetLoadListener listener){
-        new GetWidget(widgetId, listener).execute();
-    }
+//    public void getWidget(long itemId, OnWidgetLoadListener listener){
+//        new GetWidget(itemId, listener).execute();
+//    }
+//
+//    public void getWidget(int widgetId, OnWidgetLoadListener listener){
+//        new GetWidget(widgetId, listener).execute();
+//    }
 
     public void getWidgetsWithNote(long noteId, OnWidgetsLoadListener listener){
         new GetWidgetsWithNote(noteId, listener).execute();
@@ -916,6 +916,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             checked = checked.replace(";" + id + ";", ";");
                             cursor.moveToNext();
                         }
+                        cursor.close();
                         preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY, checked).apply();
                     }
                 }
@@ -1021,61 +1022,61 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    private class GetFolder extends AsyncTask<Void, Void, Folder> {
-        private long folderId;
-        private OnFolderLoadListener listener;
-
-        public GetFolder(long folderId, OnFolderLoadListener listener) {
-            this.folderId = folderId;
-            this.listener = listener;
-        }
-
-        @Override
-        protected Folder doInBackground(Void... params) {
-            try {
-                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
-
-                /*String selectQuery = "SELECT * FROM " + Constants.FOLDER_TABLE + " WHERE " +
-                        Constants.ID_COL + " = " + folderId;*/
-
-                String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
-                        + ", f." + Constants.FOLDER_ICON_COL
-                        + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
-                        + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
-                        + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
-                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = " + Constants.FALSE
-                        + " AND n." + Constants.FOLDER_ID_COL + " = " + folderId;
-
-                Cursor cursor = db.rawQuery(selectQuery, null);
-
-                if(cursor != null){
-                    cursor.moveToFirst();
-
-                    Folder folder = new Folder();
-                    folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
-                    folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
-                    folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
-
-                    cursor.close();
-                    db.close();
-
-                    return folder;
-                } else
-                    return null;
-            }catch (SQLiteException e){
-                Log.e(TAG, "" + e);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Folder aFolder) {
-            super.onPostExecute(aFolder);
-
-            if(listener != null)
-                listener.onFolderLoaded(aFolder);
-        }
-    }
+//    private class GetFolder extends AsyncTask<Void, Void, Folder> {
+//        private long folderId;
+//        private OnFolderLoadListener listener;
+//
+//        public GetFolder(long folderId, OnFolderLoadListener listener) {
+//            this.folderId = folderId;
+//            this.listener = listener;
+//        }
+//
+//        @Override
+//        protected Folder doInBackground(Void... params) {
+//            try {
+//                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+//
+//                /*String selectQuery = "SELECT * FROM " + Constants.FOLDER_TABLE + " WHERE " +
+//                        Constants.ID_COL + " = " + folderId;*/
+//
+//                String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
+//                        + ", f." + Constants.FOLDER_ICON_COL
+//                        + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
+//                        + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
+//                        + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
+//                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = " + Constants.FALSE
+//                        + " AND n." + Constants.FOLDER_ID_COL + " = " + folderId;
+//
+//                Cursor cursor = db.rawQuery(selectQuery, null);
+//
+//                if(cursor != null){
+//                    cursor.moveToFirst();
+//
+//                    Folder folder = new Folder();
+//                    folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+//                    folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
+//                    folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
+//
+//                    cursor.close();
+//                    db.close();
+//
+//                    return folder;
+//                } else
+//                    return null;
+//            }catch (SQLiteException e){
+//                Log.e(TAG, "" + e);
+//                return null;
+//            }
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Folder aFolder) {
+//            super.onPostExecute(aFolder);
+//
+//            if(listener != null)
+//                listener.onFolderLoaded(aFolder);
+//        }
+//    }
 
     private class GetFolders extends AsyncTask<Void, Void, ArrayList<Folder>> {
         private OnFoldersLoadListener listener;
@@ -1214,112 +1215,112 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    private class UpdateWidget extends AsyncTask<Void, Void, Integer> {
-        private Widget widget;
-        private long widgetId;
-        private OnItemUpdateListener listener;
+//    private class UpdateWidget extends AsyncTask<Void, Void, Integer> {
+//        private Widget widget;
+//        private long widgetId;
+//        private OnItemUpdateListener listener;
+//
+//        public UpdateWidget(Widget widget, long widgetId, OnItemUpdateListener listener) {
+//            this.widget = widget;
+//            this.widgetId = widgetId;
+//            this.listener = listener;
+//        }
+//
+//        @Override
+//        protected Integer doInBackground(Void... params) {
+//            try {
+//                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+//
+//                ContentValues values = new ContentValues();
+//                values.put(Constants.CURRENT_WIDGET_MODE_COL, widget.getMode());
+//                values.put(Constants.CURRENT_THEME_MODE_COL, widget.getTheme());
+//                values.put(Constants.CURRENT_TEXT_SIZE_COL, widget.getTextSize());
+//
+//                int rows = db.update(Constants.WIDGETS_TABLE, values, Constants.ID_COL + " = ?",
+//                        new String[]{Long.toString(widgetId)});
+//
+//                db.close();
+//
+//                return rows;
+//            }catch (SQLiteException e){
+//                Log.e(TAG, "" + e);
+//                return -1;
+//            }
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Integer aInt) {
+//            super.onPostExecute(aInt);
+//
+//            if(listener != null)
+//                listener.onItemUpdated(aInt);
+//        }
+//    }
 
-        public UpdateWidget(Widget widget, long widgetId, OnItemUpdateListener listener) {
-            this.widget = widget;
-            this.widgetId = widgetId;
-            this.listener = listener;
-        }
-
-        @Override
-        protected Integer doInBackground(Void... params) {
-            try {
-                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
-
-                ContentValues values = new ContentValues();
-                values.put(Constants.CURRENT_WIDGET_MODE_COL, widget.getMode());
-                values.put(Constants.CURRENT_THEME_MODE_COL, widget.getTheme());
-                values.put(Constants.CURRENT_TEXT_SIZE_COL, widget.getTextSize());
-
-                int rows = db.update(Constants.WIDGETS_TABLE, values, Constants.ID_COL + " = ?",
-                        new String[]{Long.toString(widgetId)});
-
-                db.close();
-
-                return rows;
-            }catch (SQLiteException e){
-                Log.e(TAG, "" + e);
-                return -1;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Integer aInt) {
-            super.onPostExecute(aInt);
-
-            if(listener != null)
-                listener.onItemUpdated(aInt);
-        }
-    }
-
-    private class GetWidget extends AsyncTask<Void, Void, Widget> {
-        private long itemId;
-        private int widgetId;
-        private OnWidgetLoadListener listener;
-        private boolean lookAtItemId;
-
-        public GetWidget(long itemId, OnWidgetLoadListener listener) {
-            this.itemId = itemId;
-            this.listener = listener;
-            this.lookAtItemId = true;
-        }
-
-        public GetWidget(int widgetId, OnWidgetLoadListener listener) {
-            this.widgetId = widgetId;
-            this.listener = listener;
-            this.lookAtItemId = false;
-        }
-
-        @Override
-        protected Widget doInBackground(Void... params) {
-            try {
-                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
-                String selectQuery;
-
-                if(lookAtItemId)
-                    selectQuery = "SELECT * FROM " + Constants.WIDGETS_TABLE + " WHERE " +
-                        Constants.ID_COL + " = " + itemId;
-                else
-                    selectQuery = "SELECT * FROM " + Constants.WIDGETS_TABLE + " WHERE " +
-                            Constants.WIDGET_ID_COL + " = " + widgetId;
-
-                Cursor cursor = db.rawQuery(selectQuery, null);
-
-                if(cursor != null){
-                    cursor.moveToFirst();
-
-                    Widget widget = new Widget();
-                    widget.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
-                    widget.setWidgetId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.WIDGET_ID_COL)));
-                    widget.setNoteId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.CONNECTED_NOTE_ID_COL)));
-                    widget.setMode(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE_COL)));
-                    widget.setTheme(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL)));
-                    widget.setTextSize(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL)));
-
-                    cursor.close();
-                    db.close();
-
-                    return widget;
-                } else
-                    return null;
-            }catch (SQLiteException e){
-                Log.e(TAG, "" + e);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Widget aWidget) {
-            super.onPostExecute(aWidget);
-
-            if(listener != null)
-                listener.onWidgetLoaded(aWidget);
-        }
-    }
+//    private class GetWidget extends AsyncTask<Void, Void, Widget> {
+//        private long itemId;
+//        private int widgetId;
+//        private OnWidgetLoadListener listener;
+//        private boolean lookAtItemId;
+//
+//        public GetWidget(long itemId, OnWidgetLoadListener listener) {
+//            this.itemId = itemId;
+//            this.listener = listener;
+//            this.lookAtItemId = true;
+//        }
+//
+//        public GetWidget(int widgetId, OnWidgetLoadListener listener) {
+//            this.widgetId = widgetId;
+//            this.listener = listener;
+//            this.lookAtItemId = false;
+//        }
+//
+//        @Override
+//        protected Widget doInBackground(Void... params) {
+//            try {
+//                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+//                String selectQuery;
+//
+//                if(lookAtItemId)
+//                    selectQuery = "SELECT * FROM " + Constants.WIDGETS_TABLE + " WHERE " +
+//                        Constants.ID_COL + " = " + itemId;
+//                else
+//                    selectQuery = "SELECT * FROM " + Constants.WIDGETS_TABLE + " WHERE " +
+//                            Constants.WIDGET_ID_COL + " = " + widgetId;
+//
+//                Cursor cursor = db.rawQuery(selectQuery, null);
+//
+//                if(cursor != null){
+//                    cursor.moveToFirst();
+//
+//                    Widget widget = new Widget();
+//                    widget.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+//                    widget.setWidgetId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.WIDGET_ID_COL)));
+//                    widget.setNoteId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.CONNECTED_NOTE_ID_COL)));
+//                    widget.setMode(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_WIDGET_MODE_COL)));
+//                    widget.setTheme(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_THEME_MODE_COL)));
+//                    widget.setTextSize(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.CURRENT_TEXT_SIZE_COL)));
+//
+//                    cursor.close();
+//                    db.close();
+//
+//                    return widget;
+//                } else
+//                    return null;
+//            }catch (SQLiteException e){
+//                Log.e(TAG, "" + e);
+//                return null;
+//            }
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Widget aWidget) {
+//            super.onPostExecute(aWidget);
+//
+//            if(listener != null)
+//                listener.onWidgetLoaded(aWidget);
+//        }
+//    }
 
     private class GetWidgetsWithNote extends AsyncTask<Void, Void, ArrayList<Widget>> {
         private long noteId;
