@@ -137,7 +137,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.e("settings", "click "+picker.getValue());
-                        preferences.edit().putInt(Constants.NOTE_TEXT_SIZE_KEY, picker.getValue()).putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, true).apply();
+                        preferences.edit().putInt(Constants.NOTE_TEXT_SIZE_KEY, picker.getValue()).putBoolean(Constants.NOTE_PARAMETERS_UPDATED, true).apply();
                         Utils.showToast(context, getString(R.string.text_size_changed));
                     }
                 }).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -259,6 +259,9 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 getNoteSizeDialog().show();
                 break;
             case 2:
+                getTileSizeDialog().show();
+                break;
+            case 3:
                 Dialog dialog = Utils.getAllFolderListDialog(context, getString(R.string.choose_starting_folder), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -269,10 +272,22 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 if(dialog != null)
                     dialog.show();
                 break;
-            case 3:
+            case 4:
                 getBackupOrRestoreDialog().show();
                 break;
         }
+    }
+
+    private Dialog getTileSizeDialog(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final String[] items = new String[]{"48", "56", "64", "72"};
+        return builder.setTitle("Tile size").setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            preferences.edit().putInt(Constants.LIST_TILE_SIZE_KEY, Integer.valueOf(items[which])).
+                    putBoolean(Constants.NOTE_PARAMETERS_UPDATED, true).apply();
+            }
+        }).create();
     }
 
 

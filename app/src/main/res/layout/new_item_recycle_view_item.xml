@@ -25,7 +25,8 @@
         android:id="@+id/imageView"
         android:src="@drawable/ic_add_item_grey"
         android:layout_alignParentRight="true"
-        android:padding="16dp" />
+        android:padding="16dp"
+        android:layout_centerVertical="true" />
 
     <ImageView
         android:layout_width="match_parent"

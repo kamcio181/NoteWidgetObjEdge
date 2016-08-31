@@ -37,6 +37,7 @@ import com.apps.home.notewidget.utils.DeleteListener;
 import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
+import com.apps.home.notewidget.utils.ParametersUpdateListener;
 import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
@@ -186,7 +187,7 @@ public class MainActivity extends AppCompatActivity
                     getMenuInflater().inflate(R.menu.menu_note, menu);
                     break;
                 case Constants.FRAGMENT_LIST:
-                    //TODO note + some actions from original app
+                    getMenuInflater().inflate(R.menu.menu_list, menu);
                     break;
                 case Constants.FRAGMENT_TRASH_NOTE:
                     getMenuInflater().inflate(R.menu.menu_note_trash, menu);
@@ -247,6 +248,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.action_save:
                 ((SaveListener)fragmentManager.findFragmentById(fragmentContainerId)).saveNote(true);
+                break;
+            case R.id.action_remove_disabled_items:
+                ((ListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).removeDisabledItems();
                 break;
         }
 
@@ -793,10 +797,10 @@ public class MainActivity extends AppCompatActivity
                     ((FolderFragment)fragment).reloadList();
                 preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply(); //TODO use receivers
             }
-            if (preferences.getBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false)) {
-                if (fragmentTag.equals(Constants.FRAGMENT_NOTE))
-                    ((NoteFragment) fragment).updateNoteTextSize();
-                preferences.edit().putBoolean(Constants.NOTE_TEXT_SIZE_UPDATED, false).apply();
+            if (preferences.getBoolean(Constants.NOTE_PARAMETERS_UPDATED, false)) {
+                if (fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST))
+                    ((ParametersUpdateListener) fragment).onParametersUpdated();
+                preferences.edit().putBoolean(Constants.NOTE_PARAMETERS_UPDATED, false).apply();
             }
         }
     }

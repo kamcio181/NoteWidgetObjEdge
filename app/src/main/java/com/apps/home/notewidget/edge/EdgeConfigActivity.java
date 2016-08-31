@@ -48,6 +48,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
     private static ItemTouchHelper itemTouchHelper;
     private static EdgeVisibilityReceiver receiver;
     private static boolean settingsChanged = false;
+    private static int selectColor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +61,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         hideContentOnLockScreenSwitch = (SwitchCompat) findViewById(R.id.switch2);
         notesRV = (RecyclerView) findViewById(R.id.recycler_view1);
         edgeRV = (RecyclerView) findViewById(R.id.recycler_view2);
+        selectColor = getColor(R.color.colorAccent);
 
         ignoreTabsSwitch.setOnCheckedChangeListener(this);
         hideContentOnLockScreenSwitch.setOnCheckedChangeListener(this);
@@ -241,6 +243,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
             EdgeAdapter.noteSize = noteSize;
             titleSize = 1.4f * noteSize;
 
+
             Log.i(TAG, "Constructor ");
         }
 
@@ -335,7 +338,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
             }
 
             public void onItemSelected(){
-                tile.setBackgroundColor(Color.CYAN);
+                itemView.setBackgroundColor(selectColor);
             }
 
             public void onItemClear(){

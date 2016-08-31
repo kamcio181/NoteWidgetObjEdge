@@ -30,6 +30,7 @@ import com.apps.home.notewidget.utils.DeleteListener;
 import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
+import com.apps.home.notewidget.utils.ParametersUpdateListener;
 import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
@@ -38,7 +39,7 @@ import java.util.Calendar;
 import java.util.regex.Pattern;
 
 public class NoteFragment extends Fragment implements TitleChangeListener, NoteUpdateListener,
-        FolderChangeListener, DeleteListener, DiscardChangesListener, SaveListener, ContentGetter{
+        FolderChangeListener, DeleteListener, DiscardChangesListener, SaveListener, ContentGetter, ParametersUpdateListener{
     private static final String TAG = "NoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -115,11 +116,6 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
         setTitleAndSubtitle();
     }
 
-    public void updateNoteTextSize(){
-        noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
-                context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
-    }
-
     private void setTitleAndSubtitle(){
         actionBar = ((AppCompatActivity) context).getSupportActionBar();
         if(actionBar != null){
@@ -169,6 +165,12 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
             public void afterTextChanged(Editable s) {
             }
         };
+    }
+
+    @Override
+    public void onParametersUpdated() {
+        noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
+                context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
     }
 
     class EdgeVisibilityReceiver extends BroadcastReceiver {

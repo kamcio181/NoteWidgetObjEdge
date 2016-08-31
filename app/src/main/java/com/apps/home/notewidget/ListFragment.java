@@ -6,8 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MotionEventCompat;
@@ -16,8 +14,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.Html;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,12 +36,12 @@ import com.apps.home.notewidget.utils.ContentGetter;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DeleteListener;
 import com.apps.home.notewidget.utils.DiscardChangesListener;
-import com.apps.home.notewidget.utils.DividerItemDecoration;
 import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.ItemTouchHelperAdapter;
 import com.apps.home.notewidget.utils.ItemTouchHelperViewHolder;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
 import com.apps.home.notewidget.utils.OnStartDragListener;
+import com.apps.home.notewidget.utils.ParametersUpdateListener;
 import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.SimpleItemTouchHelperCallback;
 import com.apps.home.notewidget.utils.TitleChangeListener;
@@ -52,11 +50,10 @@ import com.apps.home.notewidget.utils.Utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 
 public class ListFragment extends Fragment implements TitleChangeListener, NoteUpdateListener,
-        FolderChangeListener, DeleteListener, DiscardChangesListener, SaveListener, ContentGetter{
+        FolderChangeListener, DeleteListener, DiscardChangesListener, SaveListener, ContentGetter, ParametersUpdateListener{
     private static final String TAG = "ListFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -114,8 +111,6 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
 //                getBoolean(Constants.SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY, false))
 //            Utils.getMultilevelNoteManualDialog(context).show();
 
-        //TODO tile size
-
         recyclerView = (RecyclerView) view;
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         recyclerView.setHasFixedSize(true);
@@ -137,7 +132,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
             itemList.add(new ShoppingListItem(null, Constants.NEW_ITEM_VIEW));
             itemList.add(new ShoppingListItem("Items bought", Constants.HEADER_VIEW));
 
-            recyclerView.setAdapter(new ListRecyclerAdapter(itemList, 0, new OnStartDragListener() {
+            recyclerView.setAdapter(new ListRecyclerAdapter(context, itemList, 0, new OnStartDragListener() {
                 @Override
                 public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
                     itemTouchHelper.startDrag(viewHolder);
@@ -175,7 +170,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         }
 
         if(recyclerView.getAdapter() == null)
-            recyclerView.setAdapter(new ListRecyclerAdapter(itemList, activeItemsCount,
+            recyclerView.setAdapter(new ListRecyclerAdapter(context, itemList, activeItemsCount,
                     new OnStartDragListener() {
                         @Override
                         public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
@@ -185,11 +180,6 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         else
             ((ListRecyclerAdapter)recyclerView.getAdapter()).setItems(itemList, activeItemsCount);
     }
-
-//    public void updateNoteTextSize(){ //TODO tile size
-//        noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
-//                context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));
-//    }
 
 
     private void setTitleAndSubtitle(){
@@ -201,6 +191,11 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
             Log.e(TAG, "millis " + note.getCreatedAt());
             actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
         }
+    }
+
+    @Override
+    public void onParametersUpdated() {
+        ((ListRecyclerAdapter)recyclerView.getAdapter()).refreshTileSize();
     }
 
     class EdgeVisibilityReceiver extends BroadcastReceiver {
@@ -335,14 +330,21 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         }
         return content;
     }
+
+    public void removeDisabledItems(){
+        ((ListRecyclerAdapter)recyclerView.getAdapter()).removeDisabledItems();
+    }
 }
 
 class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder>
         implements ItemTouchHelperAdapter{
     private static final String TAG = "ListRecyclerAdapter";
+    private Context context;
     private OnStartDragListener listener;
     private ArrayList<ShoppingListItem> items;
     private int activeItemsCount;
+    private static int selectColor;
+    private static int tileSize;
 
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
@@ -351,11 +353,16 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         return true;
     }
 
-    public ListRecyclerAdapter(ArrayList<ShoppingListItem> items, int activeItemsCount,
+    public ListRecyclerAdapter(Context context, ArrayList<ShoppingListItem> items, int activeItemsCount,
                                OnStartDragListener listener) {
+        this.context = context;
         this.items = items;
         this.activeItemsCount = activeItemsCount;
         this.listener = listener;
+        selectColor = context.getColor(R.color.colorAccent);
+        tileSize = convertPxToDP(context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+                .getInt(Constants.LIST_TILE_SIZE_KEY, 56));
+
         setHasStableIds(true);
     }
 
@@ -393,6 +400,9 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     @Override
     public void onBindViewHolder(SingleLineWithHandleViewHolder holder, int position) {
+        RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
+        params.height = tileSize;
+        holder.itemView.setLayoutParams(params);
         switch (holder.getItemViewType()){
             case Constants.DISABLED_ITEM_VIEW:
                 onBindDisabledItemViewHolder(holder, position);
@@ -411,6 +421,9 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     private void onBindHeaderViewHolder(SingleLineWithHandleViewHolder holder, int position){
         holder.header.setText(items.get(position).getContent());
+        RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
+        params.height = convertPxToDP(48);
+        holder.itemView.setLayoutParams(params);
     }
 
     private void onBindNewItemViewHolder(final SingleLineWithHandleViewHolder holder){
@@ -444,16 +457,33 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     private void onBindEnabledItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
         holder.titleTextView.setText(items.get(position).getContent());
-
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("adapter", "position " +position);
                 items.get(position).setViewType(Constants.DISABLED_ITEM_VIEW);
                 ShoppingListItem item = items.remove(position);
                 items.add(item);
                 activeItemsCount--;
                 notifyDataSetChanged();
+            }
+        });
+
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Utils.getEdiTextDialog(context, items.get(position).getContent(), "Edit item", new Utils.OnNameSet() {
+                    @Override
+                    public void onNameSet(String name) {
+                        if(name.length()>0){
+                            items.get(position).setContent(name);
+                            notifyItemChanged(position);
+                        } else {
+                            Utils.showToast(context, "Item name cannot be empty");
+                        }
+                    }
+                }, false).show();
+
+                return false;
             }
         });
 
@@ -476,7 +506,6 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("adapter", "position " +position);
 
                 items.get(position).setViewType(Constants.ENABLED_ITEM_VIEW);
                 items.add(activeItemsCount+1, items.remove(position));
@@ -509,7 +538,6 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         public SingleLineWithHandleViewHolder(final View itemView){
             super(itemView);
 
-
 //            itemView.setOnClickListener(new View.OnClickListener() {
 //                @Override
 //                public void onClick(View v) {
@@ -536,7 +564,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
         @Override
         public void onItemSelected() {
-            itemView.setBackgroundColor(Color.CYAN);
+            itemView.setBackgroundColor(ListRecyclerAdapter.selectColor);
         }
 
         @Override
@@ -557,7 +585,6 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             builder.append(items.get(i).getContent()).append("<br/>");
         for (int i = activeItemsCount + 3; i < items.size(); i++)
             builder.append(items.get(i).getContent()).append("<br/>");
-        Log.e(TAG, "items " + builder.toString());
         return builder.toString();
     }
 
@@ -565,8 +592,25 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         StringBuilder builder = new StringBuilder();
         for (int i = 1; i < activeItemsCount + 1; i++)
             builder.append(items.get(i).getContent()).append("\n");
-        Log.e(TAG, "items " + builder.toString());
-        return builder.toString();
+        return builder.toString().trim();
+    }
+
+    public void removeDisabledItems(){
+        int fromPosition = activeItemsCount + 3;
+        int toPosition = items.size();
+        for (int i = fromPosition; i<toPosition; i++)
+            items.remove(fromPosition);
+        notifyItemRangeRemoved(fromPosition, toPosition);
+    }
+
+    public void refreshTileSize() {
+        tileSize = convertPxToDP(context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+                .getInt(Constants.LIST_TILE_SIZE_KEY, 56));
+        notifyDataSetChanged();
+    }
+
+    public int convertPxToDP(int px){
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, px, context.getResources().getDisplayMetrics());
     }
 }
 
