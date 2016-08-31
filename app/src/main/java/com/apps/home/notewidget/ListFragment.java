@@ -359,7 +359,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         this.items = items;
         this.activeItemsCount = activeItemsCount;
         this.listener = listener;
-        selectColor = context.getColor(R.color.colorAccent);
+        selectColor = context.getResources().getColor(R.color.colorAccent);
         tileSize = convertPxToDP(context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
                 .getInt(Constants.LIST_TILE_SIZE_KEY, 56));
 
