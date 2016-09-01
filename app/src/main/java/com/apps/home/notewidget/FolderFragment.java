@@ -130,9 +130,9 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
         public int compare(Note lhs, Note rhs) {
             if(sortByDate){
                 if(lhs.getCreatedAt() < rhs.getCreatedAt())
-                    return -1;
-                else if (lhs.getCreatedAt() > rhs.getCreatedAt())
                     return 1;
+                else if (lhs.getCreatedAt() > rhs.getCreatedAt())
+                    return -1;
                 else
                     return 0;
             } else {
