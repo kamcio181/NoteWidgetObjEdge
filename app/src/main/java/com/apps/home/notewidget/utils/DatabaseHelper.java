@@ -634,16 +634,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
 
                 String orderColumn = sortByDate ? Constants.MILLIS_COL : Constants.NOTE_TITLE_COL;
+                String direction = sortByDate? "DESC" : "ASC";
 
                 String selectQuery;
 
                 if(folderId != Utils.getTrashNavId(context)) //is not trash
                     selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
                                 Constants.FOLDER_ID_COL + " = " + folderId + " AND " +
-                                Constants.DELETED_COL + " = " + Constants.FALSE + " ORDER BY LOWER(" + orderColumn +") ASC";
+                                Constants.DELETED_COL + " = " + Constants.FALSE + " ORDER BY LOWER(" + orderColumn +") " + direction;
                 else
                     selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
-                            Constants.DELETED_COL + " = " + Constants.TRUE + " ORDER BY LOWER(" + orderColumn +") ASC";
+                            Constants.DELETED_COL + " = " + Constants.TRUE + " ORDER BY LOWER(" + orderColumn +") " + direction;
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -651,7 +652,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                     ArrayList<Note> notes = new ArrayList<>(cursor.getCount());
                     do{
-                        Note note = new Note();
+                        Note note = new Note(); //TODO use constructor
                         note.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
                         note.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
                         note.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));

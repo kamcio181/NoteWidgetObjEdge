@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.apps.home.notewidget.edge.EdgeConfigActivity;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.ContentGetter;
@@ -27,6 +28,7 @@ public class EditNoteActivity extends AppCompatActivity{
     private Toolbar toolbar;
     private boolean skipSaving = false;
     private int fragmentContainerId = R.id.container;
+    private int noteType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,10 +53,11 @@ public class EditNoteActivity extends AppCompatActivity{
                 @Override
                 public void onNoteLoaded(Note note) {
                     if(note != null) {
-                        Fragment fragment = note.getType() == Constants.TYPE_NOTE ? NoteFragment.newInstance(false, note)
+                        EditNoteActivity.this.noteType = note.getType();
+                        Fragment fragment = noteType == Constants.TYPE_NOTE ? NoteFragment.newInstance(false, note)
                                 : ListFragment.newInstance(false, note);
                         fragmentManager.beginTransaction().replace(fragmentContainerId, fragment,
-                                Constants.FRAGMENT_NOTE).commit();
+                                noteType == Constants.TYPE_NOTE? Constants.FRAGMENT_NOTE : Constants.FRAGMENT_LIST).commit();
                     }
                 }
             });
@@ -86,7 +89,7 @@ public class EditNoteActivity extends AppCompatActivity{
 
         Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
         String fragmentTag = fragment.getTag();
-        if(fragmentTag.equals(Constants.FRAGMENT_FOLDER) || fragmentTag.equals(Constants.FRAGMENT_NOTE)
+        if(fragmentTag.equals(Constants.FRAGMENT_FOLDER) || fragmentTag.equals(Constants.FRAGMENT_NOTE) //TODO folder?
                 || fragmentTag.equals(Constants.FRAGMENT_LIST))
             ((TitleChangeListener)fragment).onTitleChanged(title);
     }
@@ -117,7 +120,10 @@ public class EditNoteActivity extends AppCompatActivity{
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_widget_note, menu);
+        if(noteType == Constants.TYPE_NOTE)
+            getMenuInflater().inflate(R.menu.menu_widget_note, menu);
+        else if(noteType == Constants.TYPE_LIST)
+            getMenuInflater().inflate(R.menu.menu_widget_list, menu);
         return true;
     }
 
@@ -142,6 +148,9 @@ public class EditNoteActivity extends AppCompatActivity{
                 Utils.sendShareIntent(this, ((ContentGetter) fragmentManager.
                                 findFragmentById(fragmentContainerId)).getContent(),
                         getSupportActionBar().getTitle().toString());
+                break;
+            case R.id.action_remove_disabled_items:
+                ((ListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).removeDisabledItems();
                 break;
         }
 
