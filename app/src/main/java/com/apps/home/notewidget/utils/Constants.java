@@ -35,6 +35,8 @@ public interface Constants {
     String IGNORE_TABS_IN_WIDGETS_KEY = "ignoreTabsInWidget";
     String NOTE_TEXT_SIZE_KEY = "noteTextSize";
     String LIST_TILE_SIZE_KEY = "listTileSize";
+    String BOUGHT_ITEM_STYLE_KEY = "boughtItemStyle";
+    String LIST_TILE_TEXT_SIZE = "listTileTextSize";
     String STARTING_FOLDER_KEY = "startingFolder";
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
     String SKIP_WIDGET_MANUAL_DIALOG_KEY = "skipWidgetManualDialog";
@@ -50,6 +52,7 @@ public interface Constants {
     String FRAGMENT_SEARCH = "SearchFragment";
     String FRAGMENT_SETTINGS_LIST = "SettingsListFragment";
     String FRAGMENT_SETTINGS_WIDGET_CONFIG = "SettingsWidgetConfigFragment";
+    String FRAGMENT_SETTINGS_LIST_CONFIG = "SettingsListConfigFragment";
     String FRAGMENT_SETTINGS_RESTORE_LIST = "SettingsRestoreListFragment";
 
     String EDGE_VISIBLE_NOTES_KEY = "EdgeVisibleNotes";
@@ -61,6 +64,9 @@ public interface Constants {
 
     int FALSE = 0;
     int TRUE = 1;
+
+    int COLOR = 0;
+    int STRIKETHROUGH = 1;
 
     int HEADER_VIEW = 0;
     int NEW_ITEM_VIEW = 1;

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MotionEventCompat;
@@ -195,7 +196,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
 
     @Override
     public void onParametersUpdated() {
-        ((ListRecyclerAdapter)recyclerView.getAdapter()).refreshTileSize();
+        ((ListRecyclerAdapter)recyclerView.getAdapter()).refreshParameters();
     }
 
     class EdgeVisibilityReceiver extends BroadcastReceiver {
@@ -345,6 +346,8 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     private int activeItemsCount;
     private static int selectColor;
     private static int tileSize;
+    private static int textSize;
+    private static int textStyle;
 
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
@@ -360,8 +363,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         this.activeItemsCount = activeItemsCount;
         this.listener = listener;
         selectColor = context.getResources().getColor(R.color.colorAccent);
-        tileSize = convertPxToDP(context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
-                .getInt(Constants.LIST_TILE_SIZE_KEY, 56));
+        getParameters();
 
         setHasStableIds(true);
     }
@@ -378,13 +380,12 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         switch (viewType){
             case Constants.DISABLED_ITEM_VIEW:
                 Log.e("ListFragment", "Disabled item");
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_line_disabled_recycler_view_item, parent, false);
-
+                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_line_with_handle_recycle_view_item, parent, false);
                 break;
             case Constants.ENABLED_ITEM_VIEW:
                 Log.e("ListFragment", "Enabled item");
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_line_with_handle_recycle_view_item, parent, false);
-                    break;
+                break;
             case Constants.HEADER_VIEW:
                 Log.e("ListFragment", "Header");
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_recycler_view_item, parent, false); //TODO header view and UI
@@ -421,12 +422,14 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     private void onBindHeaderViewHolder(SingleLineWithHandleViewHolder holder, int position){
         holder.header.setText(items.get(position).getContent());
+        holder.header.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
         RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
-        params.height = convertPxToDP(48);
+        params.height = Utils.convertPxToDP(context, 48);
         holder.itemView.setLayoutParams(params);
     }
 
     private void onBindNewItemViewHolder(final SingleLineWithHandleViewHolder holder){
+        holder.newItemEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
         holder.confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -457,6 +460,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     private void onBindEnabledItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
         holder.titleTextView.setText(items.get(position).getContent());
+        holder.titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -502,6 +506,18 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     private void onBindDisabledItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
         holder.titleTextView.setText(items.get(position).getContent());
+        holder.titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+
+        switch (textStyle){
+            case Constants.COLOR:
+                holder.titleTextView.setTextColor(context.getResources().getColor(R.color.colorAccent));
+                holder.titleTextView.setStrikeEnabled(false);
+                break;
+            case Constants.STRIKETHROUGH:
+                holder.titleTextView.setStrikeEnabled(true);
+                holder.titleTextView.setTextColor(Color.BLACK);
+                break;
+        }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -603,14 +619,18 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         notifyItemRangeRemoved(fromPosition, toPosition);
     }
 
-    public void refreshTileSize() {
-        tileSize = convertPxToDP(context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
-                .getInt(Constants.LIST_TILE_SIZE_KEY, 56));
+    public void refreshParameters() {
+        getParameters();
         notifyDataSetChanged();
     }
 
-    public int convertPxToDP(int px){
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, px, context.getResources().getDisplayMetrics());
+    private void getParameters(){
+        SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        tileSize = Utils.convertPxToDP(context, preferences.getInt(Constants.LIST_TILE_SIZE_KEY, 56));
+        textSize = preferences.getInt(Constants.LIST_TILE_TEXT_SIZE, 16);
+        textStyle = preferences.getInt(Constants.BOUGHT_ITEM_STYLE_KEY, Constants.COLOR);
     }
+
+
 }
 

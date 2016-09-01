@@ -1,0 +1,116 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/note_text_padding">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView3"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/divider" />
+        <include
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            layout="@layout/single_line_with_handle_recycle_view_item"
+            android:layout_gravity="center_horizontal" />
+
+        <com.apps.home.notewidget.customviews.RobotoTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/colorPrimary"
+            android:text="TILE SIZE"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="20dp" />
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/radioGroup"
+            android:layout_gravity="center_horizontal|top">
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/radioButton"
+                android:checked="false"
+                android:layout_gravity="center_vertical"
+                android:text="small" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/radioButton2"
+                android:checked="true"
+                android:layout_gravity="center_vertical"
+                android:text="medium" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/radioButton3"
+                android:checked="false"
+                android:layout_gravity="center_vertical"
+                android:text="big" />
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/radioButton4"
+                android:checked="false"
+                android:layout_gravity="center_vertical"
+                android:text="very big" />
+        </RadioGroup>
+
+        <com.apps.home.notewidget.customviews.RobotoTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/colorPrimary"
+            android:text="TEXT SIZE"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="20dp" />
+
+        <NumberPicker
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/numberPicker2"
+            android:orientation="vertical" />
+
+        <com.apps.home.notewidget.customviews.RobotoTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/colorPrimary"
+            android:text="BOUGHT ITEM STYLE"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="20dp" />
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/radioGroup2">
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="color"
+                android:id="@+id/radioButton5"
+                android:checked="true" />
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="strikethrough"
+                android:id="@+id/radioButton6"
+                android:checked="false" />
+        </RadioGroup>
+
+
+    </LinearLayout>
+</ScrollView>

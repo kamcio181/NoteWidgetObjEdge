@@ -73,7 +73,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
     @Override
     public void onBackPressed() {
         if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_WIDGET_CONFIG) != null
-                || fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_RESTORE_LIST) != null)
+                || fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_RESTORE_LIST) != null
+                || fragmentManager.findFragmentByTag(Constants.FRAGMENT_SETTINGS_LIST_CONFIG) != null)
             fragmentManager.beginTransaction().replace(R.id.container,
                     new SettingsListFragment(), Constants.FRAGMENT_SETTINGS_LIST).
                     setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
@@ -256,10 +257,12 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                         setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
                 break;
             case 1:
-                getNoteSizeDialog().show();
+                fragmentManager.beginTransaction().replace(R.id.container,
+                        new SettingsListConfigFragment(), Constants.FRAGMENT_SETTINGS_LIST_CONFIG).
+                        setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
                 break;
             case 2:
-                getTileSizeDialog().show();
+                getNoteSizeDialog().show();
                 break;
             case 3:
                 Dialog dialog = Utils.getAllFolderListDialog(context, getString(R.string.choose_starting_folder), new DialogInterface.OnClickListener() {
@@ -277,19 +280,6 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 break;
         }
     }
-
-    private Dialog getTileSizeDialog(){
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        final String[] items = new String[]{"48", "56", "64", "72"};
-        return builder.setTitle("Tile size").setItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-            preferences.edit().putInt(Constants.LIST_TILE_SIZE_KEY, Integer.valueOf(items[which])).
-                    putBoolean(Constants.NOTE_PARAMETERS_UPDATED, true).apply();
-            }
-        }).create();
-    }
-
 
 
     private void copy(File src, File dst) throws IOException{

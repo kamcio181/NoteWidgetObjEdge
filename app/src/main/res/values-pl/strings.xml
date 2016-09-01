@@ -109,8 +109,8 @@
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>
+        <item>Ustawienia listy</item>
         <item>Wielkość tekstu notatki</item>
-        <item>Wielkość kafelka listy</item>
         <item>Folder startowy</item>
         <item>Kopia zapasowa i przywracanie</item>
     </string-array>
