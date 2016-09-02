@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity
                 case Constants.FRAGMENT_NOTE:
                 case Constants.FRAGMENT_LIST:
                 case Constants.FRAGMENT_TRASH_NOTE:
+                case Constants.FRAGMENT_TRASH_LIST:
                     if(textToFind.length()==0)
                         attachFragment(Constants.FRAGMENT_FOLDER);
                     else
@@ -190,6 +191,7 @@ public class MainActivity extends AppCompatActivity
                     getMenuInflater().inflate(R.menu.menu_list, menu);
                     break;
                 case Constants.FRAGMENT_TRASH_NOTE:
+                case Constants.FRAGMENT_TRASH_LIST:
                     getMenuInflater().inflate(R.menu.menu_note_trash, menu);
                     break;
             }
@@ -730,6 +732,10 @@ public class MainActivity extends AppCompatActivity
                 setOnTitleClickListener(false);
                 fragmentToAttach = TrashNoteFragment.newInstance(note);
                 break;
+            case Constants.FRAGMENT_TRASH_LIST:
+                setOnTitleClickListener(false);
+                fragmentToAttach = TrashListFragment.newInstance(note);
+                break;
             case Constants.FRAGMENT_SEARCH:
                 setOnTitleClickListener(false);
                 fragmentToAttach = SearchFragment.newInstance(textToFind);
@@ -749,12 +755,16 @@ public class MainActivity extends AppCompatActivity
     public void onNoteClicked(Note note, boolean longClick) {
         this.note = note;
         if(!longClick) {
-            if (folderId == trashNavId)
-                attachFragment(Constants.FRAGMENT_TRASH_NOTE);
+            if (folderId == trashNavId) {
+                if(note.getType() == Constants.TYPE_NOTE)
+                    attachFragment(Constants.FRAGMENT_TRASH_NOTE);
+                else if (note.getType() == Constants.TYPE_LIST)
+                    attachFragment(Constants.FRAGMENT_TRASH_LIST);
+            }
             else if (note.getType() == Constants.TYPE_NOTE)
                 attachFragment(Constants.FRAGMENT_NOTE);
             else if (note.getType() == Constants.TYPE_LIST)
-                attachFragment(Constants.FRAGMENT_LIST);//TODO
+                attachFragment(Constants.FRAGMENT_LIST);
         } else {
             getNoteActionDialog().show();
         }
@@ -765,12 +775,16 @@ public class MainActivity extends AppCompatActivity
     public void onItemClicked(Note note, String textToFind) {
         this.textToFind = textToFind;
         this.note = note;
-        if(note.getDeletedState() == Constants.TRUE)
-            attachFragment(Constants.FRAGMENT_TRASH_NOTE, false);
+        if(note.getDeletedState() == Constants.TRUE) {
+            if(note.getType() == Constants.TYPE_NOTE)
+                attachFragment(Constants.FRAGMENT_TRASH_NOTE);
+            else if (note.getType() == Constants.TYPE_LIST)
+                attachFragment(Constants.FRAGMENT_TRASH_LIST);
+        }
         else if (note.getType() == Constants.TYPE_NOTE)
             attachFragment(Constants.FRAGMENT_NOTE);
         else if (note.getType() == Constants.TYPE_LIST)
-            attachFragment(Constants.FRAGMENT_LIST);//TODO
+            attachFragment(Constants.FRAGMENT_LIST);
     }
 
     @Override

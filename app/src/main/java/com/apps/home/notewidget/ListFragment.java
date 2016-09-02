@@ -63,7 +63,6 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     private boolean isNewNote;
     private Context context;
     private boolean skipTextCheck = false;
-    private int editTextSelection;
     private String newLine;
     private Note note;
     private DatabaseHelper helper;
@@ -507,6 +506,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     private void onBindDisabledItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
         holder.titleTextView.setText(items.get(position).getContent());
         holder.titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        holder.handle.setVisibility(View.GONE);
 
         switch (textStyle){
             case Constants.COLOR:

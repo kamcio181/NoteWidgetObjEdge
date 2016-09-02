@@ -288,7 +288,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
             Log.e("Helper", "get Readable - Folders");
             String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
-                    + ", f." + Constants.FOLDER_ICON_COL
                     + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
                     + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
                     + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
@@ -842,7 +841,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
 
                 String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
-                        + ", f." + Constants.FOLDER_ICON_COL
                         + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
                         + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
                         + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
@@ -1041,7 +1039,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 //                        Constants.ID_COL + " = " + folderId;*/
 //
 //                String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
-//                        + ", f." + Constants.FOLDER_ICON_COL
 //                        + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
 //                        + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
 //                        + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
@@ -1092,7 +1089,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
                 Log.e("Helper", "get Readable - Folders");
                 String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
-                        + ", f." + Constants.FOLDER_ICON_COL
                         + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
                         + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
                         + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
