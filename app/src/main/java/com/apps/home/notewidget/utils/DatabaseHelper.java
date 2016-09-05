@@ -166,8 +166,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             Cursor cursor = db.rawQuery(selectQuery, null);
 
-            if(cursor != null){
-                cursor.moveToFirst();
+            if(cursor != null && cursor.moveToFirst()){
 
                 Note note = new Note();
                 note.setId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
@@ -204,8 +203,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             Cursor cursor = db.rawQuery(selectQuery, null);
 
-            if(cursor != null && cursor.getCount() != 0){
-                cursor.moveToFirst();
+            if(cursor != null && cursor.moveToFirst()){
                 Note note;
                 ArrayList<Note> notes = new ArrayList<>();
                 do {
@@ -334,9 +332,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new CreateWidget(widget, listener).execute();
     }
 
-//    public void updateWidget (Widget widget, long widgetId, OnItemUpdateListener listener){
-//        new UpdateWidget(widget, widgetId, listener).execute();
-//    }
+    public void updateWidget (Widget widget, OnItemUpdateListener listener){
+        new UpdateWidget(widget, listener).execute();
+    }
 
     public int updateWidgetOnDemand (Widget widget, long widgetId){
         try {
@@ -379,8 +377,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             Cursor cursor = db.rawQuery(selectQuery, null);
 
-            if(cursor != null){
-                cursor.moveToFirst();
+            if(cursor != null && cursor.moveToFirst()){
 
                 Widget widget = new Widget();
                 widget.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
@@ -521,8 +518,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
 
-                if(cursor != null){
-                    cursor.moveToFirst();
+                if(cursor != null && cursor.moveToFirst()){
 
                     Note note = new Note();
                     note.setId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
@@ -905,11 +901,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Cursor cursor = db.query(Constants.NOTES_TABLE, new String[]{Constants.ID_COL}, Constants.FOLDER_ID_COL + " = ? AND " +
                         Constants.DELETED_COL + " = ?", new String[]{Long.toString(folderId), Integer.toString(Constants.FALSE)}, null, null, null);
 
-                if(cursor != null && cursor.getCount() !=0){
+                if(cursor != null && cursor.moveToFirst()){
                     SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
                     String checked = preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY, "");
                     if(checked.length()>2){
-                        cursor.moveToFirst();
                         for(int i = 0; i < cursor.getCount(); i++) {
                             long id = cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL));
                             checked = checked.replace(";" + id + ";", ";");
@@ -1047,8 +1042,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 //
 //                Cursor cursor = db.rawQuery(selectQuery, null);
 //
-//                if(cursor != null){
-//                    cursor.moveToFirst();
+//                if(cursor != null && cursor.moveToFirst()){
 //
 //                    Folder folder = new Folder();
 //                    folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
@@ -1212,47 +1206,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-//    private class UpdateWidget extends AsyncTask<Void, Void, Integer> {
-//        private Widget widget;
-//        private long widgetId;
-//        private OnItemUpdateListener listener;
-//
-//        public UpdateWidget(Widget widget, long widgetId, OnItemUpdateListener listener) {
-//            this.widget = widget;
-//            this.widgetId = widgetId;
-//            this.listener = listener;
-//        }
-//
-//        @Override
-//        protected Integer doInBackground(Void... params) {
-//            try {
-//                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
-//
-//                ContentValues values = new ContentValues();
-//                values.put(Constants.CURRENT_WIDGET_MODE_COL, widget.getMode());
-//                values.put(Constants.CURRENT_THEME_MODE_COL, widget.getTheme());
-//                values.put(Constants.CURRENT_TEXT_SIZE_COL, widget.getTextSize());
-//
-//                int rows = db.update(Constants.WIDGETS_TABLE, values, Constants.ID_COL + " = ?",
-//                        new String[]{Long.toString(widgetId)});
-//
-//                db.close();
-//
-//                return rows;
-//            }catch (SQLiteException e){
-//                Log.e(TAG, "" + e);
-//                return -1;
-//            }
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Integer aInt) {
-//            super.onPostExecute(aInt);
-//
-//            if(listener != null)
-//                listener.onItemUpdated(aInt);
-//        }
-//    }
+    private class UpdateWidget extends AsyncTask<Void, Void, Integer> {
+        private Widget widget;
+        private OnItemUpdateListener listener;
+
+        public UpdateWidget(Widget widget, OnItemUpdateListener listener) {
+            this.widget = widget;
+            this.listener = listener;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+
+                ContentValues values = new ContentValues();
+                values.put(Constants.CONNECTED_NOTE_ID_COL, widget.getNoteId());
+
+                int rows = db.update(Constants.WIDGETS_TABLE, values, Constants.WIDGET_ID_COL + " = ?",
+                        new String[]{Long.toString(widget.getWidgetId())});
+
+                db.close();
+
+                return rows;
+            }catch (SQLiteException e){
+                Log.e(TAG, "" + e);
+                return -1;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer aInt) {
+            super.onPostExecute(aInt);
+
+            if(listener != null)
+                listener.onItemUpdated(aInt);
+        }
+    }
 
 //    private class GetWidget extends AsyncTask<Void, Void, Widget> {
 //        private long itemId;
@@ -1287,8 +1277,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 //
 //                Cursor cursor = db.rawQuery(selectQuery, null);
 //
-//                if(cursor != null){
-//                    cursor.moveToFirst();
+//                if(cursor != null && cursor.moveToFirst()){
 //
 //                    Widget widget = new Widget();
 //                    widget.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));

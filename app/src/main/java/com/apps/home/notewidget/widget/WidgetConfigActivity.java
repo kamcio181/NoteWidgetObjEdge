@@ -27,6 +27,7 @@ public class WidgetConfigActivity extends AppCompatActivity{
     private RecyclerView notesRecyclerView;
     private DatabaseHelper helper;
     private ArrayList<Note> notes;
+    private boolean reconfirure;
 
     @Override
     public void onCreate(Bundle state) {
@@ -42,6 +43,7 @@ public class WidgetConfigActivity extends AppCompatActivity{
         if(extras != null){
             widgetID = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,
                     AppWidgetManager.INVALID_APPWIDGET_ID);
+            reconfirure = extras.getBoolean(Constants.RECONFIGURE, false);
             Log.e("config onCreate", "widgetId "+ widgetID);
         }
 
@@ -91,35 +93,48 @@ public class WidgetConfigActivity extends AppCompatActivity{
                     Widget widget = new Widget();
                     widget.setWidgetId(widgetID);
                     widget.setNoteId(notes.get(getLayoutPosition()).getId());
-                    helper.createWidget(widget, new DatabaseHelper.OnItemInsertListener() {
-                        @Override
-                        public void onItemInserted(long id) {
-                            if (id >= 0) {
-                                Log.e("WidgetConfig", "widget inserted");
-                                getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().
-                                        putBoolean(widgetID + Constants.CONFIGURED_KEY, true).commit();
-
-                                WidgetProvider widgetProvider = new WidgetProvider();
-                                widgetProvider.onUpdate(WidgetConfigActivity.this,
-                                        AppWidgetManager.getInstance(WidgetConfigActivity.this),
-                                        new int[]{widgetID});
-
-                                Intent intent = new Intent();
-                                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetID);
-                                setResult(RESULT_OK, intent);
-
-                                if(!getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).
-                                        getBoolean(Constants.SKIP_WIDGET_MANUAL_DIALOG_KEY, false))
-                                    startActivity(new Intent(WidgetConfigActivity.this, WidgetManualActivity.class));
+                    if(reconfirure)
+                        helper.updateWidget(widget, new DatabaseHelper.OnItemUpdateListener() {
+                            @Override
+                            public void onItemUpdated(int numberOfRows) {
+                                if(numberOfRows > 0)
+                                    finishConfiguration();
+                                finish();
                             }
-                            finish();
-                        }
-                    });
+                        });
+                    else
+                        helper.createWidget(widget, new DatabaseHelper.OnItemInsertListener() {
+                            @Override
+                            public void onItemInserted(long id) {
+                                if (id >= 0)
+                                    finishConfiguration();
+                                finish();
+                            }
+                        });
                 }
             });
 
             titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
         }
+    }
+
+    private void finishConfiguration(){
+        Log.e("WidgetConfig", "widget inserted");
+        getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().
+                putBoolean(widgetID + Constants.CONFIGURED_KEY, true).commit();
+
+        WidgetProvider widgetProvider = new WidgetProvider();
+        widgetProvider.onUpdate(WidgetConfigActivity.this,
+                AppWidgetManager.getInstance(WidgetConfigActivity.this),
+                new int[]{widgetID});
+
+        Intent intent = new Intent();
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetID);
+        setResult(RESULT_OK, intent);
+
+        if(!getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).
+                getBoolean(Constants.SKIP_WIDGET_MANUAL_DIALOG_KEY, false))
+            startActivity(new Intent(WidgetConfigActivity.this, WidgetManualActivity.class));
     }
 
 

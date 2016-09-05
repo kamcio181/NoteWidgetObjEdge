@@ -110,9 +110,9 @@ public class WidgetProvider extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             if(isConfigured(context, appWidgetId)){
 
-                updateNote(context, appWidgetId);
-
                 appWidgetManager.updateAppWidget(appWidgetId, updateWidgetListView(context, appWidgetId));
+
+                updateNote(context, appWidgetId);
             }
         }
         super.onUpdate(context, appWidgetManager, appWidgetIds);
@@ -150,8 +150,6 @@ public class WidgetProvider extends AppWidgetProvider {
             currentWidgetMode = widget.getMode();
 
             note = helper.getNoteOnDemand(false, widget.getNoteId());
-            Log.v(TAG, "Note: " + note.getTitle());
-
         }
     }
 
@@ -166,6 +164,7 @@ public class WidgetProvider extends AppWidgetProvider {
         configIntent.setAction(WidgetProvider.ACTION_WIDGET_CONFIGURE);
         configIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        configIntent.putExtra(Constants.RECONFIGURE, true);
         return PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 

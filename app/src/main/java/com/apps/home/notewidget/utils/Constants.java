@@ -20,7 +20,6 @@ public interface Constants {
 
     String FOLDER_TABLE = "FOLDERS";
     String FOLDER_NAME_COL = "folderName";
-    String FOLDER_ICON_COL = "folderIcon";
     String NOTES_COUNT_COL = "notesCount";
 
     String PREFS_NAME = "prefs";
@@ -41,6 +40,7 @@ public interface Constants {
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
     String SKIP_WIDGET_MANUAL_DIALOG_KEY = "skipWidgetManualDialog";
     String RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY = "reloadMainActivityAfterRestore";
+    String RECONFIGURE = "reconfigure";
 
     String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";
     String NOTE_PARAMETERS_UPDATED = "noteTextSizeUpdated";
