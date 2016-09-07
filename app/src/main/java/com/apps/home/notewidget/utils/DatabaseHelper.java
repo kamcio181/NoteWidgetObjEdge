@@ -8,6 +8,7 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -32,15 +33,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.e("helper", "On create");
-        updateDatabase(db, 0, DB_VERSION);
+        updateDatabase(db, 0);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        updateDatabase(db, oldVersion, newVersion);
+        updateDatabase(db, oldVersion);
     }
 
-    private void updateDatabase(SQLiteDatabase db, int oldVersion, int newVersion) {
+    private void updateDatabase(SQLiteDatabase db, int oldVersion) {
         if (oldVersion < 1) {
             db.execSQL("CREATE TABLE " + Constants.NOTES_TABLE + " ("
                     + Constants.ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -104,13 +105,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         void onNoteLoaded(Note note);
     }
 
+    public interface OnIntFieldLoadListener{
+        void onIntLoaded(int value);
+    }
+
     public interface OnNotesLoadListener {
         void onNotesLoaded(ArrayList<Note> notes);
     }
 
-//    public interface OnFolderLoadListener {
-//        void onFolderLoaded(Folder folder);
-//    }
+    public interface OnFolderLoadListener {
+        void onFolderLoaded(Folder folder);
+    }
 
     public interface OnFoldersLoadListener {
         void onFoldersLoaded(ArrayList<Folder> folders);
@@ -136,8 +141,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new UpdateNote(note, listener).execute();
     }
 
+    public void updateNote (long noteId, ContentValues contentValues, OnItemUpdateListener listener){
+        new UpdateNote(noteId, contentValues, listener).execute();
+    }
+
     public void getNote(boolean includeDeleted, long noteId, OnNoteLoadListener listener){
         new GetNote(includeDeleted, noteId, listener).execute();
+    }
+
+    public void getColumnValue(String table, String column, long id, OnIntFieldLoadListener listener){
+        new GetColumnValue(table, column, id, listener).execute();
     }
 
     private long updateNotesWithValueOnDemand(SQLiteDatabase db, ContentValues contentValues){
@@ -238,7 +251,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new GetNotes(includeDeleted, listener).execute();
     }
 
-    public void getFolderNotes(int folderId, boolean sortByDate, OnNotesLoadListener listener){
+    public void getFolderNotes(long folderId, boolean sortByDate, OnNotesLoadListener listener){
         new GetFolderNotes(folderId, sortByDate, listener).execute();
     }
 
@@ -273,9 +286,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new UpdateFolder(folder, listener).execute();
     }
 
-//    public void getFolder(long folderId, OnFolderLoadListener listener){
-//        new GetFolder(folderId, listener).execute();
-//    }
+    public void getFolder(long folderId, OnFolderLoadListener listener){
+        new GetFolder(folderId, listener).execute();
+    }
 
     public void getFolders(OnFoldersLoadListener listener){
         new GetFolders(listener).execute();
@@ -452,9 +465,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private class UpdateNote extends AsyncTask<Void, Void, Integer> {
         private Note note;
         private OnItemUpdateListener listener;
+        private ContentValues contentValues;
+        private long noteId;
 
         public UpdateNote(Note note, OnItemUpdateListener listener) {
             this.note = note;
+            this.listener = listener;
+        }
+
+        public UpdateNote(long noteId, ContentValues contentValues, OnItemUpdateListener listener) {
+            this.noteId = noteId;
+            this.contentValues = contentValues;
             this.listener = listener;
         }
 
@@ -462,15 +483,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         protected Integer doInBackground(Void... params) {
             try {
                 SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+                if(note != null){
+                    contentValues = new ContentValues();
+                    contentValues.put(Constants.NOTE_TITLE_COL, note.getTitle());
+                    contentValues.put(Constants.NOTE_TEXT_COL, note.getNote().replace(System.getProperty("line.separator"), "<br/>"));
+                    contentValues.put(Constants.FOLDER_ID_COL, note.getFolderId());
+                    contentValues.put(Constants.DELETED_COL, note.getDeletedState());
 
-                ContentValues values = new ContentValues();
-                values.put(Constants.NOTE_TITLE_COL, note.getTitle());
-                values.put(Constants.NOTE_TEXT_COL, note.getNote().replace(System.getProperty("line.separator"), "<br/>"));
-                values.put(Constants.FOLDER_ID_COL, note.getFolderId());
-                values.put(Constants.DELETED_COL, note.getDeletedState());
+                    noteId = note.getId();
+                }
 
-                int rows = db.update(Constants.NOTES_TABLE, values, Constants.ID_COL + " = ?",
-                        new String[]{Long.toString(note.getId())});
+                int rows = db.update(Constants.NOTES_TABLE, contentValues, Constants.ID_COL + " = ?",
+                        new String[]{Long.toString(noteId)});
 
                 db.close();
 
@@ -507,14 +531,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
 
                 String selectQuery;
+//                String columns = "*";
+                String deletedQuery = "";
 
-                if(includeDeleted)
-                    selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
-                            Constants.ID_COL + " = " + noteId;
-                else
-                    selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
-                            Constants.ID_COL + " = " + noteId + " AND " +Constants.DELETED_COL +
+                if(!includeDeleted)
+                    deletedQuery = " AND " +Constants.DELETED_COL +
                             " = " + Constants.FALSE;
+
+                selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
+                            Constants.ID_COL + " = " + noteId + deletedQuery;
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -547,6 +572,66 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             if(listener != null)
                 listener.onNoteLoaded(aNote);
+        }
+    }
+
+    private class GetColumnValue extends AsyncTask<Void, Void, Object> {
+        private String table;
+        private String column;
+        private long id;
+        private OnIntFieldLoadListener intListener;
+        private int mode;
+
+        public GetColumnValue(String table, String column, long id, OnIntFieldLoadListener listener) {
+            this.table = table;
+            this.column = column;
+            this.id = id;
+            this.intListener = listener;
+            this.mode = Constants.TYPE_INT;
+        }
+
+        @Override
+        protected Object doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+
+                String selectQuery = "SELECT " + column + " FROM " + table + " WHERE " +
+                        Constants.ID_COL + " = " + id;
+
+                Log.v(TAG, selectQuery);
+                Cursor cursor = db.rawQuery(selectQuery, null);
+
+                if(cursor != null && cursor.moveToFirst()){
+                    Object value = null;
+
+                    switch (mode){
+                        case Constants.TYPE_INT:
+                            value = cursor.getInt(cursor.getColumnIndexOrThrow(column));
+                            break;
+                    }
+
+                    cursor.close();
+                    db.close();
+
+                    return value;
+                } else
+                    return null;
+            }catch (SQLiteException e){
+                Log.e(TAG, ""+e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Object object) {
+            super.onPostExecute(object);
+
+            switch (mode){
+                case Constants.TYPE_INT:
+                    if(intListener != null)
+                        intListener.onIntLoaded((Integer) object);
+                    break;
+            }
         }
     }
 
@@ -613,11 +698,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class GetFolderNotes extends AsyncTask<Void, Void, ArrayList<Note>> {
-        private int folderId;
+        private long folderId;
         private boolean sortByDate;
         private OnNotesLoadListener listener;
 
-        public GetFolderNotes(int folderId, boolean sortByDate, OnNotesLoadListener listener) {
+        public GetFolderNotes(long folderId, boolean sortByDate, OnNotesLoadListener listener) {
             this.folderId = folderId;
             this.sortByDate = sortByDate;
             this.listener = listener;
@@ -631,14 +716,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String orderColumn = sortByDate ? Constants.MILLIS_COL : Constants.NOTE_TITLE_COL;
                 String direction = sortByDate? "DESC" : "ASC";
 
+                String columns = Constants.ID_COL + ", " + Constants.MILLIS_COL + ", "
+                                + Constants.NOTE_TITLE_COL + ", " + Constants.FOLDER_ID_COL + ", "
+                                + Constants.TYPE_COL;
+
                 String selectQuery;
 
                 if(folderId != Utils.getTrashNavId(context)) //is not trash
-                    selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
+                    selectQuery = "SELECT "+ columns +" FROM " + Constants.NOTES_TABLE + " WHERE " +
                                 Constants.FOLDER_ID_COL + " = " + folderId + " AND " +
                                 Constants.DELETED_COL + " = " + Constants.FALSE + " ORDER BY LOWER(" + orderColumn +") " + direction;
                 else
-                    selectQuery = "SELECT * FROM " + Constants.NOTES_TABLE + " WHERE " +
+                    selectQuery = "SELECT "+ columns +" FROM " + Constants.NOTES_TABLE + " WHERE " +
                             Constants.DELETED_COL + " = " + Constants.TRUE + " ORDER BY LOWER(" + orderColumn +") " + direction;
 
                 Cursor cursor = db.rawQuery(selectQuery, null);
@@ -647,16 +736,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                     ArrayList<Note> notes = new ArrayList<>(cursor.getCount());
                     do{
-                        Note note = new Note(); //TODO use constructor
-                        note.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
-                        note.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)));
-                        note.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)));
-                        note.setNote(cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TEXT_COL)));
-                        note.setFolderId(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL)));
-                        note.setDeletedState(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DELETED_COL)));
-                        note.setType(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.TYPE_COL)));
-
-                        notes.add(note);
+                        notes.add(new Note(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)),
+                                cursor.getLong(cursor.getColumnIndexOrThrow(Constants.MILLIS_COL)),
+                                cursor.getString(cursor.getColumnIndexOrThrow(Constants.NOTE_TITLE_COL)),
+                                cursor.getInt(cursor.getColumnIndexOrThrow(Constants.FOLDER_ID_COL)),
+                                cursor.getInt(cursor.getColumnIndexOrThrow(Constants.TYPE_COL))));
 
                     } while (cursor.moveToNext());
 
@@ -849,12 +933,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                     ArrayList<Folder> folders = new ArrayList<>(cursor.getCount());
                     do{
-                        Folder folder = new Folder();
-                        folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
-                        folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
-                        folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
-
-                        folders.add(folder);
+                        folders.add(new Folder(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)),
+                                cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)),
+                                cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL))));
 
                     } while (cursor.moveToNext());
 
@@ -1016,59 +1097,57 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-//    private class GetFolder extends AsyncTask<Void, Void, Folder> {
-//        private long folderId;
-//        private OnFolderLoadListener listener;
-//
-//        public GetFolder(long folderId, OnFolderLoadListener listener) {
-//            this.folderId = folderId;
-//            this.listener = listener;
-//        }
-//
-//        @Override
-//        protected Folder doInBackground(Void... params) {
-//            try {
-//                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
-//
-//                /*String selectQuery = "SELECT * FROM " + Constants.FOLDER_TABLE + " WHERE " +
-//                        Constants.ID_COL + " = " + folderId;*/
-//
+    private class GetFolder extends AsyncTask<Void, Void, Folder> {
+        private long folderId;
+        private OnFolderLoadListener listener;
+
+        public GetFolder(long folderId, OnFolderLoadListener listener) {
+            this.folderId = folderId;
+            this.listener = listener;
+        }
+
+        @Override
+        protected Folder doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+
+                String selectQuery = "SELECT * FROM " + Constants.FOLDER_TABLE + " WHERE " +
+                        Constants.ID_COL + " = " + folderId;
+
 //                String selectQuery ="SELECT f." + Constants.ID_COL + ", f." + Constants.FOLDER_NAME_COL
 //                        + ", COUNT(n." + Constants.DELETED_COL + ") AS " + Constants.NOTES_COUNT_COL
 //                        + " FROM " + Constants.FOLDER_TABLE + " f LEFT JOIN "
 //                        + Constants.NOTES_TABLE + " n ON f." + Constants.ID_COL + " = n."
 //                        + Constants.FOLDER_ID_COL + " AND n." + Constants.DELETED_COL + " = " + Constants.FALSE
 //                        + " AND n." + Constants.FOLDER_ID_COL + " = " + folderId;
-//
-//                Cursor cursor = db.rawQuery(selectQuery, null);
-//
-//                if(cursor != null && cursor.moveToFirst()){
-//
-//                    Folder folder = new Folder();
-//                    folder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
-//                    folder.setName(cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)));
-//                    folder.setCount(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.NOTES_COUNT_COL)));
-//
-//                    cursor.close();
-//                    db.close();
-//
-//                    return folder;
-//                } else
-//                    return null;
-//            }catch (SQLiteException e){
-//                Log.e(TAG, "" + e);
-//                return null;
-//            }
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Folder aFolder) {
-//            super.onPostExecute(aFolder);
-//
-//            if(listener != null)
-//                listener.onFolderLoaded(aFolder);
-//        }
-//    }
+
+                Cursor cursor = db.rawQuery(selectQuery, null);
+
+                if(cursor != null && cursor.moveToFirst()){
+
+                    Folder folder = new Folder(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(Constants.FOLDER_NAME_COL)),
+                            0);
+                    cursor.close();
+                    db.close();
+
+                    return folder;
+                } else
+                    return null;
+            }catch (SQLiteException e){
+                Log.e(TAG, "" + e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Folder aFolder) {
+            super.onPostExecute(aFolder);
+
+            if(listener != null)
+                listener.onFolderLoaded(aFolder);
+        }
+    }
 
     private class GetFolders extends AsyncTask<Void, Void, ArrayList<Folder>> {
         private OnFoldersLoadListener listener;

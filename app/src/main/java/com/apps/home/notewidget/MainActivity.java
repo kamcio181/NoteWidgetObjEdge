@@ -1,6 +1,7 @@
 package com.apps.home.notewidget;
 
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -360,17 +361,30 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if(action == R.id.action_restore_from_trash){
-                    note.setDeletedState(Constants.FALSE);
-                    helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
+
+                    ContentValues contentValues = new ContentValues(1);
+                    contentValues.put(Constants.DELETED_COL, Constants.FALSE);
+                    helper.updateNote(note.getId(), contentValues, new DatabaseHelper.OnItemUpdateListener() {
                         @Override
-                        public void onItemUpdated(int numberOfRows) { //TODO code duplicated, toast before async task
+                        public void onItemUpdated(int numberOfRows) {
                             if (numberOfRows > 0) {
                                 Utils.decrementFolderCount(getNavigationViewMenu(), (int) Utils.getTrashNavId(context), 1);
 
                                 Utils.showToast(context, context.getString(R.string.notes_was_restored));
                                 Utils.updateConnectedWidgets(context, note.getId());
                                 Utils.updateAllEdgePanels(context);
-                                Utils.incrementFolderCount(getNavigationViewMenu(), (int) note.getFolderId(), 1);
+//                                helper.getNote(true, note.getId(), new DatabaseHelper.OnNoteLoadListener() {
+//                                    @Override
+//                                    public void onNoteLoaded(Note note) {
+//                                        Utils.incrementFolderCount(getNavigationViewMenu(), (int) note.getFolderId(), 1);
+//                                    }
+//                                });
+                                helper.getColumnValue(Constants.NOTES_TABLE, Constants.FOLDER_ID_COL, note.getId(), new DatabaseHelper.OnIntFieldLoadListener() {
+                                    @Override
+                                    public void onIntLoaded(int value) {
+                                        Utils.incrementFolderCount(getNavigationViewMenu(), value, 1);
+                                    }
+                                });
 
                                 if (!actionBarMenuItemClicked && fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null) {
                                     ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
@@ -433,20 +447,24 @@ public class MainActivity extends AppCompatActivity
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                final int newFolderId = Utils.getFolderIdFromArray(which);
 
-                note.setFolderId(Utils.getFolderIdFromArray(which));
-                helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
+                ContentValues contentValues = new ContentValues(1);
+                contentValues.put(Constants.FOLDER_ID_COL, newFolderId);
+
+
+                helper.updateNote(note.getId(), contentValues, new DatabaseHelper.OnItemUpdateListener() {
                     @Override
                     public void onItemUpdated(int numberOfRows) {
                         if (numberOfRows > 0) {
                             Utils.showToast(context, context.getString(R.string.note_has_been_moved));
                             Menu menu = getNavigationViewMenu();
-                            Utils.incrementFolderCount(menu, (int) note.getFolderId(), 1);
+                            Utils.incrementFolderCount(menu, newFolderId, 1);
                             Utils.decrementFolderCount(menu, folderId, 1);
 
                             if (actionBarMenuItemClicked) {
                                 //Update current folderId for folder fragment displayed onBackPressed
-                                folderId = (int) note.getFolderId();
+                                folderId = newFolderId;
                                 navigationView.setCheckedItem(folderId);
 
                                 //Change folder id for note which is currently visible
@@ -458,10 +476,38 @@ public class MainActivity extends AppCompatActivity
                                 if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
                                     ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
                             }
-                        } else
-                            note.setFolderId(folderId); //TODO if this is needed?
+                        }
                     }
                 });
+
+//                note.setFolderId(Utils.getFolderIdFromArray(which));
+//                helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
+//                    @Override
+//                    public void onItemUpdated(int numberOfRows) {
+//                        if (numberOfRows > 0) {
+//                            Utils.showToast(context, context.getString(R.string.note_has_been_moved));
+//                            Menu menu = getNavigationViewMenu();
+//                            Utils.incrementFolderCount(menu, (int) note.getFolderId(), 1);
+//                            Utils.decrementFolderCount(menu, folderId, 1);
+//
+//                            if (actionBarMenuItemClicked) {
+//                                //Update current folderId for folder fragment displayed onBackPressed
+//                                folderId = (int) note.getFolderId();
+//                                navigationView.setCheckedItem(folderId);
+//
+//                                //Change folder id for note which is currently visible
+//                                Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
+//                                String fragmentTag = fragment.getTag();
+//                                if (fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST))
+//                                    ((FolderChangeListener) fragment).onFolderChanged(folderId);
+//                            } else {
+//                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
+//                                    ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
+//                            }
+//                        } else
+//                            note.setFolderId(folderId); //TODO if this is needed?
+//                    }
+//                });
             }
         };
     }
@@ -508,7 +554,13 @@ public class MainActivity extends AppCompatActivity
                             break;
                         case 1:
                             //share
-                            Utils.sendShareIntent(context, Html.fromHtml(note.getNote()).toString(), note.getTitle()); //TODO pass only active items from list
+                            helper.getNote(false, note.getId(), new DatabaseHelper.OnNoteLoadListener() {
+                                @Override
+                                public void onNoteLoaded(Note note) {
+                                    Utils.sendShareIntent(context, Html.fromHtml(note.getNote()).toString(), note.getTitle()); //TODO the share function may be too big
+                                }
+                            });
+
                             break;
                         case 2:
                             //move to other folder
@@ -517,8 +569,10 @@ public class MainActivity extends AppCompatActivity
                         case 3:
                             //move to trash
                             Utils.showToast(context, context.getString(R.string.moving_to_trash));
-                            note.setDeletedState(Constants.TRUE);
-                            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
+//                            note.setDeletedState(Constants.TRUE);
+                            ContentValues contentValues = new ContentValues(1);
+                            contentValues.put(Constants.DELETED_COL, Constants.TRUE);
+                            helper.updateNote(note.getId(), contentValues, new DatabaseHelper.OnItemUpdateListener() {
                                 @Override
                                 public void onItemUpdated(int numberOfRows) {
                                     if (numberOfRows > 0) {
@@ -528,13 +582,29 @@ public class MainActivity extends AppCompatActivity
 
                                         Menu menu = getNavigationViewMenu();
                                         Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
-                                        Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
+                                        Utils.decrementFolderCount(menu, folderId, 1);
                                         if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
                                             ((FolderFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
                                     }
                                 }
                             });
-                            break;
+//                            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
+//                                @Override
+//                                public void onItemUpdated(int numberOfRows) {
+//                                    if (numberOfRows > 0) {
+//                                        Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
+//                                        Utils.updateAllEdgePanels(context);
+//                                        preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY,preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY,"").replace(";" + note.getId() + ";", ";")).apply();
+//
+//                                        Menu menu = getNavigationViewMenu();
+//                                        Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
+//                                        Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
+//                                        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
+//                                            ((FolderFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
+//                                    }
+//                                }
+//                            });
+//                            break;
                     }
                 }
             }
@@ -694,12 +764,7 @@ public class MainActivity extends AppCompatActivity
         switch (fragment){
             case Constants.FRAGMENT_FOLDER:
                 textToFind = "";
-                for (Folder f : folders){
-                    if(folderId == f.getId()){
-                        fragmentToAttach = FolderFragment.newInstance(f);
-                        break;
-                    }
-                }
+                fragmentToAttach = FolderFragment.newInstance(folderId);
 
                 if(folderId != trashNavId)  //Folder list
                     fabVisible = true;
@@ -715,8 +780,9 @@ public class MainActivity extends AppCompatActivity
                     note = new Note();
                     note.setType(Constants.TYPE_NOTE);
                     note.setFolderId(folderId);
-                }
-                fragmentToAttach = NoteFragment.newInstance(isNew, note);
+                    fragmentToAttach = NoteFragment.newInstance(note);
+                } else
+                    fragmentToAttach = NoteFragment.newInstance(note.getId());
                 break;
             case Constants.FRAGMENT_LIST:
                 Log.e(TAG, "LIST FRAGMENT");
@@ -725,16 +791,17 @@ public class MainActivity extends AppCompatActivity
                     note = new Note();
                     note.setType(Constants.TYPE_LIST);
                     note.setFolderId(folderId);
-                }
-                fragmentToAttach = ListFragment.newInstance(isNew, note);
+                    fragmentToAttach = ListFragment.newInstance(note);
+                } else
+                    fragmentToAttach = ListFragment.newInstance(note.getId());
                 break;
             case Constants.FRAGMENT_TRASH_NOTE:
                 setOnTitleClickListener(false);
-                fragmentToAttach = TrashNoteFragment.newInstance(note);
+                fragmentToAttach = TrashNoteFragment.newInstance(note.getId());
                 break;
             case Constants.FRAGMENT_TRASH_LIST:
                 setOnTitleClickListener(false);
-                fragmentToAttach = TrashListFragment.newInstance(note);
+                fragmentToAttach = TrashListFragment.newInstance(note.getId());
                 break;
             case Constants.FRAGMENT_SEARCH:
                 setOnTitleClickListener(false);
@@ -797,15 +864,7 @@ public class MainActivity extends AppCompatActivity
             String fragmentTag = fragment.getTag();
             if (preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
                 if(fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST)){
-                    helper.getNote(false, note.getId(), new DatabaseHelper.OnNoteLoadListener() { //TODO common with trash
-                        @Override
-                        public void onNoteLoaded(Note note) {
-                            if(note != null){
-                                MainActivity.this.note = note;
-                                ((NoteUpdateListener)fragment).onNoteUpdate(note);
-                            }
-                        }
-                    });
+                    ((NoteUpdateListener)fragment).onNoteUpdate();
                 }
                 else if (fragmentTag.equals(Constants.FRAGMENT_FOLDER))
                     ((FolderFragment)fragment).reloadList();

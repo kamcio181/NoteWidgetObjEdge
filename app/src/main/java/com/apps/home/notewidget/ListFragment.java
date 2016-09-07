@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -58,6 +59,8 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     private static final String TAG = "ListFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
+    private long noteId;
     private RecyclerView recyclerView;
     private boolean skipSaving = false;
     private boolean isNewNote;
@@ -75,11 +78,20 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         // Required empty public constructor
     }
 
-    public static ListFragment newInstance(boolean isNewNote, Note note) {
+    public static ListFragment newInstance(Note note) {
         ListFragment fragment = new ListFragment();
         Bundle args = new Bundle();
-        args.putBoolean(ARG_PARAM1, isNewNote);
+        args.putBoolean(ARG_PARAM1, true);
         args.putSerializable(ARG_PARAM2, note);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static ListFragment newInstance(long noteId) {
+        ListFragment fragment = new ListFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(ARG_PARAM1, false);
+        args.putLong(ARG_PARAM3, noteId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -89,7 +101,10 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             isNewNote = getArguments().getBoolean(ARG_PARAM1);
-            note = (Note) getArguments().getSerializable(ARG_PARAM2);
+            if(isNewNote)
+                note = (Note) getArguments().getSerializable(ARG_PARAM2);
+            else
+                noteId = getArguments().getLong(ARG_PARAM3);
         }
     }
 
@@ -116,7 +131,6 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         recyclerView.setHasFixedSize(true);
 
 
-
         newLine = System.getProperty("line.separator");
 
         Log.e(TAG, "skip start " + skipTextCheck);
@@ -136,17 +150,26 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
                 @Override
                 public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
                     itemTouchHelper.startDrag(viewHolder);
+                    ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback((ItemTouchHelperAdapter) recyclerView.getAdapter());
+                    itemTouchHelper = new ItemTouchHelper(callback);
+                    itemTouchHelper.attachToRecyclerView(recyclerView);
                 }
             }));
+            setTitleAndSubtitle();
         } else {
-            setRecyclerViewItems();
+            loadNote();
         }
+    }
 
-        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback((ItemTouchHelperAdapter) recyclerView.getAdapter());
-        itemTouchHelper = new ItemTouchHelper(callback);
-        itemTouchHelper.attachToRecyclerView(recyclerView);
-
-        setTitleAndSubtitle();
+    private void loadNote(){
+        helper.getNote(true, noteId, new DatabaseHelper.OnNoteLoadListener() {
+            @Override
+            public void onNoteLoaded(Note note) {
+                ListFragment.this.note = note;
+                setRecyclerViewItems();
+                setTitleAndSubtitle();
+            }
+        });
     }
 
     private void setRecyclerViewItems(){
@@ -169,7 +192,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
             itemList.add(new ShoppingListItem(items.get(i), Constants.DISABLED_ITEM_VIEW));
         }
 
-        if(recyclerView.getAdapter() == null)
+        if(recyclerView.getAdapter() == null) {
             recyclerView.setAdapter(new ListRecyclerAdapter(context, itemList, activeItemsCount,
                     new OnStartDragListener() {
                         @Override
@@ -177,6 +200,10 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
                             itemTouchHelper.startDrag(viewHolder);
                         }
                     }));
+            ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback((ItemTouchHelperAdapter) recyclerView.getAdapter());
+            itemTouchHelper = new ItemTouchHelper(callback);
+            itemTouchHelper.attachToRecyclerView(recyclerView);
+        }
         else
             ((ListRecyclerAdapter)recyclerView.getAdapter()).setItems(itemList, activeItemsCount);
     }
@@ -251,10 +278,8 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     }
 
     @Override
-    public void onNoteUpdate(Note newNote) {
-        this.note = newNote;
-        setRecyclerViewItems();
-        actionBar.setTitle(note.getTitle());
+    public void onNoteUpdate() {
+        loadNote();
     }
 
     @Override
@@ -340,6 +365,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         implements ItemTouchHelperAdapter{
     private static final String TAG = "ListRecyclerAdapter";
     private Context context;
+    private RecyclerView recyclerView;
     private OnStartDragListener listener;
     private ArrayList<ShoppingListItem> items;
     private int activeItemsCount;
@@ -347,6 +373,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     private static int tileSize;
     private static int textSize;
     private static int textStyle;
+    private boolean requestNewItem;
 
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
@@ -361,6 +388,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         this.items = items;
         this.activeItemsCount = activeItemsCount;
         this.listener = listener;
+        requestNewItem = activeItemsCount == 0;
         selectColor = context.getResources().getColor(R.color.colorAccent);
         getParameters();
 
@@ -414,7 +442,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
                 onBindHeaderViewHolder(holder, position);
                 break;
             case Constants.NEW_ITEM_VIEW:
-                onBindNewItemViewHolder(holder);
+                onBindNewItemViewHolder(holder, position);
                 break;
         }
     }
@@ -427,22 +455,23 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         holder.itemView.setLayoutParams(params);
     }
 
-    private void onBindNewItemViewHolder(final SingleLineWithHandleViewHolder holder){
+    private void onBindNewItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
         holder.newItemEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        Log.e(TAG, "request focus " + requestNewItem);
+        if(requestNewItem) {
+            requestNewItem = false;
+            holder.newItemEditText.requestFocus(); //TODO;
+        }
         holder.confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(holder.newItemEditText.getText().toString().length() >0){
-                    insertItem(holder);
-                }
+                insertItem(holder, position);
             }
         });
         holder.newItemEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_GO) {
-                    if(holder.newItemEditText.getText().toString().length() > 0){
-                        insertItem(holder);
-                    }
+                    insertItem(holder, position);
                     return true;
                 }
                 return false;
@@ -450,11 +479,30 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         });
     }
 
-    private void insertItem(SingleLineWithHandleViewHolder holder){
-        items.add(activeItemsCount + 1, new ShoppingListItem(holder.newItemEditText.getText().toString(), Constants.ENABLED_ITEM_VIEW)); //+1 because header is 1st item
-        holder.newItemEditText.setText("");
-        activeItemsCount++;
-        notifyDataSetChanged();
+    private void insertItem(SingleLineWithHandleViewHolder holder, int position){
+        if(holder.newItemEditText.getText().toString().length() > 0) {
+            items.add(activeItemsCount + 1, new ShoppingListItem(holder.newItemEditText.getText().toString(), Constants.ENABLED_ITEM_VIEW)); //+1 because header is 1st item
+            holder.newItemEditText.setText("");
+            activeItemsCount++;
+            recyclerView.scrollToPosition(position + 1);
+            requestNewItem = true;
+            notifyDataSetChanged();
+
+//
+//            if (recyclerView != null) {
+//                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForLayoutPosition(position + 1);
+//                if (viewHolder == null) {
+//                    recyclerView.smoothScrollToPosition(position + 1);
+//                }
+//            }
+//            if (recyclerView != null) {
+//                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForLayoutPosition(activeItemsCount + 1);
+//                if (viewHolder == null) {
+//                    recyclerView.smoothScrollToPosition(activeItemsCount + 2);
+//                    ((SingleLineWithHandleViewHolder)viewHolder).newItemEditText.requestFocus();
+//                }
+//            }
+        }
     }
 
     private void onBindEnabledItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
@@ -534,6 +582,12 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             holder.divider.setVisibility(View.GONE);
         else
             holder.divider.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.recyclerView = recyclerView;
     }
 
     @Override

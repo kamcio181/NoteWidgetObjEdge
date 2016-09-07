@@ -35,6 +35,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
     private SharedPreferences preferences;
     private Context context;
     private Folder folder;
+    private long folderId;
     private DatabaseHelper helper;
     private ArrayList<Note> notes;
 
@@ -42,10 +43,10 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
         // Required empty public constructor
     }
 
-    public static FolderFragment newInstance(Folder folder) {
+    public static FolderFragment newInstance(long folderId) {
         FolderFragment fragment = new FolderFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_PARAM1, folder);
+        args.putLong(ARG_PARAM1, folderId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,7 +55,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            folder = (Folder) getArguments().getSerializable(ARG_PARAM1);
+            folderId = getArguments().getLong(ARG_PARAM1);
         }
     }
 
@@ -77,14 +78,8 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
 
         recyclerView = (RecyclerView) view;
 
+        loadFolder();
         loadNotes();
-
-        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
-
-        if(actionBar!=null){
-            actionBar.setTitle(folder.getName());
-            actionBar.setSubtitle("");
-        }
     }
 
     @Override
@@ -141,13 +136,30 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
         }
     }
 
-    public void loadNotes(){
+    private void loadFolder(){
+        helper.getFolder(folderId, new DatabaseHelper.OnFolderLoadListener() {
+            @Override
+            public void onFolderLoaded(Folder folder) {
+                FolderFragment.this.folder = folder;
 
-        helper.getFolderNotes((int) folder.getId(), sortByDate, new DatabaseHelper.OnNotesLoadListener() {
+                ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
+
+                if(actionBar!=null){
+                    actionBar.setTitle(folder.getName());
+                    actionBar.setSubtitle("");
+                }
+            }
+        });
+    }
+
+    private void loadNotes(){
+
+        helper.getFolderNotes(folderId, sortByDate, new DatabaseHelper.OnNotesLoadListener() {
             @Override
             public void onNotesLoaded(ArrayList<Note> notes) {
                 if (notes != null) {
                     FolderFragment.this.notes = notes;
+                    FolderFragment.this.folder.setCount(notes.size());
                     if (recyclerView.getAdapter() == null) {
                         recyclerView.setLayoutManager(new LinearLayoutManager(context));
                         recyclerView.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL_LIST));
@@ -156,7 +168,10 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
                                     @Override
                                     public void onItemClick(View view, int position, boolean longClick) {
                                         if (mListener != null) {
-                                            mListener.onNoteClicked(FolderFragment.this.notes.get(position), longClick);
+                                            Note note = new Note();
+                                            note.setId(FolderFragment.this.notes.get(position).getId());
+                                            note.setType(FolderFragment.this.notes.get(position).getType());
+                                            mListener.onNoteClicked(note, longClick);
                                         }
                                     }
                                 }));
@@ -166,7 +181,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
                 } else {
                     recyclerView.setAdapter(null);
                 }
-//                ProgressDialog progressDialog = ((MainActivity)context).getProgressDialog();
+//                ProgressDialog progressDialog = ((MainActivity)context).getProgressDialog(); //TODO global progress bar
 //                if(progressDialog.isShowing())
 //                    progressDialog.dismiss();
             }
@@ -186,75 +201,77 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
     public interface OnNoteClickListener {
         void onNoteClicked(Note note, boolean longClick);
     }
-}
 
-class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdapter.DoubleLineViewHolder> {
-    private Calendar calendar;
-    private static OnItemClickListener listener;
-    private ArrayList<Note> notes;
+    static class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdapter.DoubleLineViewHolder> {
+        private Calendar calendar;
+        private static OnItemClickListener listener;
+        private ArrayList<Note> notes;
 
-    public interface OnItemClickListener{
-        void onItemClick(View view, int position, boolean longClick);
-    }
+        public interface OnItemClickListener{
+            void onItemClick(View view, int position, boolean longClick);
+        }
 
-    public NotesRecyclerAdapter(ArrayList<Note> notes, OnItemClickListener listener) {
-        this.notes = notes;
-        this.listener = listener;
-        calendar = Calendar.getInstance();
-        setHasStableIds(true);
-    }
+        public NotesRecyclerAdapter(ArrayList<Note> notes, OnItemClickListener listener) {
+            this.notes = notes;
+            NotesRecyclerAdapter.listener = listener;
+            calendar = Calendar.getInstance();
+            setHasStableIds(true);
+        }
 
-    public void setNotes(ArrayList<Note> notes){
-        this.notes = notes;
-        notifyDataSetChanged();
-    }
+        public void setNotes(ArrayList<Note> notes){
+            this.notes = notes;
+            notifyDataSetChanged();
+        }
 
-    @Override
-    public DoubleLineViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new DoubleLineViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_recycle_view_item, parent, false));
-    }
+        @Override
+        public DoubleLineViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new DoubleLineViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.double_line_recycle_view_item, parent, false));
+        }
 
-    @Override
-    public void onBindViewHolder(DoubleLineViewHolder holder, int position) {
-        Note note = notes.get(position);
-        calendar.setTimeInMillis(note.getCreatedAt());
-        holder.titleTextView.setText(note.getTitle());
-        holder.subtitleTextView.setText(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
-    }
+        @Override
+        public void onBindViewHolder(DoubleLineViewHolder holder, int position) {
+            Note note = notes.get(position);
+            calendar.setTimeInMillis(note.getCreatedAt());
+            holder.titleTextView.setText(note.getTitle());
+            holder.subtitleTextView.setText(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+        }
 
-    @Override
-    public int getItemCount() {
-        return notes.size();
-    }
+        @Override
+        public int getItemCount() {
+            return notes.size();
+        }
 
-    static class DoubleLineViewHolder extends RecyclerView.ViewHolder{
-        public RobotoTextView titleTextView, subtitleTextView;
+        static class DoubleLineViewHolder extends RecyclerView.ViewHolder{
+            public RobotoTextView titleTextView, subtitleTextView;
 
-        public DoubleLineViewHolder(final View itemView){
-            super(itemView);
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(listener != null)
-                        listener.onItemClick(itemView, getLayoutPosition(), false);
-                }
-            });
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if(listener != null)
-                        listener.onItemClick(itemView, getLayoutPosition(), true);
-                    return true;
-                }
-            });
+            public DoubleLineViewHolder(final View itemView){
+                super(itemView);
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(listener != null)
+                            listener.onItemClick(itemView, getLayoutPosition(), false);
+                    }
+                });
+                itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if(listener != null)
+                            listener.onItemClick(itemView, getLayoutPosition(), true);
+                        return true;
+                    }
+                });
 
-            titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
-            subtitleTextView = (RobotoTextView) itemView.findViewById(R.id.textView3);
+                titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
+                subtitleTextView = (RobotoTextView) itemView.findViewById(R.id.textView3);
+            }
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return notes.get(position).getId();
         }
     }
-
-    @Override
-    public long getItemId(int position) {
-        return notes.get(position).getId();
-    }
 }
+
+

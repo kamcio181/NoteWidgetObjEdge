@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.Calendar;
@@ -21,7 +22,7 @@ public class TrashNoteFragment extends Fragment {
     private static final String TAG = "TrashNoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private RobotoTextView noteTextView;
-    private Note note;
+    private long noteId;
     private Context context;
 
 
@@ -29,10 +30,10 @@ public class TrashNoteFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static TrashNoteFragment newInstance(Note note) {
+    public static TrashNoteFragment newInstance(long noteId) {
         TrashNoteFragment fragment = new TrashNoteFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_PARAM1, note);
+        args.putSerializable(ARG_PARAM1, noteId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -41,7 +42,7 @@ public class TrashNoteFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            note = (Note) getArguments().getSerializable(ARG_PARAM1);
+            noteId = getArguments().getLong(ARG_PARAM1);
         }
     }
 
@@ -60,14 +61,20 @@ public class TrashNoteFragment extends Fragment {
 
         noteTextView = (RobotoTextView) view.findViewById(R.id.noteEditText);
 
-        noteTextView.setText(Html.fromHtml(note.getNote()));
-        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
-        if(actionBar != null){
-            actionBar.setTitle(note.getTitle());
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(note.getCreatedAt());
-            actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
-        }
+        DatabaseHelper helper = new DatabaseHelper(context);
+        helper.getNote(true, noteId, new DatabaseHelper.OnNoteLoadListener() {
+            @Override
+            public void onNoteLoaded(Note note) {
+                noteTextView.setText(Html.fromHtml(note.getNote()));
+                ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
+                if(actionBar != null){
+                    actionBar.setTitle(note.getTitle());
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(note.getCreatedAt());
+                    actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+                }
+            }
+        });
     }
 }
 

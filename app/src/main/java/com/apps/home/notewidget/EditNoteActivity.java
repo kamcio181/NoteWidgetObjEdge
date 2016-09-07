@@ -54,8 +54,8 @@ public class EditNoteActivity extends AppCompatActivity{
                 public void onNoteLoaded(Note note) {
                     if(note != null) {
                         EditNoteActivity.this.noteType = note.getType();
-                        Fragment fragment = noteType == Constants.TYPE_NOTE ? NoteFragment.newInstance(false, note)
-                                : ListFragment.newInstance(false, note);
+                        Fragment fragment = noteType == Constants.TYPE_NOTE ? NoteFragment.newInstance(note.getId())
+                                : ListFragment.newInstance(note.getId());
                         fragmentManager.beginTransaction().replace(fragmentContainerId, fragment,
                                 noteType == Constants.TYPE_NOTE? Constants.FRAGMENT_NOTE : Constants.FRAGMENT_LIST).commit();
                     }

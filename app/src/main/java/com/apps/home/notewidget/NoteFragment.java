@@ -43,6 +43,8 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
     private static final String TAG = "NoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
+    private long noteId;
     private RobotoEditText noteEditText;
     private boolean skipSaving = false;
     private boolean isNewNote;
@@ -53,7 +55,6 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
     private String newLine;
     private Note note;
     private DatabaseHelper helper;
-    private ActionBar actionBar;
     private static EdgeVisibilityReceiver receiver;
 
 
@@ -61,11 +62,29 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
         // Required empty public constructor
     }
 
-    public static NoteFragment newInstance(boolean isNewNote, Note note) {
+//    public static NoteFragment newInstance(boolean isNewNote, Note note) {
+//        NoteFragment fragment = new NoteFragment();
+//        Bundle args = new Bundle();
+//        args.putBoolean(ARG_PARAM1, isNewNote);
+//        args.putSerializable(ARG_PARAM2, note);
+//        fragment.setArguments(args);
+//        return fragment;
+//    }
+
+    public static NoteFragment newInstance(Note note) {
         NoteFragment fragment = new NoteFragment();
         Bundle args = new Bundle();
-        args.putBoolean(ARG_PARAM1, isNewNote);
+        args.putBoolean(ARG_PARAM1, true);
         args.putSerializable(ARG_PARAM2, note);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static NoteFragment newInstance(long noteId) {
+        NoteFragment fragment = new NoteFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(ARG_PARAM1, false);
+        args.putLong(ARG_PARAM3, noteId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -75,7 +94,10 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             isNewNote = getArguments().getBoolean(ARG_PARAM1);
-            note = (Note) getArguments().getSerializable(ARG_PARAM2);
+            if(isNewNote)
+                note = (Note) getArguments().getSerializable(ARG_PARAM2);
+            else
+                noteId = getArguments().getLong(ARG_PARAM3);
         }
     }
 
@@ -106,18 +128,19 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
         Log.e(TAG, "skip start " + skipTextCheck);
         if(!isNewNote) {
             Log.e(TAG, "skip old " + skipTextCheck);
-            noteEditText.setText(Html.fromHtml(note.getNote()));
+            loadNote();
+
         } else {
             Log.e(TAG, "skip new " + skipTextCheck);
             note.setTitle(getString(R.string.untitled));
             note.setCreatedAt(Calendar.getInstance().getTimeInMillis());
             note.setDeletedState(Constants.FALSE);
+            setTitleAndSubtitle();
         }
-        setTitleAndSubtitle();
     }
 
     private void setTitleAndSubtitle(){
-        actionBar = ((AppCompatActivity) context).getSupportActionBar();
+        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
         if(actionBar != null){
             actionBar.setTitle(note.getTitle());
             Calendar calendar = Calendar.getInstance();
@@ -125,6 +148,17 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
             Log.e(TAG, "millis " + note.getCreatedAt());
             actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
         }
+    }
+
+    private void loadNote(){
+        helper.getNote(true, noteId, new DatabaseHelper.OnNoteLoadListener() {
+            @Override
+            public void onNoteLoaded(Note note) {
+                NoteFragment.this.note = note;
+                noteEditText.setText(Html.fromHtml(note.getNote()));
+                setTitleAndSubtitle();
+            }
+        });
     }
 
     private void setTextWatcher(){
@@ -225,10 +259,8 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
     }
 
     @Override
-    public void onNoteUpdate(Note newNote) {
-        this.note = newNote;
-        noteEditText.setText(Html.fromHtml(newNote.getNote()));
-        actionBar.setTitle(newNote.getTitle());
+    public void onNoteUpdate() {
+        loadNote();
     }
 
     @Override

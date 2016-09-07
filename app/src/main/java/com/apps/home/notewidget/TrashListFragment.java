@@ -6,55 +6,45 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.ShoppingListItem;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.ItemTouchHelperAdapter;
-import com.apps.home.notewidget.utils.ItemTouchHelperViewHolder;
-import com.apps.home.notewidget.utils.OnStartDragListener;
+import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 
 public class TrashListFragment extends Fragment {
     private static final String TAG = "TrashNoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private RecyclerView recyclerView;
+    private long noteId;
     private Note note;
     private Context context;
-    private ActionBar actionBar;
 
 
     public TrashListFragment() {
         // Required empty public constructor
     }
 
-    public static TrashListFragment newInstance(Note note) {
+    public static TrashListFragment newInstance(long noteId) {
         TrashListFragment fragment = new TrashListFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_PARAM1, note);
+        args.putSerializable(ARG_PARAM1, noteId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -63,7 +53,7 @@ public class TrashListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            note = (Note) getArguments().getSerializable(ARG_PARAM1);
+            noteId = getArguments().getLong(ARG_PARAM1);
         }
     }
 
@@ -84,8 +74,17 @@ public class TrashListFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         recyclerView.setHasFixedSize(true);
 
-        setRecyclerViewItems();
-        setTitleAndSubtitle();
+        DatabaseHelper helper = new DatabaseHelper(context);
+        helper.getNote(true, noteId, new DatabaseHelper.OnNoteLoadListener() {
+            @Override
+            public void onNoteLoaded(Note note) {
+                TrashListFragment.this.note = note;
+                setRecyclerViewItems();
+                setTitleAndSubtitle();
+            }
+        });
+
+
     }
     private void setRecyclerViewItems(){
         String content = note.getNote();
@@ -111,7 +110,7 @@ public class TrashListFragment extends Fragment {
     }
 
     private void setTitleAndSubtitle(){
-        actionBar = ((AppCompatActivity) context).getSupportActionBar();
+        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
         if(actionBar != null){
             actionBar.setTitle(note.getTitle());
             Calendar calendar = Calendar.getInstance();

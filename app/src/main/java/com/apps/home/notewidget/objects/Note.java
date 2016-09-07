@@ -25,6 +25,14 @@ public class Note implements Serializable {
         this.type = type;
     }
 
+    public Note(long id, long createdAt, String title, long folderId, int type) {
+        this.id = id;
+        this.createdAt = createdAt;
+        this.title = title;
+        this.folderId = folderId;
+        this.type = type;
+    }
+
     public Note(long createdAt, String title, long folderId, int deletedState, int type) {
         this.createdAt = createdAt;
         this.title = title;
