@@ -522,7 +522,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Utils.getEdiTextDialog(context, items.get(position).getContent(), "Edit item", new Utils.OnNameSet() {
+                Utils.getNameDialog(context, items.get(position).getContent(), "Edit item", 32, new Utils.OnNameSet() {
                     @Override
                     public void onNameSet(String name) {
                         if(name.length()>0){
@@ -532,7 +532,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
                             Utils.showToast(context, "Item name cannot be empty");
                         }
                     }
-                }, false).show();
+                }).show();
 
                 return false;
             }

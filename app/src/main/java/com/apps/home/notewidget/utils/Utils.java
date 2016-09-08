@@ -12,7 +12,9 @@ import android.os.Build;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -23,6 +25,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.apps.home.notewidget.R;
@@ -135,41 +138,100 @@ public class Utils {
         void onNameSet(String name);
     }
 
-    public static Dialog getEdiTextDialog(final Context context, final String text, String title,
-                                       final OnNameSet action, boolean hideContent){
+    private static Dialog getEdiTextDialog(final Context context, final String text, String title,
+                                          final OnNameSet action, boolean hideContent, final int charLimit){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
         final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
+        final TextView charNumberTV = (TextView) layout.findViewById(R.id.textView8);
         titleEditText.setText(text);
+
+        if(charLimit > 0) {
+            String numbers = text.length() + "/" + charLimit;
+            charNumberTV.setText(numbers);
+            titleEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    String text = s.toString().trim();
+                    String numbers = text.length() + "/" + charLimit;
+                    charNumberTV.setText(numbers);
+                    if (text.length() > charLimit) {
+                        titleEditText.setText(text.substring(0, charLimit));
+                        titleEditText.setSelection(charLimit);
+                    }
+                }
+            });
+        } else
+            charNumberTV.setVisibility(View.GONE);
+
         if(hideContent)
             titleEditText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
         titleEditText.setSelection(0, titleEditText.length());
-        AlertDialog dialog = builder.setTitle(title).setView(layout)
-                .setPositiveButton(context.getString(R.string.confirm), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
-                        if(action != null)
-                            action.onNameSet(titleEditText.getText().toString().trim());
-                    }
-                })
-                .setNegativeButton(context.getString(R.string.cancel), new DialogInterface.OnClickListener() {
+        final AlertDialog editTextDialog = builder.setTitle(title).setView(layout)
+                .setPositiveButton(R.string.confirm, null)
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         showToast(context, context.getString(R.string.canceled));
                         showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
                 }).create();
-        showOrHideKeyboard(dialog.getWindow(), true);
+        editTextDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                editTextDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String text = titleEditText.getText().toString().trim();
+                        if(charLimit == 0 || text.length() <= charLimit) {
+                            showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
+                            if (action != null)
+                                action.onNameSet(text);
+                            editTextDialog.dismiss();
+                        } else
+                            showToast(context, "The maximum length is " + charLimit);
+                    }
+                });
+            }
+        });
+//        AlertDialog dialog = builder.setTitle(title).setView(layout)
+//                .setPositiveButton(context.getString(R.string.confirm), new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
+//                        if(action != null)
+//                            action.onNameSet(titleEditText.getText().toString().trim());
+//                    }
+//                })
+//                .setNegativeButton(context.getString(R.string.cancel), new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        showToast(context, context.getString(R.string.canceled));
+//                        showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
+//                    }
+//                }).create();
 
-        return dialog;
+
+        showOrHideKeyboard(editTextDialog.getWindow(), true);
+
+        return editTextDialog;
     }
 
     public static Dialog getNameDialog(final Context context, final String text, final String title,
-                                       final OnNameSet action){
+                                       int charLimit, final OnNameSet action){
 
-        return getEdiTextDialog(context, text, title, action, false);
+        return getEdiTextDialog(context, text, title, action, false, charLimit);
     }
 
     public static Dialog getFolderListDialog(Context context, Menu menu, int[] exclusions, String title,

@@ -73,7 +73,8 @@ public class EditNoteActivity extends AppCompatActivity{
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Utils.getNameDialog(context, getSupportActionBar().getTitle().toString(), getString(R.string.set_note_title),
+                Utils.getNameDialog(context, getSupportActionBar().getTitle().toString(),
+                        getString(R.string.set_note_title), 32,
                         new Utils.OnNameSet() {
                             @Override
                             public void onNameSet(String name) {
