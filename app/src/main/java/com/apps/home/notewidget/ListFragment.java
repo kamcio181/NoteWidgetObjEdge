@@ -9,13 +9,13 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -65,11 +65,8 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     private boolean skipSaving = false;
     private boolean isNewNote;
     private Context context;
-    private boolean skipTextCheck = false;
-    private String newLine;
     private Note note;
     private DatabaseHelper helper;
-    private ActionBar actionBar;
     private ItemTouchHelper itemTouchHelper;
     private static EdgeVisibilityReceiver receiver;
 
@@ -113,7 +110,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
                              Bundle savedInstanceState) {
         context = getActivity();
         helper = new DatabaseHelper(context);
-        ((AppCompatActivity)context).invalidateOptionsMenu(); //TODO
+        ((AppCompatActivity)context).invalidateOptionsMenu();
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_note_list, container, false);
     }
@@ -131,11 +128,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         recyclerView.setHasFixedSize(true);
 
 
-        newLine = System.getProperty("line.separator");
-
-        Log.e(TAG, "skip start " + skipTextCheck);
         if(isNewNote) {
-            Log.e(TAG, "skip new " + skipTextCheck);
             note.setTitle(getString(R.string.untitled));
             note.setCreatedAt(Calendar.getInstance().getTimeInMillis());
             note.setDeletedState(Constants.FALSE);
@@ -210,7 +203,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
 
 
     private void setTitleAndSubtitle(){
-        actionBar = ((AppCompatActivity) context).getSupportActionBar();
+        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
         if(actionBar != null){
             actionBar.setTitle(note.getTitle());
             Calendar calendar = Calendar.getInstance();
@@ -328,7 +321,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
                 public void onItemInserted(long id) {
                     note.setId(id);
                     isNewNote = false;
-                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);// TODO
+                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);
 
                     if(quitAfterSaving)
                         ((AppCompatActivity)context).onBackPressed();
@@ -364,9 +357,9 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
 class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder>
         implements ItemTouchHelperAdapter{
     private static final String TAG = "ListRecyclerAdapter";
-    private Context context;
+    private final Context context;
     private RecyclerView recyclerView;
-    private OnStartDragListener listener;
+    private final OnStartDragListener listener;
     private ArrayList<ShoppingListItem> items;
     private int activeItemsCount;
     private static int selectColor;
@@ -389,7 +382,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         this.activeItemsCount = activeItemsCount;
         this.listener = listener;
         requestNewItem = activeItemsCount == 0;
-        selectColor = context.getResources().getColor(R.color.colorAccent);
+        selectColor = ContextCompat.getColor(context, R.color.colorAccent);
         getParameters();
 
         setHasStableIds(true);
@@ -415,7 +408,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
                 break;
             case Constants.HEADER_VIEW:
                 Log.e("ListFragment", "Header");
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_recycler_view_item, parent, false); //TODO header view and UI
+                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_recycler_view_item, parent, false);
                 break;
             case Constants.NEW_ITEM_VIEW:
                 Log.e("ListFragment", "New item");
@@ -460,7 +453,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         Log.e(TAG, "request focus " + requestNewItem);
         if(requestNewItem) {
             requestNewItem = false;
-            holder.newItemEditText.requestFocus(); //TODO;
+            holder.newItemEditText.requestFocus();
         }
         holder.confirm.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -558,7 +551,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
         switch (textStyle){
             case Constants.COLOR:
-                holder.titleTextView.setTextColor(context.getResources().getColor(R.color.colorAccent));
+                holder.titleTextView.setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
                 holder.titleTextView.setStrikeEnabled(false);
                 break;
             case Constants.STRIKETHROUGH:
@@ -601,9 +594,12 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     }
 
     static class SingleLineWithHandleViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder {
-        public RobotoTextView titleTextView, header;
-        public ImageView handle, confirm, divider;
-        public RobotoEditText newItemEditText;
+        public final RobotoTextView titleTextView;
+        public final RobotoTextView header;
+        public final ImageView handle;
+        public final ImageView confirm;
+        public final ImageView divider;
+        public final RobotoEditText newItemEditText;
 
         public SingleLineWithHandleViewHolder(final View itemView){
             super(itemView);

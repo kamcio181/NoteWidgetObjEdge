@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -122,11 +123,11 @@ public class TrashListFragment extends Fragment {
 
     static class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder> {
         private static final String TAG = "ListRecyclerAdapter";
-        private ArrayList<ShoppingListItem> items;
+        private final ArrayList<ShoppingListItem> items;
         private static int tileSize;
         private static int textSize;
         private static int textStyle;
-        private Context context;
+        private final Context context;
 
         public ListRecyclerAdapter(Context context, ArrayList<ShoppingListItem> items) {
             this.items = items;
@@ -196,7 +197,7 @@ public class TrashListFragment extends Fragment {
 
             switch (textStyle){
                 case Constants.COLOR:
-                    holder.titleTextView.setTextColor(context.getResources().getColor(R.color.colorAccent));
+                    holder.titleTextView.setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
                     holder.titleTextView.setStrikeEnabled(false);
                     break;
                 case Constants.STRIKETHROUGH:
@@ -222,8 +223,10 @@ public class TrashListFragment extends Fragment {
         }
 
         static class SingleLineWithHandleViewHolder extends RecyclerView.ViewHolder {
-            public RobotoTextView titleTextView, header;
-            public ImageView handle, divider;
+            public final RobotoTextView titleTextView;
+            public final RobotoTextView header;
+            public final ImageView handle;
+            public final ImageView divider;
 
             public SingleLineWithHandleViewHolder(final View itemView){
                 super(itemView);

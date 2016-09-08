@@ -116,5 +116,20 @@
         <item>Starting folder</item>
         <item>Backup and restore</item>
     </string-array>
-    <string name="title_activity_edge_config">EdgeConfigActivity</string>
+    <string name="title_activity_edge_config">Edge list configuration</string>
+    <string name="tile_size">TILE SIZE</string>
+    <string name="small">small</string>
+    <string name="medium">medium</string>
+    <string name="big">big</string>
+    <string name="very_big">very big</string>
+    <string name="text_size_cap">TEXT SIZE</string>
+    <string name="bought_item_style">BOUGHT ITEM STYLE</string>
+    <string name="color">color</string>
+    <string name="strikethrough">strikethrough</string>
+    <string name="ignore_tabs_in_edge_panel">Ignore tabs in edge panel</string>
+    <string name="hide_content_when_device_is_locked">Hide content when device is locked</string>
+    <string name="you_do_not_have_any_notes">You do not have any notes</string>
+    <string name="content_hidden_nunlock_to_view_your_notes">Content hidden.\nUnlock to view your notes</string>
+    <string name="new_item">New item</string>
+    <string name="remove_bought_items">Remove bought items</string>
 </resources>

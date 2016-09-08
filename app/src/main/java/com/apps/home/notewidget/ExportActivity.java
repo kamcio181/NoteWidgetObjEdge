@@ -1,6 +1,7 @@
 package com.apps.home.notewidget;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -50,7 +51,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
     private String note;
     private String title;
     private boolean exit = false;
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private Runnable exitRunnable;
     private String name;
 
@@ -140,7 +141,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
     private Dialog setFileName(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
+        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
         final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
         titleEditText.setText(title);
         titleEditText.setSelection(0, titleEditText.length());
@@ -375,8 +376,8 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder{
-        public RobotoTextView titleTextView;
-        public ImageView icon;
+        public final RobotoTextView titleTextView;
+        public final ImageView icon;
 
         public ViewHolder(final View itemView){
             super(itemView);

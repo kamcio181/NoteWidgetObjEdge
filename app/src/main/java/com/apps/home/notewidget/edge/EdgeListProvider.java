@@ -20,14 +20,13 @@ import java.util.Arrays;
 public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
     private static final String TAG = "ListProvider";
     private Context context = null;
-    private int cocktailId;
     private ArrayList<Note> notes;
     private float titleSize;
     private int noteSize;
 
     public EdgeListProvider(Context context, Intent intent) {
         this.context = context;
-        cocktailId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+        int cocktailId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
         getObjects(context);
         Log.v(TAG, "constructor");

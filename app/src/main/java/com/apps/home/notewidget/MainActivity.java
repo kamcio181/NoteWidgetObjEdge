@@ -1,5 +1,6 @@
 package com.apps.home.notewidget;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -61,13 +62,13 @@ public class MainActivity extends AppCompatActivity
     private int trashNavId;
     private String textToFind;
     private boolean exit = false;
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private Runnable exitRunnable;
     private DatabaseHelper helper;
     private ArrayList<Folder> folders;
     private Note note;
     private ActionBar actionBar;
-    private int fragmentContainerId = R.id.container;
+    private final int fragmentContainerId = R.id.container;
     //private ProgressDialog progressDialog;
 
     @Override
@@ -692,7 +693,7 @@ public class MainActivity extends AppCompatActivity
         MenuItem newItem = m.add(R.id.nav_group_notes, id, order, name);
         newItem.setIcon(icon);
         LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        RobotoTextView countTextView = (RobotoTextView) inflater.inflate(R.layout.nav_folder_item, null);
+        @SuppressLint("InflateParams") RobotoTextView countTextView = (RobotoTextView) inflater.inflate(R.layout.nav_folder_item, null);
         countTextView.setText(String.valueOf(count));
         newItem.setActionView(countTextView);
         newItem.setCheckable(true);

@@ -20,7 +20,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="You do not have any notes"
+        android:text="@string/you_do_not_have_any_notes"
         android:id="@+id/emptyTextView"
         android:visibility="gone" />
 

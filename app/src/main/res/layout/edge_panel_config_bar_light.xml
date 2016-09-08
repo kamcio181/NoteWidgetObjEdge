@@ -3,6 +3,7 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:paddingLeft="@dimen/app_widget_action_bar_padding_left"
+    android:paddingRight="@dimen/app_widget_action_bar_padding_left"
     android:layout_height="40dp"
     android:id="@+id/configLayout">
 

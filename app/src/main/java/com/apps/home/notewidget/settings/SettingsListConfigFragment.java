@@ -6,24 +6,19 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.TextViewCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SwitchCompat;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.apps.home.notewidget.R;
-import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.Utils;
@@ -98,7 +93,7 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
         switch (style){
             case Constants.COLOR:
                 color.setChecked(true);
-                example.setTextColor(getResources().getColor(R.color.colorAccent));
+                example.setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
                 break;
             case Constants.STRIKETHROUGH:
                 strikethorugh.setChecked(true);
@@ -144,7 +139,7 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
                 int style = Constants.COLOR;
                 switch (checkedId){
                     case R.id.radioButton5:
-                        example.setTextColor(getResources().getColor(R.color.colorAccent));
+                        example.setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
                         example.setStrikeEnabled(false);
                         break;
                     case R.id.radioButton6:

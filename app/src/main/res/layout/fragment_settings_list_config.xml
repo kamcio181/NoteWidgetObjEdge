@@ -4,7 +4,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="@dimen/note_text_padding">
 
@@ -12,7 +12,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/imageView3"
-            android:layout_alignParentBottom="true"
             android:src="@drawable/divider" />
         <include
             android:layout_width="wrap_content"
@@ -25,7 +24,7 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="@color/colorPrimary"
-            android:text="TILE SIZE"
+            android:text="@string/tile_size"
             android:layout_marginBottom="10dp"
             android:layout_marginTop="20dp" />
 
@@ -41,21 +40,21 @@
                 android:id="@+id/radioButton"
                 android:checked="false"
                 android:layout_gravity="center_vertical"
-                android:text="small" />
+                android:text="@string/small" />
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton2"
                 android:checked="true"
                 android:layout_gravity="center_vertical"
-                android:text="medium" />
+                android:text="@string/medium" />
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton3"
                 android:checked="false"
                 android:layout_gravity="center_vertical"
-                android:text="big" />
+                android:text="@string/big" />
 
             <RadioButton
                 android:layout_width="wrap_content"
@@ -63,7 +62,7 @@
                 android:id="@+id/radioButton4"
                 android:checked="false"
                 android:layout_gravity="center_vertical"
-                android:text="very big" />
+                android:text="@string/very_big" />
         </RadioGroup>
 
         <com.apps.home.notewidget.customviews.RobotoTextView
@@ -71,7 +70,7 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="@color/colorPrimary"
-            android:text="TEXT SIZE"
+            android:text="@string/text_size_cap"
             android:layout_marginBottom="10dp"
             android:layout_marginTop="20dp" />
 
@@ -86,7 +85,7 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="@color/colorPrimary"
-            android:text="BOUGHT ITEM STYLE"
+            android:text="@string/bought_item_style"
             android:layout_marginBottom="10dp"
             android:layout_marginTop="20dp" />
 
@@ -99,14 +98,14 @@
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="color"
+                android:text="@string/color"
                 android:id="@+id/radioButton5"
                 android:checked="true" />
 
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="strikethrough"
+                android:text="@string/strikethrough"
                 android:id="@+id/radioButton6"
                 android:checked="false" />
         </RadioGroup>

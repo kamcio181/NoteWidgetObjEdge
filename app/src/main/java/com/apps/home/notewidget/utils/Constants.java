@@ -63,9 +63,6 @@ public interface Constants {
     String EDGE_HIDE_CONTENT_KEY = "hideContent";
     String EDGE_WAS_LOCKED_KEY = "wasLocked";
 
-    int GET_MODE_FOLDER = 0;
-    int GET_MODE_ALL = 1;
-
     int FALSE = 0;
     int TRUE = 1;
 

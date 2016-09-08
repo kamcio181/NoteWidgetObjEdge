@@ -13,7 +13,7 @@
         android:singleLine="true"
         android:layout_centerVertical="true"
         android:layout_toLeftOf="@+id/imageView"
-        android:hint="New item"
+        android:hint="@string/new_item"
         android:layout_marginLeft="16dp"
         android:imeOptions="actionGo" />
 

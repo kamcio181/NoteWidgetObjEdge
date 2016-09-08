@@ -82,7 +82,7 @@ public class WidgetConfigActivity extends AppCompatActivity{
     }
 
     class SingleLineViewHolder extends RecyclerView.ViewHolder {
-        public RobotoTextView titleTextView;
+        public final RobotoTextView titleTextView;
 
         public SingleLineViewHolder(View itemView) {
             super(itemView);

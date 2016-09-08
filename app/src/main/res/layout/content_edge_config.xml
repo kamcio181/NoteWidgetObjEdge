@@ -11,14 +11,14 @@
     <android.support.v7.widget.SwitchCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ignore tabs in edge panel"
+        android:text="@string/ignore_tabs_in_edge_panel"
         android:id="@+id/switch1"
         android:checked="false"
         android:layout_marginBottom="10dp"/>
     <android.support.v7.widget.SwitchCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hide content when device is locked"
+        android:text="@string/hide_content_when_device_is_locked"
         android:id="@+id/switch2"
         android:checked="false"
         android:layout_marginBottom="10dp"

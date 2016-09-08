@@ -10,7 +10,6 @@ import android.widget.RemoteViewsService;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
-import com.apps.home.notewidget.objects.ShoppingListItem;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
@@ -21,7 +20,7 @@ import java.util.Arrays;
 public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory {
     private static final String TAG = "ListProvider";
     private Context context = null;
-    private int appWidgetId;
+    private final int appWidgetId;
     private Widget widget;
     private Note note;
 	

@@ -5,8 +5,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.apps.home.notewidget.R;
@@ -19,19 +19,19 @@ public class RobotoTextView extends TextView{
     public RobotoTextView(Context context) {
         super(context);
         createFont();
-        init();
+        init(context);
     }
 
     public RobotoTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
         createFont();
-        init();
+        init(context);
     }
 
     public RobotoTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         createFont();
-        init();
+        init(context);
     }
 
     private void createFont() {
@@ -39,9 +39,9 @@ public class RobotoTextView extends TextView{
         setTypeface(font);
     }
 
-    private void init() {
+    private void init(Context context) {
         paint = new Paint();
-        paint.setColor(this.getResources().getColor(R.color.colorAccent));
+        paint.setColor(ContextCompat.getColor(context, R.color.colorAccent));
         paint.setStrokeWidth(getResources().getDisplayMetrics().density*2);
 
     }

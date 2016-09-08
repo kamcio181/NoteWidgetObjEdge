@@ -15,7 +15,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Content hidden.\nUnlock to view your notes"
+        android:text="@string/content_hidden_nunlock_to_view_your_notes"
         android:id="@+id/emptyTextView"
         android:padding="10dp" />
 

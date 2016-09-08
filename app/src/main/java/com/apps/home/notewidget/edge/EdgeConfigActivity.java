@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -61,7 +61,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         hideContentOnLockScreenSwitch = (SwitchCompat) findViewById(R.id.switch2);
         notesRV = (RecyclerView) findViewById(R.id.recycler_view1);
         edgeRV = (RecyclerView) findViewById(R.id.recycler_view2);
-        selectColor = getColor(R.color.colorAccent);
+        selectColor = ContextCompat.getColor(this, R.color.colorAccent);
 
         ignoreTabsSwitch.setOnCheckedChangeListener(this);
         hideContentOnLockScreenSwitch.setOnCheckedChangeListener(this);
@@ -316,9 +316,9 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         }
 
         class ViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder{
-            public View tile;
-            public TextView titleTV;
-            public TextView contentTV;
+            public final View tile;
+            public final TextView titleTV;
+            public final TextView contentTV;
 
             public ViewHolder(final View itemView) {
                 super(itemView);
@@ -405,9 +405,9 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            public CheckBox checkBox;
-            public TextView titleTV;
-            public TextView contentTV;
+            public final CheckBox checkBox;
+            public final TextView titleTV;
+            public final TextView contentTV;
 
             public ViewHolder(final View itemView) {
                 super(itemView);
@@ -431,7 +431,6 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         public String getCheckedNotes() {
             StringBuilder builder = new StringBuilder();
             builder.append(";");
-            Log.e(TAG, checkedArray.toString());
             for(int i = 0; i<checkedArray.length; i++){
                 Log.e(TAG, "" +checkedArray[i]);
                 if(checkedArray[i]){

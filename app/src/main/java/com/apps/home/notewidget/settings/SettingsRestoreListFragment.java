@@ -5,14 +5,12 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -81,7 +79,7 @@ public class SettingsRestoreListFragment extends Fragment {
     }
 
     static class SingleLineViewHolder extends RecyclerView.ViewHolder{
-        public RobotoTextView titleTextView;
+        public final RobotoTextView titleTextView;
 
         public SingleLineViewHolder(View itemView){
             super(itemView);

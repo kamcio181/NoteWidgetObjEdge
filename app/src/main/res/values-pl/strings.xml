@@ -104,8 +104,26 @@
     <string name="example_note_text">\n\n\nPrzykładowa treść</string>
     <string name="created_by">Autor: Kamil Kaszubski</string>
     <string name="saving_to_txt_file">Zapisywanie do pliku tekstowego</string>
-    <string name="edge_list_name">Edge List</string>
+    <string name="edge_list_name">Lista Edge</string>
     <string name="description_edge_list">Sample description</string>
+    <string name="tile_size">WIELKOŚĆ KAFELKA</string>
+    <string name="small">mały</string>
+    <string name="medium">średni</string>
+    <string name="big">duży</string>
+    <string name="very_big">bardzo duży</string>
+    <string name="text_size_cap">WIELKOŚĆ TEKSTU</string>
+    <string name="bought_item_style">STYL KUPIONEGO ARTYKUŁU</string>
+    <string name="color">kolor</string>
+    <string name="strikethrough">przekreślenie</string>
+    <string name="open_application">Otwórz aplikację</string>
+    <string name="note_is_empty">Notatka jest pusta</string>
+    <string name="title_activity_edge_config">Ustawienia listy Edge</string>
+    <string name="ignore_tabs_in_edge_panel">Ignore tabs in edge panel</string>
+    <string name="hide_content_when_device_is_locked">Hide content when device is locked</string>
+    <string name="you_do_not_have_any_notes">You do not have any notes</string>
+    <string name="content_hidden_nunlock_to_view_your_notes">Content hidden.\nUnlock to view your notes</string>
+    <string name="new_item">New item</string>
+    <string name="remove_bought_items">Remove bought items</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

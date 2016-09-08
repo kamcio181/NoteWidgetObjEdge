@@ -1,5 +1,6 @@
 package com.apps.home.notewidget.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -26,7 +27,7 @@ public class WidgetManualActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.activity_widget_manual, null);
+        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.activity_widget_manual, null);
 
 
         final RelativeLayout modeClickDesc = (RelativeLayout) layout.findViewById(R.id.modeClickDesc);

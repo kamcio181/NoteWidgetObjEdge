@@ -170,7 +170,6 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                Log.e(TAG, "after " + s.toString() + " start " + start + " count " + count + " skip "+skipTextCheck);
 
                 if(!skipTextCheck && (start+count) <= s.length()){
                     boolean isFirstLine = start == 0;

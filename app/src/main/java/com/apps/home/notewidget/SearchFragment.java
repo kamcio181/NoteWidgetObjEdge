@@ -257,7 +257,8 @@ class SearchRecyclerAdapter extends RecyclerView.Adapter<SearchRecyclerAdapter.D
     }
 
     static class DoubleLineViewHolder extends RecyclerView.ViewHolder {
-        public RobotoTextView titleTextView, subtitleTextView;
+        public final RobotoTextView titleTextView;
+        public final RobotoTextView subtitleTextView;
 
         public DoubleLineViewHolder(final View itemView) {
             super(itemView);

@@ -1,6 +1,7 @@
 package com.apps.home.notewidget.settings;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -44,7 +45,6 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
     private Context context;
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
-    private Toolbar toolbar;
     private int backupMode;
     private boolean resetFragment = false;
 
@@ -55,7 +55,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
         context = this;
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         Utils.hideShadowSinceLollipop(this);
@@ -117,7 +117,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
 
     private Dialog getNoteSizeDialog(){
         LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.dialog_number_picker, null);
+        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_number_picker, null);
         final NumberPicker picker = (NumberPicker) layout.findViewById(R.id.numberPicker);
         final TextView example = (TextView) layout.findViewById(R.id.textView5);
         picker.setMinValue(10);
@@ -353,8 +353,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
     }
 
     private class RestoreData extends AsyncTask<Void,Void, Boolean>{
-        private File backupFile;
-        private boolean dbRestore;
+        private final File backupFile;
+        private final boolean dbRestore;
 
         public RestoreData(File backupFile, boolean dbRestore){
             this.backupFile = backupFile;

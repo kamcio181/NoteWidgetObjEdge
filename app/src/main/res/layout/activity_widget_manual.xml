@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:paddingLeft="@dimen/alert_dialog_horizontal_margin"
     android:paddingTop="@dimen/alert_dialog_vertical_margin"
-    android:paddingRight="@dimen/alert_dialog_horizontal_margin">>
+    android:paddingRight="@dimen/alert_dialog_horizontal_margin">
 
     <FrameLayout
         android:layout_width="wrap_content"

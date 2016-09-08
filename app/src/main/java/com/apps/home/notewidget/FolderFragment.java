@@ -115,7 +115,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
     }
 
     class NotesComparator implements Comparator<Note>{
-        boolean sortByDate;
+        final boolean sortByDate;
 
         public NotesComparator(boolean sortByDate) {
             this.sortByDate = sortByDate;
@@ -203,7 +203,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
     }
 
     static class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdapter.DoubleLineViewHolder> {
-        private Calendar calendar;
+        private final Calendar calendar;
         private static OnItemClickListener listener;
         private ArrayList<Note> notes;
 
@@ -242,7 +242,8 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
         }
 
         static class DoubleLineViewHolder extends RecyclerView.ViewHolder{
-            public RobotoTextView titleTextView, subtitleTextView;
+            public final RobotoTextView titleTextView;
+            public final RobotoTextView subtitleTextView;
 
             public DoubleLineViewHolder(final View itemView){
                 super(itemView);

@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.DatabaseHelper;
-import com.apps.home.notewidget.utils.Utils;
 
 import java.util.Calendar;
 

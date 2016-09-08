@@ -10,7 +10,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.apps.home.notewidget.edge.EdgeConfigActivity;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.ContentGetter;
@@ -27,7 +26,7 @@ public class EditNoteActivity extends AppCompatActivity{
     private FragmentManager fragmentManager;
     private Toolbar toolbar;
     private boolean skipSaving = false;
-    private int fragmentContainerId = R.id.container;
+    private final int fragmentContainerId = R.id.container;
     private int noteType;
 
     @Override

@@ -1,5 +1,6 @@
 package com.apps.home.notewidget.utils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
@@ -10,6 +11,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
+import android.os.TransactionTooLargeException;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -23,7 +25,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,7 +37,6 @@ import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.widget.WidgetProvider;
 import com.samsung.android.sdk.look.cocktailbar.SlookCocktailManager;
-import com.samsung.android.sdk.look.cocktailbar.SlookCocktailProvider;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ public class Utils {
 
     public static Dialog getMultilevelNoteManualDialog(final Context context){
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
-        View layout = inflater.inflate(R.layout.dialog_multilevel_note_manual, null);
+        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_multilevel_note_manual, null);
         final CheckBox checkBox = (CheckBox) layout.findViewById(R.id.checkBox);
         return new AlertDialog.Builder(context).setTitle(context.getString(R.string.tip)).setView(layout).setCancelable(false).
                 setPositiveButton(context.getString(R.string.i_have_got_it), new DialogInterface.OnClickListener() {
@@ -142,7 +142,7 @@ public class Utils {
                                           final OnNameSet action, boolean hideContent, final int charLimit){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
-        View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
+        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
         final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
         final TextView charNumberTV = (TextView) layout.findViewById(R.id.textView8);
         titleEditText.setText(text);
@@ -344,7 +344,14 @@ public class Utils {
             intent.setType("text/plain");
             intent.putExtra(Intent.EXTRA_TEXT, text);
             intent.putExtra(Constants.TITLE_KEY, title);
-            context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_via)));
+            try {
+                context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_via)));
+            } catch (RuntimeException e){
+                Log.e(TAG, "" + e);
+                Log.e(TAG, "" + e.getCause());
+                if(e.getCause() instanceof TransactionTooLargeException)
+                    showToast(context, "The note is too big to share it");
+            }
         } else
             Utils.showToast(context, context.getString(R.string.note_is_empty));
     }

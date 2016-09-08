@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViewsService;
 
-import com.apps.home.notewidget.widget.WidgetListProvider;
-
 public class EdgeListService extends RemoteViewsService {
     private static final String TAG = "WidgetService";
     private int id;

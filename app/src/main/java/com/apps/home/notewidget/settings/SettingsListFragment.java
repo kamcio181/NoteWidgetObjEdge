@@ -64,7 +64,7 @@ public class SettingsListFragment extends Fragment {
     }
 
     class SingleLineViewHolder extends RecyclerView.ViewHolder{
-        public RobotoTextView titleTextView;
+        public final RobotoTextView titleTextView;
 
         public SingleLineViewHolder(View itemView){
             super(itemView);

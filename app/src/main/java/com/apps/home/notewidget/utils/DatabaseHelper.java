@@ -8,7 +8,6 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -22,7 +21,7 @@ import java.util.ArrayList;
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
     private static final int DB_VERSION = 2;
-    private Context context;
+    private final Context context;
     private SearchNotes searchNotes;
 
     public DatabaseHelper(Context context) {
@@ -421,8 +420,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class CreateNote extends AsyncTask<Void, Void, Long>{
-        private Note note;
-        private OnItemInsertListener listener;
+        private final Note note;
+        private final OnItemInsertListener listener;
 
         public CreateNote(Note note, OnItemInsertListener listener) {
             this.note = note;
@@ -464,7 +463,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private class UpdateNote extends AsyncTask<Void, Void, Integer> {
         private Note note;
-        private OnItemUpdateListener listener;
+        private final OnItemUpdateListener listener;
         private ContentValues contentValues;
         private long noteId;
 
@@ -515,9 +514,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class GetNote extends AsyncTask<Void, Void, Note> {
-        private boolean includeDeleted;
-        private long noteId;
-        private OnNoteLoadListener listener;
+        private final boolean includeDeleted;
+        private final long noteId;
+        private final OnNoteLoadListener listener;
 
         public GetNote(boolean includeDeleted, long noteId, OnNoteLoadListener listener) {
             this.includeDeleted = includeDeleted;
@@ -576,11 +575,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class GetColumnValue extends AsyncTask<Void, Void, Object> {
-        private String table;
-        private String column;
-        private long id;
-        private OnIntFieldLoadListener intListener;
-        private int mode;
+        private final String table;
+        private final String column;
+        private final long id;
+        private final OnIntFieldLoadListener intListener;
+        private final int mode;
 
         public GetColumnValue(String table, String column, long id, OnIntFieldLoadListener listener) {
             this.table = table;
@@ -636,8 +635,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class GetNotes extends AsyncTask<Void, Void, ArrayList<Note>> {
-        private boolean includeDeleted;
-        private OnNotesLoadListener listener;
+        private final boolean includeDeleted;
+        private final OnNotesLoadListener listener;
 
         public GetNotes(boolean includeDeleted, OnNotesLoadListener listener) {
             this.includeDeleted = includeDeleted;
@@ -698,9 +697,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class GetFolderNotes extends AsyncTask<Void, Void, ArrayList<Note>> {
-        private long folderId;
-        private boolean sortByDate;
-        private OnNotesLoadListener listener;
+        private final long folderId;
+        private final boolean sortByDate;
+        private final OnNotesLoadListener listener;
 
         public GetFolderNotes(long folderId, boolean sortByDate, OnNotesLoadListener listener) {
             this.folderId = folderId;
@@ -766,10 +765,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class SearchNotes extends AsyncTask<Void, Void, ArrayList<Note>>{
-        private boolean searchInTitle;
-        private boolean searchInContent;
-        private String textToFind;
-        private OnNotesLoadListener listener;
+        private final boolean searchInTitle;
+        private final boolean searchInContent;
+        private final String textToFind;
+        private final OnNotesLoadListener listener;
 
         public SearchNotes(boolean searchInTitle, boolean searchInContent, String textToFind, OnNotesLoadListener listener) {
             this.searchInTitle = searchInTitle;
@@ -842,8 +841,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class RemoveNote extends AsyncTask<Void, Void, Integer> {
-        private long noteId;
-        private OnItemRemoveListener listener;
+        private final long noteId;
+        private final OnItemRemoveListener listener;
 
         public RemoveNote(long noteId, OnItemRemoveListener listener) {
             this.noteId = noteId;
@@ -877,7 +876,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class RemoveAllNotesFromTrash extends AsyncTask<Void, Void, Integer> {
-        private OnItemRemoveListener listener;
+        private final OnItemRemoveListener listener;
 
         public RemoveAllNotesFromTrash(OnItemRemoveListener listener) {
             this.listener = listener;
@@ -909,7 +908,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class RestoreAllNotesFromTrash extends AsyncTask<Void, Void, ArrayList<Folder>> {
-        private OnFoldersLoadListener listener;
+        private final OnFoldersLoadListener listener;
 
         public RestoreAllNotesFromTrash(OnFoldersLoadListener listener) {
             this.listener = listener;
@@ -966,8 +965,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class RemoveAllNotesFromFolder extends AsyncTask<Void, Void, Integer> {
-        private long folderId;
-        private OnItemRemoveListener listener;
+        private final long folderId;
+        private final OnItemRemoveListener listener;
 
         public RemoveAllNotesFromFolder(long folderId, OnItemRemoveListener listener) {
             this.folderId = folderId;
@@ -1023,8 +1022,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class CreateFolder extends AsyncTask<Void, Void, Long>{
-        private Folder folder;
-        private OnItemInsertListener listener;
+        private final Folder folder;
+        private final OnItemInsertListener listener;
 
         public CreateFolder(Folder folder, OnItemInsertListener listener) {
             this.folder = folder;
@@ -1060,8 +1059,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class UpdateFolder extends AsyncTask<Void, Void, Integer> {
-        private Folder folder;
-        private OnItemUpdateListener listener;
+        private final Folder folder;
+        private final OnItemUpdateListener listener;
 
         public UpdateFolder(Folder folder, OnItemUpdateListener listener) {
             this.folder = folder;
@@ -1098,8 +1097,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class GetFolder extends AsyncTask<Void, Void, Folder> {
-        private long folderId;
-        private OnFolderLoadListener listener;
+        private final long folderId;
+        private final OnFolderLoadListener listener;
 
         public GetFolder(long folderId, OnFolderLoadListener listener) {
             this.folderId = folderId;
@@ -1150,7 +1149,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class GetFolders extends AsyncTask<Void, Void, ArrayList<Folder>> {
-        private OnFoldersLoadListener listener;
+        private final OnFoldersLoadListener listener;
 
         public GetFolders(OnFoldersLoadListener listener) {
             this.listener = listener;
@@ -1210,8 +1209,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class RemoveFolder extends AsyncTask<Void, Void, Integer> {
-        private long folderId;
-        private OnItemRemoveListener listener;
+        private final long folderId;
+        private final OnItemRemoveListener listener;
 
         public RemoveFolder(long folderId, OnItemRemoveListener listener) {
             this.folderId = folderId;
@@ -1245,8 +1244,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class CreateWidget extends AsyncTask<Void, Void, Long>{
-        private Widget widget;
-        private OnItemInsertListener listener;
+        private final Widget widget;
+        private final OnItemInsertListener listener;
 
         public CreateWidget(Widget widget, OnItemInsertListener listener) {
             this.widget = widget;
@@ -1286,8 +1285,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class UpdateWidget extends AsyncTask<Void, Void, Integer> {
-        private Widget widget;
-        private OnItemUpdateListener listener;
+        private final Widget widget;
+        private final OnItemUpdateListener listener;
 
         public UpdateWidget(Widget widget, OnItemUpdateListener listener) {
             this.widget = widget;
@@ -1388,8 +1387,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 //    }
 
     private class GetWidgetsWithNote extends AsyncTask<Void, Void, ArrayList<Widget>> {
-        private long noteId;
-        private OnWidgetsLoadListener listener;
+        private final long noteId;
+        private final OnWidgetsLoadListener listener;
 
         public GetWidgetsWithNote(long noteId, OnWidgetsLoadListener listener) {
             this.noteId = noteId;
@@ -1444,8 +1443,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private class RemoveWidget extends AsyncTask<Void, Void, Integer> {
-        private int widgetId;
-        private OnItemRemoveListener listener;
+        private final int widgetId;
+        private final OnItemRemoveListener listener;
 
         public RemoveWidget(int widgetId, OnItemRemoveListener listener) {
             this.widgetId = widgetId;
