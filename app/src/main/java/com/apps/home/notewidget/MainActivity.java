@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity
     private Note note;
     private ActionBar actionBar;
     private final int fragmentContainerId = R.id.container;
-    //private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -480,35 +479,6 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 });
-
-//                note.setFolderId(Utils.getFolderIdFromArray(which));
-//                helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
-//                    @Override
-//                    public void onItemUpdated(int numberOfRows) {
-//                        if (numberOfRows > 0) {
-//                            Utils.showToast(context, context.getString(R.string.note_has_been_moved));
-//                            Menu menu = getNavigationViewMenu();
-//                            Utils.incrementFolderCount(menu, (int) note.getFolderId(), 1);
-//                            Utils.decrementFolderCount(menu, folderId, 1);
-//
-//                            if (actionBarMenuItemClicked) {
-//                                //Update current folderId for folder fragment displayed onBackPressed
-//                                folderId = (int) note.getFolderId();
-//                                navigationView.setCheckedItem(folderId);
-//
-//                                //Change folder id for note which is currently visible
-//                                Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
-//                                String fragmentTag = fragment.getTag();
-//                                if (fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST))
-//                                    ((FolderChangeListener) fragment).onFolderChanged(folderId);
-//                            } else {
-//                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
-//                                    ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
-//                            }
-//                        } else
-//                            note.setFolderId(folderId); //TODO if this is needed?
-//                    }
-//                });
             }
         };
     }
@@ -558,7 +528,7 @@ public class MainActivity extends AppCompatActivity
                             helper.getNote(false, note.getId(), new DatabaseHelper.OnNoteLoadListener() {
                                 @Override
                                 public void onNoteLoaded(Note note) {
-                                    Utils.sendShareIntent(context, Html.fromHtml(note.getNote()).toString(), note.getTitle()); //TODO the share function may be too big
+                                    Utils.sendShareIntent(context, Html.fromHtml(note.getNote()).toString(), note.getTitle());
                                 }
                             });
 
@@ -589,23 +559,6 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 }
                             });
-//                            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
-//                                @Override
-//                                public void onItemUpdated(int numberOfRows) {
-//                                    if (numberOfRows > 0) {
-//                                        Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
-//                                        Utils.updateAllEdgePanels(context);
-//                                        preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY,preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY,"").replace(";" + note.getId() + ";", ";")).apply();
-//
-//                                        Menu menu = getNavigationViewMenu();
-//                                        Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
-//                                        Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
-//                                        if(fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
-//                                            ((FolderFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList();
-//                                    }
-//                                }
-//                            });
-//                            break;
                     }
                 }
             }
