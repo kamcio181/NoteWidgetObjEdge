@@ -6,12 +6,12 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatRadioButton;
 import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.apps.home.notewidget.R;
@@ -23,7 +23,7 @@ public class SettingsWidgetConfigFragment extends Fragment implements CompoundBu
     private SharedPreferences preferences;
     private Context context;
     private SwitchCompat ignoreTabsSwitch;
-    private RadioButton miuiThemeRadioButton, materialThemeRadioButton, simpleThemeRadioButton;
+    private AppCompatRadioButton miuiThemeRadioButton, materialThemeRadioButton, simpleThemeRadioButton;
     private RadioGroup widgetThemeRadioGroup;
 
     public SettingsWidgetConfigFragment() {
@@ -48,9 +48,9 @@ public class SettingsWidgetConfigFragment extends Fragment implements CompoundBu
         ((AppCompatActivity)context).getSupportActionBar().setTitle(R.string.widget_configuration);
 
         ignoreTabsSwitch = (SwitchCompat) view.findViewById(R.id.switch1);
-        miuiThemeRadioButton = (RadioButton) view.findViewById(R.id.radioButton);
-        materialThemeRadioButton = (RadioButton) view.findViewById(R.id.radioButton2);
-        simpleThemeRadioButton = (RadioButton) view.findViewById(R.id.radioButton3);
+        miuiThemeRadioButton = (AppCompatRadioButton) view.findViewById(R.id.radioButton);
+        materialThemeRadioButton = (AppCompatRadioButton) view.findViewById(R.id.radioButton2);
+        simpleThemeRadioButton = (AppCompatRadioButton) view.findViewById(R.id.radioButton3);
         widgetThemeRadioGroup = (RadioGroup) view.findViewById(R.id.radioGroup);
 
         ignoreTabsSwitch.setChecked(preferences.getBoolean(Constants.IGNORE_TABS_IN_WIDGETS_KEY, false));

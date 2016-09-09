@@ -10,7 +10,7 @@
     android:focusable="true"
     android:background="?android:attr/selectableItemBackground" >
 
-    <com.apps.home.notewidget.customviews.RobotoTextView
+    <android.support.v7.widget.AppCompatTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Medium Text"
@@ -20,7 +20,7 @@
         android:textColor="#DD000000"
         android:singleLine="true" />
 
-    <com.apps.home.notewidget.customviews.RobotoTextView
+    <android.support.v7.widget.AppCompatTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Small Text"

@@ -5,18 +5,18 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.SearchView;
 
-import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
@@ -29,7 +29,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
         SearchView.OnQueryTextListener{
     private static final String ARG_PARAM1 = "param1";
     private SearchView searchView;
-    private CheckBox titleSearch, contentSearch;
+    private AppCompatCheckBox titleSearch, contentSearch;
     private RecyclerView recyclerView;
     private SharedPreferences preferences;
     private Context context;
@@ -79,8 +79,8 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
         super.onViewCreated(view, savedInstanceState);
 
         searchView = (SearchView) view.findViewById(R.id.searchView);
-        titleSearch = (CheckBox) view.findViewById(R.id.titleCheckBox);
-        contentSearch = (CheckBox) view.findViewById(R.id.contentCheckBox);
+        titleSearch = (AppCompatCheckBox) view.findViewById(R.id.titleCheckBox);
+        contentSearch = (AppCompatCheckBox) view.findViewById(R.id.contentCheckBox);
         recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
 
         searchView.setIconified(false);
@@ -257,8 +257,8 @@ class SearchRecyclerAdapter extends RecyclerView.Adapter<SearchRecyclerAdapter.D
     }
 
     static class DoubleLineViewHolder extends RecyclerView.ViewHolder {
-        public final RobotoTextView titleTextView;
-        public final RobotoTextView subtitleTextView;
+        public final AppCompatTextView titleTextView;
+        public final AppCompatTextView subtitleTextView;
 
         public DoubleLineViewHolder(final View itemView) {
             super(itemView);
@@ -270,8 +270,8 @@ class SearchRecyclerAdapter extends RecyclerView.Adapter<SearchRecyclerAdapter.D
                 }
             });
 
-            titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
-            subtitleTextView = (RobotoTextView) itemView.findViewById(R.id.textView3);
+            titleTextView = (AppCompatTextView) itemView.findViewById(R.id.textView2);
+            subtitleTextView = (AppCompatTextView) itemView.findViewById(R.id.textView3);
         }
     }
 

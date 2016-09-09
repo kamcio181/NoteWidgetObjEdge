@@ -13,7 +13,7 @@
         android:id="@+id/numberPicker"
         android:layout_gravity="left|center_vertical" />
 
-    <TextView
+    <android.support.v7.widget.AppCompatTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/example"

@@ -8,14 +8,14 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatRadioButton;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.NumberPicker;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 
 import com.apps.home.notewidget.R;
@@ -28,7 +28,7 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
     private SharedPreferences preferences;
     private Context context;
 
-    private RadioButton small, medium, big, veryBig, color, strikethorugh;
+    private AppCompatRadioButton small, medium, big, veryBig, color, strikethorugh;
     private RadioGroup sizeGroup, styleGroup;
     private NumberPicker picker;
     private RobotoTextView example;
@@ -55,12 +55,12 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
 
         ((AppCompatActivity)context).getSupportActionBar().setTitle("Tile settings");
 
-        small = (RadioButton) view.findViewById(R.id.radioButton);
-        medium = (RadioButton) view.findViewById(R.id.radioButton2);
-        big = (RadioButton) view.findViewById(R.id.radioButton3);
-        veryBig = (RadioButton) view.findViewById(R.id.radioButton4);
-        color = (RadioButton) view.findViewById(R.id.radioButton5);
-        strikethorugh = (RadioButton) view.findViewById(R.id.radioButton6);
+        small = (AppCompatRadioButton) view.findViewById(R.id.radioButton);
+        medium = (AppCompatRadioButton) view.findViewById(R.id.radioButton2);
+        big = (AppCompatRadioButton) view.findViewById(R.id.radioButton3);
+        veryBig = (AppCompatRadioButton) view.findViewById(R.id.radioButton4);
+        color = (AppCompatRadioButton) view.findViewById(R.id.radioButton5);
+        strikethorugh = (AppCompatRadioButton) view.findViewById(R.id.radioButton6);
         sizeGroup = (RadioGroup) view.findViewById(R.id.radioGroup);
         styleGroup = (RadioGroup) view.findViewById(R.id.radioGroup2);
         picker = (NumberPicker) view.findViewById(R.id.numberPicker2);

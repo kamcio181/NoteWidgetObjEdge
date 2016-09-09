@@ -13,6 +13,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatImageView;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -25,10 +28,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.edge.EdgeConfigActivity;
 import com.apps.home.notewidget.objects.Note;
@@ -135,9 +136,9 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
 
             ArrayList<ShoppingListItem> itemList = new ArrayList<>(3);
 
-            itemList.add(new ShoppingListItem("Items to buy", Constants.HEADER_VIEW));
+            itemList.add(new ShoppingListItem(context.getString(R.string.items_to_buy), Constants.HEADER_VIEW));
             itemList.add(new ShoppingListItem(null, Constants.NEW_ITEM_VIEW));
-            itemList.add(new ShoppingListItem("Items bought", Constants.HEADER_VIEW));
+            itemList.add(new ShoppingListItem(context.getString(R.string.items_bought), Constants.HEADER_VIEW));
 
             recyclerView.setAdapter(new ListRecyclerAdapter(context, itemList, 0, new OnStartDragListener() {
                 @Override
@@ -174,12 +175,12 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
 
         ArrayList<ShoppingListItem> itemList = new ArrayList<>(items.size()+3);
 
-        itemList.add(new ShoppingListItem("Items to buy", Constants.HEADER_VIEW));
+        itemList.add(new ShoppingListItem(context.getString(R.string.items_to_buy), Constants.HEADER_VIEW));
         for (int i = 0; i<activeItemsCount; i++){
             itemList.add(new ShoppingListItem(items.get(i), Constants.ENABLED_ITEM_VIEW));
         }
         itemList.add(new ShoppingListItem(null, Constants.NEW_ITEM_VIEW));
-        itemList.add(new ShoppingListItem("Items bought", Constants.HEADER_VIEW));
+        itemList.add(new ShoppingListItem(context.getString(R.string.items_bought), Constants.HEADER_VIEW));
 
         for (int i = activeItemsCount; i<items.size(); i++){
             itemList.add(new ShoppingListItem(items.get(i), Constants.DISABLED_ITEM_VIEW));
@@ -595,11 +596,11 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     static class SingleLineWithHandleViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder {
         public final RobotoTextView titleTextView;
-        public final RobotoTextView header;
-        public final ImageView handle;
-        public final ImageView confirm;
-        public final ImageView divider;
-        public final RobotoEditText newItemEditText;
+        public final AppCompatTextView header;
+        public final AppCompatImageView handle;
+        public final AppCompatImageView confirm;
+        public final AppCompatImageView divider;
+        public final AppCompatEditText newItemEditText;
 
         public SingleLineWithHandleViewHolder(final View itemView){
             super(itemView);
@@ -621,11 +622,11 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 //            });
 
             titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
-            handle = (ImageView) itemView.findViewById(R.id.imageView2);
-            header = (RobotoTextView) itemView.findViewById(R.id.textView);
-            newItemEditText = (RobotoEditText) itemView.findViewById(R.id.editText);
-            confirm = (ImageView) itemView.findViewById(R.id.imageView);
-            divider = (ImageView) itemView.findViewById(R.id.imageView3);
+            handle = (AppCompatImageView) itemView.findViewById(R.id.imageView2);
+            header = (AppCompatTextView) itemView.findViewById(R.id.textView);
+            newItemEditText = (AppCompatEditText) itemView.findViewById(R.id.editText);
+            confirm = (AppCompatImageView) itemView.findViewById(R.id.imageView);
+            divider = (AppCompatImageView) itemView.findViewById(R.id.imageView3);
         }
 
         @Override

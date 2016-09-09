@@ -3,41 +3,33 @@ package com.apps.home.notewidget.customviews;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
-import android.widget.TextView;
 
 import com.apps.home.notewidget.R;
 
-public class RobotoTextView extends TextView{
+public class RobotoTextView extends AppCompatTextView{
     private Paint paint;
     private boolean strikeEnabled = false;
     private static final int OFFSET = 3;
 
     public RobotoTextView(Context context) {
         super(context);
-        createFont();
         init(context);
     }
 
     public RobotoTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        createFont();
         init(context);
     }
 
     public RobotoTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        createFont();
         init(context);
     }
 
-    private void createFont() {
-        Typeface font = Typeface.createFromAsset(getContext().getAssets(), "Roboto-Regular.ttf");
-        setTypeface(font);
-    }
 
     private void init(Context context) {
         paint = new Paint();

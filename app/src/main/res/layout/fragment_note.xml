@@ -1,7 +1,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-<com.apps.home.notewidget.customviews.RobotoEditText
+<android.support.v7.widget.AppCompatEditText
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/noteEditText"

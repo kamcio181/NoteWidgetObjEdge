@@ -118,12 +118,14 @@
     <string name="open_application">Otwórz aplikację</string>
     <string name="note_is_empty">Notatka jest pusta</string>
     <string name="title_activity_edge_config">Ustawienia listy Edge</string>
-    <string name="ignore_tabs_in_edge_panel">Ignore tabs in edge panel</string>
-    <string name="hide_content_when_device_is_locked">Hide content when device is locked</string>
-    <string name="you_do_not_have_any_notes">You do not have any notes</string>
-    <string name="content_hidden_nunlock_to_view_your_notes">Content hidden.\nUnlock to view your notes</string>
-    <string name="new_item">New item</string>
-    <string name="remove_bought_items">Remove bought items</string>
+    <string name="ignore_tabs_in_edge_panel">Pomiń tabulatory w liście Edge</string>
+    <string name="hide_content_when_device_is_locked">Ukryj treść gdy urządzenie jest zablokowane</string>
+    <string name="you_do_not_have_any_notes">Nie masz żadnych notatek</string>
+    <string name="content_hidden_nunlock_to_view_your_notes">Treść ukryta.\nOdblokuj, aby zobaczyć notatki</string>
+    <string name="new_item">Nowy artykuł</string>
+    <string name="remove_bought_items">Usuń kupione artykuły</string>
+    <string name="items_to_buy">Do kupienia</string>
+    <string name="items_bought">Kupione</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

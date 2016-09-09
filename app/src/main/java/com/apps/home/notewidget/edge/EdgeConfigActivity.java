@@ -8,6 +8,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SwitchCompat;
@@ -18,9 +20,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.TextView;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
@@ -317,14 +317,14 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
 
         class ViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder{
             public final View tile;
-            public final TextView titleTV;
-            public final TextView contentTV;
+            public final AppCompatTextView titleTV;
+            public final AppCompatTextView contentTV;
 
             public ViewHolder(final View itemView) {
                 super(itemView);
                 this.tile = itemView;
-                titleTV = (TextView) itemView.findViewById(R.id.textView7);
-                contentTV = (TextView) itemView.findViewById(R.id.textView);
+                titleTV = (AppCompatTextView) itemView.findViewById(R.id.textView7);
+                contentTV = (AppCompatTextView) itemView.findViewById(R.id.textView);
 
                 itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
@@ -405,15 +405,15 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            public final CheckBox checkBox;
-            public final TextView titleTV;
-            public final TextView contentTV;
+            public final AppCompatCheckBox checkBox;
+            public final AppCompatTextView titleTV;
+            public final AppCompatTextView contentTV;
 
             public ViewHolder(final View itemView) {
                 super(itemView);
-                titleTV = (TextView) itemView.findViewById(R.id.textView2);
-                contentTV = (TextView) itemView.findViewById(R.id.textView3);
-                checkBox = (CheckBox) itemView.findViewById(R.id.checkBox2);
+                titleTV = (AppCompatTextView) itemView.findViewById(R.id.textView2);
+                contentTV = (AppCompatTextView) itemView.findViewById(R.id.textView3);
+                checkBox = (AppCompatCheckBox) itemView.findViewById(R.id.checkBox2);
 
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override

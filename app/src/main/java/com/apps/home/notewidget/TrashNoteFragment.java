@@ -6,12 +6,12 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 
@@ -20,7 +20,7 @@ import java.util.Calendar;
 public class TrashNoteFragment extends Fragment {
     private static final String TAG = "TrashNoteFragment";
     private static final String ARG_PARAM1 = "param1";
-    private RobotoTextView noteTextView;
+    private AppCompatTextView noteTextView;
     private long noteId;
     private Context context;
 
@@ -58,7 +58,7 @@ public class TrashNoteFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        noteTextView = (RobotoTextView) view.findViewById(R.id.noteEditText);
+        noteTextView = (AppCompatTextView) view.findViewById(R.id.noteEditText);
 
         DatabaseHelper helper = new DatabaseHelper(context);
         helper.getNote(true, noteId, new DatabaseHelper.OnNoteLoadListener() {

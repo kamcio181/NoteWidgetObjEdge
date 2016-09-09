@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -12,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.apps.home.notewidget.R;
-import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.utils.Constants;
@@ -82,7 +82,7 @@ public class WidgetConfigActivity extends AppCompatActivity{
     }
 
     class SingleLineViewHolder extends RecyclerView.ViewHolder {
-        public final RobotoTextView titleTextView;
+        public final AppCompatTextView titleTextView;
 
         public SingleLineViewHolder(View itemView) {
             super(itemView);
@@ -114,7 +114,7 @@ public class WidgetConfigActivity extends AppCompatActivity{
                 }
             });
 
-            titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
+            titleTextView = (AppCompatTextView) itemView.findViewById(R.id.textView2);
         }
     }
 

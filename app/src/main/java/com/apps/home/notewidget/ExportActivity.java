@@ -17,6 +17,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatImageView;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -26,11 +29,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.apps.home.notewidget.customviews.RobotoEditText;
-import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
 import com.apps.home.notewidget.utils.Utils;
@@ -138,41 +138,6 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         };
     }
 
-    private Dialog setFileName(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
-        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
-        titleEditText.setText(title);
-        titleEditText.setSelection(0, titleEditText.length());
-
-        AlertDialog dialog = builder.setTitle(getString(R.string.set_file_name)).setView(layout)
-                .setPositiveButton(getString(R.string.confirm), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String name = titleEditText.getText().toString().length() == 0 ? getString(R.string.untitled)
-                                : titleEditText.getText().toString();
-                        int i = 0;
-                        String suffix = "";
-                        while (new File(path, name + suffix + ".txt").exists()) {
-                            i++;
-                            suffix = Integer.toString(i);
-                        }
-                        saveNote(name + suffix + ".txt");
-                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
-                    }
-                })
-                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Utils.showToast(context, getString(R.string.canceled));
-                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
-                    }
-                }).create();
-        Utils.showOrHideKeyboard(dialog.getWindow(), true);
-        return dialog;
-    }
-
     private void saveNote(String name){
         if(ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED)
@@ -220,12 +185,61 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         switch (v.getId()){
             case R.id.fab:
                 if(new File(path).canWrite())
-                    setFileName().show();
+                    Utils.getNameDialog(this, title, getString(R.string.set_file_name), 32, new Utils.OnNameSet() {
+                        @Override
+                        public void onNameSet(String name) {
+                            if (name.length() == 0)
+                                name = getString(R.string.untitled);
+                            int i = 0;
+                            String suffix = "";
+                            while (new File(path, name + suffix + ".txt").exists()) {
+                                i++;
+                                suffix = Integer.toString(i);
+                            }
+                            saveNote(name + suffix + ".txt");
+                            Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
+                        }
+                    }).show();
                 else
                     Utils.showToast(this, getString(R.string.you_are_not_allowed_to_write_in_this_folder));
                 break;
         }
     }
+
+    //    private Dialog setFileName(){
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        LayoutInflater inflater = getLayoutInflater();
+//        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_edit_text, null);
+//        final AppCompatEditText titleEditText = (AppCompatEditText) layout.findViewById(R.id.titleEditText);
+//        titleEditText.setText(title);
+//        titleEditText.setSelection(0, titleEditText.length());
+//
+//        AlertDialog dialog = builder.setTitle().setView(layout)
+//                .setPositiveButton(getString(R.string.confirm), new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        String name = titleEditText.getText().toString().length() == 0 ? getString(R.string.untitled)
+//                                : titleEditText.getText().toString();
+//                        int i = 0;
+//                        String suffix = "";
+//                        while (new File(path, name + suffix + ".txt").exists()) {
+//                            i++;
+//                            suffix = Integer.toString(i);
+//                        }
+//                        saveNote(name + suffix + ".txt");
+//                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
+//                    }
+//                })
+//                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        Utils.showToast(context, getString(R.string.canceled));
+//                        Utils.showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
+//                    }
+//                }).create();
+//        Utils.showOrHideKeyboard(dialog.getWindow(), true);
+//        return dialog;
+//    }
 
     private class GetFiles extends AsyncTask<Void, Void, Boolean>{
         private ArrayList<String> dirs;
@@ -376,8 +390,8 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder{
-        public final RobotoTextView titleTextView;
-        public final ImageView icon;
+        public final AppCompatTextView titleTextView;
+        public final AppCompatImageView icon;
 
         public ViewHolder(final View itemView){
             super(itemView);
@@ -389,8 +403,8 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
                 }
             });
 
-            titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
-            icon = (ImageView) itemView.findViewById(R.id.imageView);
+            titleTextView = (AppCompatTextView) itemView.findViewById(R.id.textView2);
+            icon = (AppCompatImageView) itemView.findViewById(R.id.imageView);
 
         }
     }

@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -224,7 +225,7 @@ public class TrashListFragment extends Fragment {
 
         static class SingleLineWithHandleViewHolder extends RecyclerView.ViewHolder {
             public final RobotoTextView titleTextView;
-            public final RobotoTextView header;
+            public final AppCompatTextView header;
             public final ImageView handle;
             public final ImageView divider;
 
@@ -232,7 +233,7 @@ public class TrashListFragment extends Fragment {
                 super(itemView);
 
                 titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
-                header = (RobotoTextView) itemView.findViewById(R.id.textView);
+                header = (AppCompatTextView) itemView.findViewById(R.id.textView);
                 divider = (ImageView) itemView.findViewById(R.id.imageView3);
                 handle = (ImageView) itemView.findViewById(R.id.imageView2);
             }

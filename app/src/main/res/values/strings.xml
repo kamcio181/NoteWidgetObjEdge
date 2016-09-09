@@ -132,4 +132,6 @@
     <string name="content_hidden_nunlock_to_view_your_notes">Content hidden.\nUnlock to view your notes</string>
     <string name="new_item">New item</string>
     <string name="remove_bought_items">Remove bought items</string>
+    <string name="items_to_buy">Items to buy</string>
+    <string name="items_bought">Items bought</string>
 </resources>

@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
@@ -20,7 +21,6 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.apps.home.notewidget.customviews.RobotoEditText;
 import com.apps.home.notewidget.edge.EdgeConfigActivity;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
@@ -45,7 +45,7 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
     private long noteId;
-    private RobotoEditText noteEditText;
+    private AppCompatEditText noteEditText;
     private boolean skipSaving = false;
     private boolean isNewNote;
     private Context context;
@@ -120,7 +120,7 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
                 getBoolean(Constants.SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY, false))
             Utils.getMultilevelNoteManualDialog(context).show();
 
-        noteEditText = (RobotoEditText) view.findViewById(R.id.noteEditText);
+        noteEditText = (AppCompatEditText) view.findViewById(R.id.noteEditText);
         noteEditText.addTextChangedListener(textWatcher);
         noteEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP,
                 context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));

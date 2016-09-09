@@ -8,10 +8,10 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ContextThemeWrapper;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -41,7 +41,7 @@ public class WidgetManualActivity extends AppCompatActivity{
         final RelativeLayout themeSwitchDesc = (RelativeLayout) layout.findViewById(R.id.themeSwitchClickDesc);
         final FrameLayout widgetConfigCont = (FrameLayout) layout.findViewById(R.id.widgetConfigCont);
         final FrameLayout widgetConfigCont2 = (FrameLayout) layout.findViewById(R.id.widgetConfigCont2);
-        final CheckBox checkBox = (CheckBox) layout.findViewById(R.id.checkBox);
+        final AppCompatCheckBox checkBox = (AppCompatCheckBox) layout.findViewById(R.id.checkBox);
 
         widgetTitleCont2.addView(LayoutInflater.from(this).inflate(
                 Utils.getLayoutFile(this, Constants.WIDGET_THEME_LIGHT,

@@ -6,13 +6,13 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
@@ -242,8 +242,8 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
         }
 
         static class DoubleLineViewHolder extends RecyclerView.ViewHolder{
-            public final RobotoTextView titleTextView;
-            public final RobotoTextView subtitleTextView;
+            public final AppCompatTextView titleTextView;
+            public final AppCompatTextView subtitleTextView;
 
             public DoubleLineViewHolder(final View itemView){
                 super(itemView);
@@ -263,8 +263,8 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
                     }
                 });
 
-                titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
-                subtitleTextView = (RobotoTextView) itemView.findViewById(R.id.textView3);
+                titleTextView = (AppCompatTextView) itemView.findViewById(R.id.textView2);
+                subtitleTextView = (AppCompatTextView) itemView.findViewById(R.id.textView3);
             }
         }
 

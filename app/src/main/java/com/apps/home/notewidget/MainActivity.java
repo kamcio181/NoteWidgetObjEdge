@@ -20,6 +20,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
@@ -28,7 +29,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.settings.SettingsActivity;
@@ -646,7 +646,7 @@ public class MainActivity extends AppCompatActivity
         MenuItem newItem = m.add(R.id.nav_group_notes, id, order, name);
         newItem.setIcon(icon);
         LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        @SuppressLint("InflateParams") RobotoTextView countTextView = (RobotoTextView) inflater.inflate(R.layout.nav_folder_item, null);
+        @SuppressLint("InflateParams") AppCompatTextView countTextView = (AppCompatTextView) inflater.inflate(R.layout.nav_folder_item, null);
         countTextView.setText(String.valueOf(count));
         newItem.setActionView(countTextView);
         newItem.setCheckable(true);

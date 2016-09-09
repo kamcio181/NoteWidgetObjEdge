@@ -8,14 +8,14 @@
     android:focusable="true"
     android:background="?android:attr/selectableItemBackground" >
 
-    <ImageView
+    <android.support.v7.widget.AppCompatImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/imageView"
         android:src="@drawable/ic_exp_grey_folder"
         android:layout_centerVertical="true" />
 
-    <com.apps.home.notewidget.customviews.RobotoTextView
+    <android.support.v7.widget.AppCompatTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="56dp"

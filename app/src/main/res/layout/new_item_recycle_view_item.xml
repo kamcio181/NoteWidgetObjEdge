@@ -3,21 +3,18 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="56dp"
     android:background="?android:attr/selectableItemBackground" >
-
-    <com.apps.home.notewidget.customviews.RobotoEditText
+    <android.support.v7.widget.AppCompatEditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
-        android:textSize="16sp"
-        android:textColor="#DD000000"
         android:singleLine="true"
+        android:id="@+id/editText"
         android:layout_centerVertical="true"
         android:layout_toLeftOf="@+id/imageView"
         android:hint="@string/new_item"
         android:layout_marginLeft="16dp"
-        android:imeOptions="actionGo" />
+        android:imeOptions="actionGo"/>
 
-    <ImageView
+    <android.support.v7.widget.AppCompatImageView
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:id="@+id/imageView"
@@ -26,7 +23,7 @@
         android:padding="16dp"
         android:layout_centerVertical="true" />
 
-    <ImageView
+    <android.support.v7.widget.AppCompatImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/imageView3"

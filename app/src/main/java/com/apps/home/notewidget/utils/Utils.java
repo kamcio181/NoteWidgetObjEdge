@@ -14,6 +14,9 @@ import android.os.Environment;
 import android.os.TransactionTooLargeException;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatTextView;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -25,13 +28,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.CheckBox;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.apps.home.notewidget.R;
-import com.apps.home.notewidget.customviews.RobotoEditText;
-import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.edge.EdgePanelProvider;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Widget;
@@ -109,7 +108,7 @@ public class Utils {
     public static Dialog getMultilevelNoteManualDialog(final Context context){
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
         @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_multilevel_note_manual, null);
-        final CheckBox checkBox = (CheckBox) layout.findViewById(R.id.checkBox);
+        final AppCompatCheckBox checkBox = (AppCompatCheckBox) layout.findViewById(R.id.checkBox);
         return new AlertDialog.Builder(context).setTitle(context.getString(R.string.tip)).setView(layout).setCancelable(false).
                 setPositiveButton(context.getString(R.string.i_have_got_it), new DialogInterface.OnClickListener() {
                     @Override
@@ -142,9 +141,9 @@ public class Utils {
                                           final OnNameSet action, boolean hideContent, final int charLimit){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
-        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_roboto_edit_text, null);
-        final RobotoEditText titleEditText = (RobotoEditText) layout.findViewById(R.id.titleEditText);
-        final TextView charNumberTV = (TextView) layout.findViewById(R.id.textView8);
+        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_edit_text, null);
+        final AppCompatEditText titleEditText = (AppCompatEditText) layout.findViewById(R.id.titleEditText);
+        final AppCompatTextView charNumberTV = (AppCompatTextView) layout.findViewById(R.id.textView8);
         titleEditText.setText(text);
 
         if(charLimit > 0) {
@@ -378,19 +377,19 @@ public class Utils {
 
     public static void incrementFolderCount(Menu m, int folderId, int inc){
         MenuItem menuItem = m.findItem(folderId);
-        RobotoTextView view = (RobotoTextView) menuItem.getActionView();
+        AppCompatTextView view = (AppCompatTextView) menuItem.getActionView();
         view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) + inc));
     }
 
     public static void decrementFolderCount(Menu m, int folderId, int dec){
         MenuItem menuItem = m.findItem(folderId);
-        RobotoTextView view = (RobotoTextView) menuItem.getActionView();
+        AppCompatTextView view = (AppCompatTextView) menuItem.getActionView();
         view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) - dec));
     }
 
     public static void setFolderCount(Menu m, int folderId, int count){
         MenuItem menuItem = m.findItem(folderId);
-        RobotoTextView view = (RobotoTextView) menuItem.getActionView();
+        AppCompatTextView view = (AppCompatTextView) menuItem.getActionView();
         view.setText(Integer.toString(count));
     }
 

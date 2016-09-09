@@ -17,6 +17,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
@@ -25,7 +26,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.NumberPicker;
-import android.widget.TextView;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.utils.Constants;
@@ -119,7 +119,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
         LayoutInflater inflater = getLayoutInflater();
         @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_number_picker, null);
         final NumberPicker picker = (NumberPicker) layout.findViewById(R.id.numberPicker);
-        final TextView example = (TextView) layout.findViewById(R.id.textView5);
+        final AppCompatTextView example = (AppCompatTextView) layout.findViewById(R.id.textView5);
         picker.setMinValue(10);
         picker.setMaxValue(30);
         picker.setValue(preferences.getInt(Constants.NOTE_TEXT_SIZE_KEY, 14));

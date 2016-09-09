@@ -6,7 +6,7 @@
     android:paddingTop="10dp"
     android:paddingRight="10dp">
 
-    <com.apps.home.notewidget.customviews.RobotoEditText
+    <android.support.v7.widget.AppCompatEditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/titleEditText"
@@ -15,7 +15,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true" />
 
-    <TextView
+    <android.support.v7.widget.AppCompatTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"

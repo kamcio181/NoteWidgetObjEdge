@@ -8,7 +8,7 @@
         android:orientation="vertical"
         android:padding="@dimen/note_text_padding">
 
-        <ImageView
+        <android.support.v7.widget.AppCompatImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/imageView3"
@@ -19,7 +19,7 @@
             layout="@layout/single_line_with_handle_recycle_view_item"
             android:layout_gravity="center_horizontal" />
 
-        <com.apps.home.notewidget.customviews.RobotoTextView
+        <android.support.v7.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
@@ -34,21 +34,21 @@
             android:id="@+id/radioGroup"
             android:layout_gravity="center_horizontal|top">
 
-            <RadioButton
+            <android.support.v7.widget.AppCompatRadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton"
                 android:checked="false"
                 android:layout_gravity="center_vertical"
                 android:text="@string/small" />
-            <RadioButton
+            <android.support.v7.widget.AppCompatRadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton2"
                 android:checked="true"
                 android:layout_gravity="center_vertical"
                 android:text="@string/medium" />
-            <RadioButton
+            <android.support.v7.widget.AppCompatRadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton3"
@@ -56,7 +56,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="@string/big" />
 
-            <RadioButton
+            <android.support.v7.widget.AppCompatRadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton4"
@@ -65,7 +65,7 @@
                 android:text="@string/very_big" />
         </RadioGroup>
 
-        <com.apps.home.notewidget.customviews.RobotoTextView
+        <android.support.v7.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
@@ -80,7 +80,7 @@
             android:id="@+id/numberPicker2"
             android:orientation="vertical" />
 
-        <com.apps.home.notewidget.customviews.RobotoTextView
+        <android.support.v7.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
@@ -95,14 +95,14 @@
             android:orientation="horizontal"
             android:id="@+id/radioGroup2">
 
-            <RadioButton
+            <android.support.v7.widget.AppCompatRadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/color"
                 android:id="@+id/radioButton5"
                 android:checked="true" />
 
-            <RadioButton
+            <android.support.v7.widget.AppCompatRadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/strikethrough"
