@@ -126,6 +126,8 @@
     <string name="remove_bought_items">Usuń kupione artykuły</string>
     <string name="items_to_buy">Do kupienia</string>
     <string name="items_bought">Kupione</string>
+    <string name="add_from_clipboard">Dodaj ze schowka</string>
+    <string name="clipboard_does_not_contain_proper_data">Schowek nie zawiera odpowiednich danych</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

@@ -255,6 +255,9 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_remove_disabled_items:
                 ((ListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).removeDisabledItems();
                 break;
+            case R.id.action_add_from_clipboard:
+                ((ListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).addItemsFromClipboard();
+                break;
         }
 
         return super.onOptionsItemSelected(item);

@@ -2,13 +2,19 @@ package com.apps.home.notewidget;
 
 
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContentResolverCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.ActionBar;
@@ -28,6 +34,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.webkit.MimeTypeMap;
 import android.widget.TextView;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
@@ -353,6 +360,52 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     public void removeDisabledItems(){
         ((ListRecyclerAdapter)recyclerView.getAdapter()).removeDisabledItems();
     }
+
+    public void addItemsFromClipboard(){
+        String text = getTextFromClipboard();
+        
+        if (text != null){
+            String[] items = text.split("\n");
+            ((ListRecyclerAdapter)recyclerView.getAdapter()).addItems(items);
+        } else {
+            Utils.showToast(context, context.getString(R.string.clipboard_does_not_contain_proper_data));
+        }
+    }
+
+    private String getTextFromClipboard(){
+        String mimeType = "text/plain";
+        ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        if(clipboardManager.hasPrimaryClip() && clipboardManager.getPrimaryClipDescription().hasMimeType(mimeType)){
+            ClipData.Item item = clipboardManager.getPrimaryClip().getItemAt(0);
+            String pasteData = item.getText().toString();
+            if(pasteData == null || pasteData.trim().length() == 0)
+                return null;
+            
+            return pasteData;
+//            if(pasteData == null){
+//                Uri pasteUri = item.getUri();
+//                if(pasteUri == null){
+//                    return null;
+//                } else {
+//                    ContentResolver cr = context.getContentResolver();
+//                    String uriMimeType = cr.getType(pasteUri);
+//                    if(uriMimeType != null && uriMimeType.equals(mimeType)) {
+//                        Cursor cursor = cr.query(pasteUri, null, null, null, null);
+//                        if(cursor != null && cursor.moveToFirst()){
+//                                
+//                        }
+//                        cursor.close();
+//                    }
+//                }
+//
+//            }
+
+
+
+        } else {
+            return null;
+        }
+    }
 }
 
 class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder>
@@ -392,6 +445,14 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     public void setItems(ArrayList<ShoppingListItem> items, int activeItemsCount){
         this.items = items;
         this.activeItemsCount = activeItemsCount;
+        notifyDataSetChanged();
+    }
+    
+    public void addItems(String[] items){
+        for (String s : items){
+            this.items.add(activeItemsCount+1, new ShoppingListItem(s, Constants.ENABLED_ITEM_VIEW));
+            activeItemsCount++;
+        }
         notifyDataSetChanged();
     }
 

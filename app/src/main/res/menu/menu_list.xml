@@ -19,9 +19,15 @@
         android:title="@string/discard_changes"
         app:showAsAction="never" />
 
-        <item
-        android:id="@+id/action_remove_disabled_items"
+    <item
+        android:id="@+id/action_add_from_clipboard"
         android:orderInCategory="350"
+        android:title="Add from clipboard"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_remove_disabled_items"
+        android:orderInCategory="370"
         android:title="@string/remove_bought_items"
         app:showAsAction="never" />
 
