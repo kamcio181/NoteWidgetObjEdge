@@ -39,11 +39,7 @@ public interface Constants {
     String STARTING_FOLDER_KEY = "startingFolder";
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
     String SKIP_WIDGET_MANUAL_DIALOG_KEY = "skipWidgetManualDialog";
-    String RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY = "reloadMainActivityAfterRestore";
     String RECONFIGURE = "reconfigure";
-
-    String NOTE_UPDATED_FROM_WIDGET = "noteUpdatedFromWidget";
-    String NOTE_PARAMETERS_UPDATED = "noteTextSizeUpdated";
 
     String FRAGMENT_FOLDER = "ListFragment";
     String FRAGMENT_NOTE = "NoteFragment";
@@ -62,6 +58,10 @@ public interface Constants {
     String EDGE_IGNORE_TABS_KEY = "ignoreTabsInEdgePanel";
     String EDGE_HIDE_CONTENT_KEY = "hideContent";
     String EDGE_WAS_LOCKED_KEY = "wasLocked";
+
+    String ACTION_UPDATE_NOTE = "com.apps.home.notewidget.action.UPDATE_NOTE";
+    String ACTION_UPDATE_NOTE_PARAMETERS = "com.apps.home.notewidget.action.UPDATE_NOTE_PARAMETERS";
+    String ACTION_RELOAD_MAIN_ACTIVITY = "com.apps.home.notewidget.action.RELOAD_MAIN_ACTIVITY";
 
     int FALSE = 0;
     int TRUE = 1;

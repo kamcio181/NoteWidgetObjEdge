@@ -2,10 +2,12 @@ package com.apps.home.notewidget;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -71,6 +73,7 @@ public class MainActivity extends AppCompatActivity
     private Note note;
     private ActionBar actionBar;
     private final int fragmentContainerId = R.id.container;
+    private static UpdateReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +94,6 @@ public class MainActivity extends AppCompatActivity
         trashNavId = (int) Utils.getTrashNavId(this);
         Log.e(TAG, "trash id " + trashNavId);
         folderId = preferences.getInt(Constants.STARTING_FOLDER_KEY, (int) Utils.getMyNotesNavId(context));
-        preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)
-        .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, false).apply();//reset flag
         Log.e(TAG, "created");
 
 
@@ -310,11 +311,33 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        IntentFilter intentFilter = new IntentFilter(Constants.ACTION_RELOAD_MAIN_ACTIVITY);
+        intentFilter.addAction(Constants.ACTION_UPDATE_NOTE);
+        intentFilter.addAction(Constants.ACTION_UPDATE_NOTE_PARAMETERS);
+        if(receiver == null)
+            receiver = new UpdateReceiver();
+        registerReceiver(receiver, intentFilter);
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         exit = false;
         handler.removeCallbacks(exitRunnable);
         Log.e(TAG, "Stop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e){
+            Log.e(TAG, "Receiver already unregistered");
+        }
     }
 
     private void openFolderWithNotes(int id){
@@ -813,31 +836,35 @@ public class MainActivity extends AppCompatActivity
             attachFragment(Constants.FRAGMENT_LIST);
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        if(preferences.getBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, false))
-            reloadMainActivityAfterRestore();
-        else {
-            final Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
-            String fragmentTag = fragment.getTag();
-            if (preferences.getBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false)) {
-                if(fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST)){
-                    ((NoteUpdateListener)fragment).onNoteUpdate();
-                }
-                else if (fragmentTag.equals(Constants.FRAGMENT_FOLDER))
-                    ((FolderFragment)fragment).reloadList();
-                preferences.edit().putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, false).apply(); //TODO use receivers
-            }
-            if (preferences.getBoolean(Constants.NOTE_PARAMETERS_UPDATED, false)) {
-                if (fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST))
-                    ((ParametersUpdateListener) fragment).onParametersUpdated();
-                preferences.edit().putBoolean(Constants.NOTE_PARAMETERS_UPDATED, false).apply();
-            }
-        }
-    }
-
     public Menu getNavigationViewMenu() {
         return navigationView.getMenu();
+    }
+
+    class UpdateReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent arg1) {
+            if(arg1 != null){
+                final Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
+                String fragmentTag = fragment.getTag();
+                switch (arg1.getAction()){
+                    case Constants.ACTION_RELOAD_MAIN_ACTIVITY:
+                        reloadMainActivityAfterRestore();
+                        break;
+                    case Constants.ACTION_UPDATE_NOTE:
+
+
+                        if(fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST)){
+                            ((NoteUpdateListener)fragment).onNoteUpdate();
+                        }
+                        else if (fragmentTag.equals(Constants.FRAGMENT_FOLDER))
+                            ((FolderFragment)fragment).reloadList();
+                        break;
+                    case Constants.ACTION_UPDATE_NOTE_PARAMETERS:
+                        if (fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST))
+                            ((ParametersUpdateListener) fragment).onParametersUpdated();
+                        break;
+                }
+            }
+        }
     }
 }

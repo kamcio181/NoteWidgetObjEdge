@@ -1,6 +1,7 @@
 package com.apps.home.notewidget;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -113,8 +114,9 @@ public class EditNoteActivity extends AppCompatActivity{
     protected void onStop() {
         super.onStop();
         if(!skipSaving)
-            getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().
-                    putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, true).apply();
+//            getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().
+//                    putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, true).apply();
+        sendBroadcast(new Intent(Constants.ACTION_UPDATE_NOTE));
     }
 
     @Override

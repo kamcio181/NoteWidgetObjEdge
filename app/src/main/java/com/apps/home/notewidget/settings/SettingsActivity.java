@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -138,7 +139,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.e("settings", "click "+picker.getValue());
-                        preferences.edit().putInt(Constants.NOTE_TEXT_SIZE_KEY, picker.getValue()).putBoolean(Constants.NOTE_PARAMETERS_UPDATED, true).apply();
+                        preferences.edit().putInt(Constants.NOTE_TEXT_SIZE_KEY, picker.getValue()).apply();
+                        sendBroadcast(new Intent(Constants.ACTION_UPDATE_NOTE_PARAMETERS));
                         Utils.showToast(context, getString(R.string.text_size_changed));
                     }
                 }).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -394,7 +396,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                         public void onFinished(boolean result) {
                             if(result){
                                 preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
-                                        .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).remove(Constants.EDGE_VISIBLE_NOTES_KEY).apply();
+                                        .remove(Constants.EDGE_VISIBLE_NOTES_KEY).apply();
                                 Utils.updateAllWidgets(context);
                                 Utils.updateAllEdgePanels(context);
                                 onBackPressed();
@@ -404,11 +406,12 @@ public class SettingsActivity extends AppCompatActivity implements SettingsListF
                 } else {
                     Utils.showToast(context, getString(R.string.settings_restored));
                     preferences.edit().remove(Constants.STARTING_FOLDER_KEY)
-                            .putBoolean(Constants.RELOAD_MAIN_ACTIVITY_AFTER_RESTORE_KEY, true).remove(Constants.EDGE_VISIBLE_NOTES_KEY).apply();
+                            .remove(Constants.EDGE_VISIBLE_NOTES_KEY).apply();
                     Utils.updateAllWidgets(context);
                     Utils.updateAllEdgePanels(context);
                     onBackPressed();
                 }
+                sendBroadcast(new Intent(Constants.ACTION_RELOAD_MAIN_ACTIVITY));
             } else
                 Utils.showToast(context, getString(R.string.failed));
         }

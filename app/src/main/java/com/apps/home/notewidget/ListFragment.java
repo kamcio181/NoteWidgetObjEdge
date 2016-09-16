@@ -166,6 +166,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         helper.getNote(true, noteId, new DatabaseHelper.OnNoteLoadListener() {
             @Override
             public void onNoteLoaded(Note note) {
+                Log.e(TAG, "IS note null " + (note ==null) ); //TODO check crash
                 ListFragment.this.note = note;
                 setRecyclerViewItems();
                 setTitleAndSubtitle();
@@ -249,7 +250,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     @Override
     public void onStop() {
         super.onStop();
-        Log.e(TAG, "Stop");
+        Log.e(TAG, "Stop, skip saving" + skipSaving);
         if(!skipSaving){
             saveNote(false);
         }
@@ -327,6 +328,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
             helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
                 @Override
                 public void onItemInserted(long id) {
+                    Log.e(TAG, "note saved " + id);
                     note.setId(id);
                     isNewNote = false;
                     Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);
@@ -339,6 +341,7 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
             helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
                 @Override
                 public void onItemUpdated(int numberOfRows) {
+                    Log.e(TAG, "note saved ");
                     Utils.updateConnectedWidgets(context, note.getId());
                     Utils.updateAllEdgePanels(context);
                     if(quitAfterSaving)

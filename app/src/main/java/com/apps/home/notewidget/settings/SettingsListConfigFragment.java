@@ -2,6 +2,7 @@ package com.apps.home.notewidget.settings;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -157,7 +158,7 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
     public void onStop() {
         super.onStop();
 
-        preferences.edit().putBoolean(Constants.NOTE_PARAMETERS_UPDATED, true).apply();
+        context.sendBroadcast(new Intent(Constants.ACTION_UPDATE_NOTE_PARAMETERS));
     }
 
     @Override
