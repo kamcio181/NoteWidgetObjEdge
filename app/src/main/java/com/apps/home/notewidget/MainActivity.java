@@ -25,11 +25,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
@@ -48,6 +50,8 @@ import com.apps.home.notewidget.utils.Utils;
 
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 
@@ -83,6 +87,7 @@ public class MainActivity extends AppCompatActivity
         context = this;
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setContentInsetsAbsolute(0,0);
         actionBar = getSupportActionBar();
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
@@ -112,6 +117,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         Log.e(TAG, "nav created");
         loadNavViewItems();
+        Utils.setTitleMarquee(toolbar);
 
 //        helper.getNotes(true, new DatabaseHelper.OnNotesLoadListener() {
 //            @Override
@@ -203,7 +209,6 @@ public class MainActivity extends AppCompatActivity
         }
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();

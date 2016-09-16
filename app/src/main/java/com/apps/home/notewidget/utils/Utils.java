@@ -17,8 +17,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatTextView;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
@@ -28,6 +30,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.apps.home.notewidget.R;
@@ -38,6 +41,7 @@ import com.apps.home.notewidget.widget.WidgetProvider;
 import com.samsung.android.sdk.look.cocktailbar.SlookCocktailManager;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 public class Utils {
@@ -84,6 +88,38 @@ public class Utils {
 
     public static int switchThemeMode(int currentMode){
         return currentMode == Constants.WIDGET_THEME_LIGHT? Constants.WIDGET_THEME_DARK : Constants.WIDGET_THEME_LIGHT;
+    }
+
+    public static void setTitleMarquee(Toolbar toolbar){
+        try {
+            Field titleField = Toolbar.class.getDeclaredField("mTitleTextView");
+            titleField.setAccessible(true);
+            setMarquee((TextView) titleField.get(toolbar));
+
+        } catch (NoSuchFieldException e){
+            Log.e(TAG, "" + e);
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, " " + e);
+        }
+    }
+//    public static void setSubtitleMarquee(Toolbar toolbar){
+//        try {
+//            Field titleField = Toolbar.class.getDeclaredField("mSubtitleTextView");
+//            titleField.setAccessible(true);
+//            setMarquee((TextView) titleField.get(toolbar));
+//
+//        } catch (NoSuchFieldException e){
+//            Log.e(TAG, "" + e);
+//        } catch (IllegalAccessException e) {
+//            Log.e(TAG, " " + e);
+//        }
+//    }
+
+    private static void setMarquee(TextView textView){
+        textView.setSingleLine(true);
+        textView.setSelected(true);
+        textView.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        textView.setMarqueeRepeatLimit(-1);
     }
 
     public static void showOrHideKeyboard(Window window, boolean show){

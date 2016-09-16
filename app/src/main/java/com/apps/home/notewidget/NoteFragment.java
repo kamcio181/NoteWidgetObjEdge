@@ -146,6 +146,7 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
             calendar.setTimeInMillis(note.getCreatedAt());
             Log.e(TAG, "millis " + note.getCreatedAt());
             actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
+//            Utils.setSubtitleMarquee(((MainActivity)context).getToolbar());
         }
     }
 
