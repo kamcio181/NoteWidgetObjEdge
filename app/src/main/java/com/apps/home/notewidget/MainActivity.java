@@ -44,6 +44,8 @@ import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 import java.util.ArrayList;
 
 
@@ -73,6 +75,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
         context = this;
         toolbar = (Toolbar) findViewById(R.id.toolbar);

@@ -118,6 +118,10 @@
         <service
             android:name=".edge.EdgeListService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="d7697b7e9f243d365e768b6440052ff8119c7118" />
     </application>
 
+    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
