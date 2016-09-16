@@ -15,6 +15,10 @@ public class Note implements Serializable {
     public Note() {
     }
 
+    public Note(long id) {
+        this.id = id;
+    }
+
     public Note(long id, long createdAt, String title, String note, long folderId, int deletedState, int type) {
         this.id = id;
         this.createdAt = createdAt;

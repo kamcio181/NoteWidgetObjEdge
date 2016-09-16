@@ -44,7 +44,6 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
-    private long noteId;
     private AppCompatEditText noteEditText;
     private boolean skipSaving = false;
     private boolean isNewNote;
@@ -97,7 +96,7 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
             if(isNewNote)
                 note = (Note) getArguments().getSerializable(ARG_PARAM2);
             else
-                noteId = getArguments().getLong(ARG_PARAM3);
+                note = new Note(getArguments().getLong(ARG_PARAM3));
         }
     }
 
@@ -151,7 +150,7 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
     }
 
     private void loadNote(){
-        helper.getNote(true, noteId, new DatabaseHelper.OnNoteLoadListener() {
+        helper.getNote(true, note.getId(), new DatabaseHelper.OnNoteLoadListener() {
             @Override
             public void onNoteLoaded(Note note) {
                 NoteFragment.this.note = note;
