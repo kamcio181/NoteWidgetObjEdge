@@ -659,7 +659,6 @@ public class MainActivity extends AppCompatActivity
         m.removeItem(id);
     }
 
-	
 	private void setNoteTitleOrFolderName(String title){
 		title = setTitle(title);
 
@@ -696,7 +695,7 @@ public class MainActivity extends AppCompatActivity
 
     private Dialog getNoteTypeDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        return builder.setItems(new CharSequence[]{"Note", "List"}, new DialogInterface.OnClickListener() {
+        return builder.setItems(getResources().getStringArray(R.array.note_types), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {

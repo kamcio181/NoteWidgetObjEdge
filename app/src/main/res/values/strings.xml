@@ -136,4 +136,9 @@
     <string name="items_bought">Items bought</string>
     <string name="add_from_clipboard">Add from clipboard</string>
     <string name="clipboard_does_not_contain_proper_data">Clipboard does not contain proper data</string>
+
+    <string-array name="note_types">
+        <item>Note</item>
+        <item>List</item>
+    </string-array>
 </resources>

@@ -136,4 +136,9 @@
         <item>Folder startowy</item>
         <item>Kopia zapasowa i przywracanie</item>
     </string-array>
+
+    <string-array name="note_types">
+        <item>Notatka</item>
+        <item>Lista</item>
+    </string-array>
 </resources>
