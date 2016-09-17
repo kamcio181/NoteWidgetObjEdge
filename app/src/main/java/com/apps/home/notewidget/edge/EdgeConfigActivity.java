@@ -21,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
@@ -317,14 +318,14 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
 
         class ViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder{
             public final View tile;
-            public final AppCompatTextView titleTV;
-            public final AppCompatTextView contentTV;
+            public final TextView titleTV;
+            public final TextView contentTV;
 
             public ViewHolder(final View itemView) {
                 super(itemView);
                 this.tile = itemView;
-                titleTV = (AppCompatTextView) itemView.findViewById(R.id.textView7);
-                contentTV = (AppCompatTextView) itemView.findViewById(R.id.textView);
+                titleTV = (TextView) itemView.findViewById(R.id.textView7);
+                contentTV = (TextView) itemView.findViewById(R.id.textView);
 
                 itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
