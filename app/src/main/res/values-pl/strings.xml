@@ -141,4 +141,9 @@
         <item>Notatka</item>
         <item>Lista</item>
     </string-array>
+
+    <string-array name="widget_actions">
+        <item>Otwórz aplikację</item>
+        <item>Zmień wyświetlaną notatkę</item>
+    </string-array>
 </resources>

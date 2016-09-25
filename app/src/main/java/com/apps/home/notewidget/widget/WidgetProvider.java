@@ -173,6 +173,13 @@ public class WidgetProvider extends AppWidgetProvider {
         configIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
         return PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
+
+    private PendingIntent getOpenActionDialogPendingIntent(Context context, int appWidgetId){
+        Intent configIntent = new Intent(context, WidgetActionActivity.class);
+        configIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        return PendingIntent.getActivity(context, appWidgetId, configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
 	
 	private PendingIntent getNoteEditPendingIntent(Context context){
 		Intent startIntent = new Intent(context, EditNoteActivity.class);
@@ -204,7 +211,11 @@ public class WidgetProvider extends AppWidgetProvider {
                 //views.setOnClickPendingIntent(R.id.titleTextView, getConfigPendingIntent(context, appWidgetId));
 
                 //Open app intent
-                views.setOnClickPendingIntent(R.id.titleTextView, getOpenAppPendingIntent(context, appWidgetId));
+                //views.setOnClickPendingIntent(R.id.titleTextView, getOpenAppPendingIntent(context, appWidgetId));
+
+                //Open action dialog
+                views.setOnClickPendingIntent(R.id.titleTextView, getOpenActionDialogPendingIntent(context, appWidgetId));
+
             }
             else {
                 Log.v(TAG, "Widget Config Mode");

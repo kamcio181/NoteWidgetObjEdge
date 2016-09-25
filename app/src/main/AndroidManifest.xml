@@ -5,6 +5,7 @@
     <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -94,14 +95,13 @@
         <activity
             android:name=".edge.EdgeConfigActivity"
             android:excludeFromRecents="true"
+            android:label="@string/title_activity_edge_config"
             android:noHistory="true"
             android:screenOrientation="portrait"
             android:taskAffinity="com.apps.home.NoteWidget.EdgeTask"
-            android:label="@string/title_activity_edge_config"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <receiver
-            android:name=".edge.EdgePanelProvider">
+        <receiver android:name=".edge.EdgePanelProvider">
             <intent-filter>
                 <action android:name="com.samsung.android.cocktail.v2.action.COCKTAIL_UPDATE" />
             </intent-filter>
@@ -118,10 +118,16 @@
         <service
             android:name=".edge.EdgeListService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="d7697b7e9f243d365e768b6440052ff8119c7118" />
+
+        <activity android:name=".widget.WidgetActionActivity"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
+            android:theme="@style/AppTheme.AlertDialog" />
     </application>
 
-    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
