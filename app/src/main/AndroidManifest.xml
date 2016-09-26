@@ -127,7 +127,7 @@
             android:excludeFromRecents="true"
             android:screenOrientation="portrait"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
-            android:theme="@style/AppTheme.AlertDialog" />
+            android:theme="@style/AppTheme.AlertDialog.NoTitle" />
     </application>
 
 </manifest>

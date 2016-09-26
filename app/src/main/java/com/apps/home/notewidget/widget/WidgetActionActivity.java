@@ -34,7 +34,6 @@ public class WidgetActionActivity extends AppCompatActivity {
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
         recyclerView.setAdapter(new RecyclerView.Adapter() {
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -76,6 +75,7 @@ public class WidgetActionActivity extends AppCompatActivity {
                         startActivity(configIntent);
                         break;
                 }
+                    finish();
                 }
             });
             titleTextView = (AppCompatTextView) itemView.findViewById(R.id.textView2);

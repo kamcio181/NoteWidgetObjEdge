@@ -20,7 +20,7 @@ android {
         debug {
             keyAlias 'debug'
             keyPassword 'Alabama181'
-            storeFile file('/home/kamil/my_debug.keystore')
+            storeFile file('/home/k.kaszubski/my_debug.keystore')
             storePassword 'Alabama181'
         }
     }
