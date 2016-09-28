@@ -185,7 +185,7 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
         switch (v.getId()){
             case R.id.fab:
                 if(new File(path).canWrite())
-                    Utils.getNameDialog(this, title, getString(R.string.set_file_name), 32, new Utils.OnNameSet() {
+                    Utils.getNameDialog(this, title, getString(R.string.set_file_name), 32, getString(R.string.file_name), new Utils.OnNameSet() {
                         @Override
                         public void onNameSet(String name) {
                             if (name.length() == 0)

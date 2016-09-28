@@ -65,7 +65,7 @@ public class WidgetManualActivity extends AppCompatActivity{
         final TextView title = (TextView) widgetTitleCont.findViewById(R.id.titleTextView);
         title.setText(R.string.example_note_title);
         modeDesc.setText(R.string.change_widget_mode);
-        titleDesc.setText(R.string.open_application);
+        titleDesc.setText(R.string.open_menu);
         noteDesc.setText(R.string.edit_note);
         modeDesc2.setText(R.string.change_widget_mode);
         incDesc.setText(R.string.increase_text_size);

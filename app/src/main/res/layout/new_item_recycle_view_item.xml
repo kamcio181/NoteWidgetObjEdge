@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:background="?android:attr/selectableItemBackground" >
-    <android.support.v7.widget.AppCompatEditText
+    android:layout_height="52dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:animateLayoutChanges="true">
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:singleLine="true"
-        android:id="@+id/editText"
-        android:layout_centerVertical="true"
         android:layout_toLeftOf="@+id/imageView"
-        android:hint="@string/new_item"
-        android:layout_marginLeft="16dp"
-        android:imeOptions="actionGo"/>
+        android:layout_centerVertical="true">
+        <android.support.design.widget.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:id="@+id/editText"
+            android:layout_centerVertical="true"
+            android:hint="@string/new_item"
+            android:layout_marginLeft="16dp"
+            android:imeOptions="actionGo"/>
+    </android.support.design.widget.TextInputLayout>
 
     <android.support.v7.widget.AppCompatImageView
         android:layout_width="56dp"

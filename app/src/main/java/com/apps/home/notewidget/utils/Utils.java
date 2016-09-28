@@ -12,10 +12,11 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
 import android.os.TransactionTooLargeException;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatCheckBox;
-import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -169,23 +170,25 @@ public class Utils {
                 }).create();
     }
 
-    public interface OnNameSet {
+        public interface OnNameSet {
         void onNameSet(String name);
     }
 
     private static Dialog getEdiTextDialog(final Context context, final String text, String title,
-                                          final OnNameSet action, boolean hideContent, final int charLimit){
+                                          final OnNameSet action, String hint, boolean hideContent, final int charLimit){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
         @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_edit_text, null);
-        final AppCompatEditText titleEditText = (AppCompatEditText) layout.findViewById(R.id.titleEditText);
+        final TextInputEditText editText = (TextInputEditText) layout.findViewById(R.id.titleEditText);
+        final TextInputLayout inputLayout = (TextInputLayout) layout.findViewById(R.id.editTextLayout);
         final AppCompatTextView charNumberTV = (AppCompatTextView) layout.findViewById(R.id.textView8);
-        titleEditText.setText(text);
+        editText.setText(text);
+        inputLayout.setHint(hint);
 
         if(charLimit > 0) {
             String numbers = text.length() + "/" + charLimit;
             charNumberTV.setText(numbers);
-            titleEditText.addTextChangedListener(new TextWatcher() {
+            editText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -202,8 +205,8 @@ public class Utils {
                     String numbers = text.length() + "/" + charLimit;
                     charNumberTV.setText(numbers);
                     if (text.length() > charLimit) {
-                        titleEditText.setText(text.substring(0, charLimit));
-                        titleEditText.setSelection(charLimit);
+                        editText.setText(text.substring(0, charLimit));
+                        editText.setSelection(charLimit);
                     }
                 }
             });
@@ -211,8 +214,8 @@ public class Utils {
             charNumberTV.setVisibility(View.GONE);
 
         if(hideContent)
-            titleEditText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        titleEditText.setSelection(0, titleEditText.length());
+            editText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        editText.setSelection(0, editText.length());
         final AlertDialog editTextDialog = builder.setTitle(title).setView(layout)
                 .setPositiveButton(R.string.confirm, null)
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -228,7 +231,7 @@ public class Utils {
                 editTextDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String text = titleEditText.getText().toString().trim();
+                        String text = editText.getText().toString().trim();
                         if(charLimit == 0 || text.length() <= charLimit) {
                             showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                             if (action != null)
@@ -264,9 +267,9 @@ public class Utils {
     }
 
     public static Dialog getNameDialog(final Context context, final String text, final String title,
-                                       int charLimit, final OnNameSet action){
+                                       int charLimit, String hint, final OnNameSet action){
 
-        return getEdiTextDialog(context, text, title, action, false, charLimit);
+        return getEdiTextDialog(context, text, title, action, hint, false, charLimit);
     }
 
     public static Dialog getFolderListDialog(Context context, Menu menu, int[] exclusions, String title,

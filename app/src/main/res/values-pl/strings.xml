@@ -115,19 +115,24 @@
     <string name="bought_item_style">STYL KUPIONEGO ARTYKUŁU</string>
     <string name="color">kolor</string>
     <string name="strikethrough">przekreślenie</string>
-    <string name="open_application">Otwórz aplikację</string>
     <string name="note_is_empty">Notatka jest pusta</string>
     <string name="title_activity_edge_config">Ustawienia listy Edge</string>
     <string name="ignore_tabs_in_edge_panel">Pomiń tabulatory w liście Edge</string>
     <string name="hide_content_when_device_is_locked">Ukryj treść gdy urządzenie jest zablokowane</string>
     <string name="you_do_not_have_any_notes">Nie masz żadnych notatek</string>
     <string name="content_hidden_nunlock_to_view_your_notes">Treść ukryta.\nOdblokuj, aby zobaczyć notatki</string>
-    <string name="new_item">Nowy artykuł</string>
+    <string name="new_item">Nazwa artykułu</string>
     <string name="remove_bought_items">Usuń kupione artykuły</string>
     <string name="items_to_buy">Do kupienia</string>
     <string name="items_bought">Kupione</string>
     <string name="add_from_clipboard">Dodaj ze schowka</string>
     <string name="clipboard_does_not_contain_proper_data">Schowek nie zawiera odpowiednich danych</string>
+    <string name="file_name">Nazwa pliku</string>
+    <string name="folder_name">Nazwa folderu</string>
+    <string name="note_name">Nazwa notatki</string>
+    <string name="edit_item">Edytuj artykuł</string>
+    <string name="item_name_cannot_be_empty">Nazwa artykułu nie może być pusta</string>
+    <string name="open_menu">Otwórz menu</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

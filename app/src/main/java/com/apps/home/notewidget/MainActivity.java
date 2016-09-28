@@ -529,8 +529,11 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 Utils.getNameDialog(context, actionBar.getTitle().toString(),
-                        fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null ? getString(R.string.set_folder_name) : getString(R.string.set_note_title),
-                        32, new Utils.OnNameSet() {
+                        fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null ?
+                                getString(R.string.set_folder_name) : getString(R.string.set_note_title),
+                        32, fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null?
+                                getString(R.string.folder_name) : getString(R.string.note_name),
+                        new Utils.OnNameSet() {
                             @Override
                             public void onNameSet(String name) {
                                 setNoteTitleOrFolderName(name);
@@ -600,7 +603,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handleAddFolder(){
-        Utils.getNameDialog(context, getString(R.string.new_folder), getString(R.string.add_folder), 32, new Utils.OnNameSet() {
+        Utils.getNameDialog(context, getString(R.string.new_folder), getString(R.string.add_folder),
+                32, getString(R.string.folder_name), new Utils.OnNameSet() {
             @Override
             public void onNameSet(String name) {
                 if(name.equals(""))

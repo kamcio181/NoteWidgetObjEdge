@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContentResolverCompat;
 import android.support.v4.content.ContextCompat;
@@ -424,6 +425,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     private static int textSize;
     private static int textStyle;
     private boolean requestNewItem;
+    private boolean firstDrawing = true;
 
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
@@ -486,9 +488,11 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     @Override
     public void onBindViewHolder(SingleLineWithHandleViewHolder holder, int position) {
-        RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
-        params.height = tileSize;
-        holder.itemView.setLayoutParams(params);
+        if(firstDrawing || holder.getItemViewType() != Constants.NEW_ITEM_VIEW) {
+            RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
+            params.height = tileSize;
+            holder.itemView.setLayoutParams(params);
+        }
         switch (holder.getItemViewType()){
             case Constants.DISABLED_ITEM_VIEW:
                 onBindDisabledItemViewHolder(holder, position);
@@ -501,6 +505,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
                 break;
             case Constants.NEW_ITEM_VIEW:
                 onBindNewItemViewHolder(holder, position);
+                firstDrawing = false;
                 break;
         }
     }
@@ -515,6 +520,15 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     private void onBindNewItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
         holder.newItemEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        holder.newItemEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                Log.e(TAG, "focus " + v.getId() + " " + hasFocus);
+                RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
+                params.height = hasFocus? Utils.convertPxToDP(context, 72) : tileSize;
+                holder.itemView.setLayoutParams(params);
+            }
+        });
         Log.e(TAG, "request focus " + requestNewItem);
         if(requestNewItem) {
             requestNewItem = false;
@@ -580,14 +594,15 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Utils.getNameDialog(context, items.get(position).getContent(), "Edit item", 32, new Utils.OnNameSet() {
+                Utils.getNameDialog(context, items.get(position).getContent(), context.getString(R.string.edit_item),
+                        32, context.getString(R.string.new_item) ,new Utils.OnNameSet() {
                     @Override
                     public void onNameSet(String name) {
                         if(name.length()>0){
                             items.get(position).setContent(name);
                             notifyItemChanged(position);
                         } else {
-                            Utils.showToast(context, "Item name cannot be empty");
+                            Utils.showToast(context, context.getString(R.string.item_name_cannot_be_empty));
                         }
                     }
                 }).show();
@@ -664,7 +679,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
         public final AppCompatImageView handle;
         public final AppCompatImageView confirm;
         public final AppCompatImageView divider;
-        public final AppCompatEditText newItemEditText;
+        public final TextInputEditText newItemEditText;
 
         public SingleLineWithHandleViewHolder(final View itemView){
             super(itemView);
@@ -688,7 +703,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
             handle = (AppCompatImageView) itemView.findViewById(R.id.imageView2);
             header = (AppCompatTextView) itemView.findViewById(R.id.textView);
-            newItemEditText = (AppCompatEditText) itemView.findViewById(R.id.editText);
+            newItemEditText = (TextInputEditText) itemView.findViewById(R.id.editText);
             confirm = (AppCompatImageView) itemView.findViewById(R.id.imageView);
             divider = (AppCompatImageView) itemView.findViewById(R.id.imageView3);
         }
