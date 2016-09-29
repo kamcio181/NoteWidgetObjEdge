@@ -175,7 +175,7 @@ public class Utils {
     }
 
     private static Dialog getEdiTextDialog(final Context context, final String text, String title,
-                                          final OnNameSet action, String hint, boolean hideContent, final int charLimit){
+                                           final OnNameSet action, String hint, boolean hideContent, final int charLimit, String neutralText, final OnNameSet neutralAction){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = ((AppCompatActivity)context).getLayoutInflater();
         @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.dialog_edit_text, null);
@@ -216,7 +216,7 @@ public class Utils {
         if(hideContent)
             editText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
         editText.setSelection(0, editText.length());
-        final AlertDialog editTextDialog = builder.setTitle(title).setView(layout)
+        builder.setTitle(title).setView(layout)
                 .setPositiveButton(R.string.confirm, null)
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
@@ -224,7 +224,17 @@ public class Utils {
                         showToast(context, context.getString(R.string.canceled));
                         showOrHideKeyboard(((AppCompatActivity) context).getWindow(), false);
                     }
-                }).create();
+                });
+        if(neutralText != null){
+            builder.setNeutralButton(neutralText, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if(neutralAction != null)
+                        neutralAction.onNameSet(editText.getText().toString().trim());
+                }
+            });
+        }
+        final AlertDialog editTextDialog = builder.create();
         editTextDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
@@ -269,7 +279,13 @@ public class Utils {
     public static Dialog getNameDialog(final Context context, final String text, final String title,
                                        int charLimit, String hint, final OnNameSet action){
 
-        return getEdiTextDialog(context, text, title, action, hint, false, charLimit);
+        return getEdiTextDialog(context, text, title, action, hint, false, charLimit, null, null);
+    }
+
+    public static Dialog getNameDialog(final Context context, final String text, final String title,
+                                       int charLimit, String hint, final OnNameSet action, String neutralText, OnNameSet neutralAction){
+
+        return getEdiTextDialog(context, text, title, action, hint, false, charLimit, neutralText, neutralAction);
     }
 
     public static Dialog getFolderListDialog(Context context, Menu menu, int[] exclusions, String title,

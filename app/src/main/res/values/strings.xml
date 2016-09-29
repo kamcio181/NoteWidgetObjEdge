@@ -141,6 +141,7 @@
     <string name="edit_item">Edit item</string>
     <string name="item_name_cannot_be_empty">Item name cannot be empty</string>
     <string name="open_menu">Open menu</string>
+    <string name="item_removed">Item removed</string>
 
     <string-array name="note_types">
         <item>Note</item>

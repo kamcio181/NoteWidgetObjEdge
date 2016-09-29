@@ -133,6 +133,7 @@
     <string name="edit_item">Edytuj artykuł</string>
     <string name="item_name_cannot_be_empty">Nazwa artykułu nie może być pusta</string>
     <string name="open_menu">Otwórz menu</string>
+    <string name="item_removed">Artykuł usunięty</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

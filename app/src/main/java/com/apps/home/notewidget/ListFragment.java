@@ -595,17 +595,25 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             @Override
             public boolean onLongClick(View v) {
                 Utils.getNameDialog(context, items.get(position).getContent(), context.getString(R.string.edit_item),
-                        32, context.getString(R.string.new_item) ,new Utils.OnNameSet() {
-                    @Override
-                    public void onNameSet(String name) {
-                        if(name.length()>0){
-                            items.get(position).setContent(name);
-                            notifyItemChanged(position);
-                        } else {
-                            Utils.showToast(context, context.getString(R.string.item_name_cannot_be_empty));
-                        }
-                    }
-                }).show();
+                        32, context.getString(R.string.new_item), new Utils.OnNameSet() {
+                            @Override
+                            public void onNameSet(String name) {
+                                if (name.length() > 0) {
+                                    items.get(position).setContent(name);
+                                    notifyItemChanged(position);
+                                } else {
+                                    Utils.showToast(context, context.getString(R.string.item_name_cannot_be_empty));
+                                }
+                            }
+                        }, context.getString(R.string.delete), new Utils.OnNameSet() {
+                            @Override
+                            public void onNameSet(String name) {
+                                items.remove(position);
+                                activeItemsCount--;
+                                notifyDataSetChanged();
+                                Utils.showToast(context, context.getString(R.string.item_removed));
+                            }
+                        }).show();
 
                 return false;
             }
