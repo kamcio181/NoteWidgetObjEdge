@@ -9,7 +9,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -54,6 +58,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         if (getArguments() != null) {
             folderId = getArguments().getLong(ARG_PARAM1);
         }
@@ -99,6 +104,37 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
         mListener = null;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        Log.v(TAG, "onCreateOptionsMenu");
+        super.onCreateOptionsMenu(menu, inflater);
+
+        if (folderId == Utils.getMyNotesNavId(context))
+            getActivity().getMenuInflater().inflate(R.menu.menu_my_notes_list, menu);
+        else if (folderId == Utils.getTrashNavId(context))
+            getActivity().getMenuInflater().inflate(R.menu.menu_trash, menu);
+        else
+            getActivity().getMenuInflater().inflate(R.menu.menu_folder_list, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.v(TAG, "onOptionsItemSelected");
+
+        switch (item.getItemId()){
+            case R.id.action_sort_by_date:
+                setSortByDate(true);
+                break;
+            case R.id.action_sort_by_title:
+                setSortByDate(false);
+                break;
+            case R.id.action_add_nav_folder:
+                handleAddFolder();
+                break;
+        }
+        return true;
+    }
+
     public void setSortByDate(boolean sortByDate) {
         this.sortByDate = sortByDate;
         preferences.edit().putBoolean(Constants.SORT_BY_DATE_KEY, sortByDate).apply();
@@ -106,6 +142,29 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
             Collections.sort(notes, new NotesComparator(sortByDate));
             recyclerView.getAdapter().notifyDataSetChanged();
         }
+    }
+
+    private void handleAddFolder(){
+        Utils.getNameDialog(context, getString(R.string.new_folder), getString(R.string.add_folder),
+                32, getString(R.string.folder_name), new Utils.OnNameSet() {
+                    @Override
+                    public void onNameSet(String name) {
+                        if(name.equals(""))
+                            name = getString(R.string.new_folder);
+                        else
+                            name = Utils.capitalizeFirstLetter(name);
+                        final Folder folder = new Folder(name);
+                        helper.createFolder(folder, new DatabaseHelper.OnItemInsertListener() {
+                            @Override
+                            public void onItemInserted(long id) {
+                                if(id > 0){
+                                    folder.setId(id);
+                                    ((MainActivity)context).addFolderToNavView(folder);
+                                }
+                            }
+                        });
+                    }
+                }).show();
     }
 
     @Override

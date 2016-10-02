@@ -1,8 +1,11 @@
 package com.apps.home.notewidget;
 
 
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -18,6 +21,8 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -26,8 +31,6 @@ import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.ContentGetter;
 import com.apps.home.notewidget.utils.DatabaseHelper;
-import com.apps.home.notewidget.utils.DeleteListener;
-import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
 import com.apps.home.notewidget.utils.ParametersUpdateListener;
@@ -39,7 +42,7 @@ import java.util.Calendar;
 import java.util.regex.Pattern;
 
 public class NoteFragment extends Fragment implements TitleChangeListener, NoteUpdateListener,
-        FolderChangeListener, DeleteListener, DiscardChangesListener, SaveListener, ContentGetter, ParametersUpdateListener{
+        FolderChangeListener, SaveListener, ContentGetter, ParametersUpdateListener{
     private static final String TAG = "NoteFragment";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -55,6 +58,7 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
     private Note note;
     private DatabaseHelper helper;
     private static EdgeVisibilityReceiver receiver;
+    private Menu menu;
 
 
     public NoteFragment() {
@@ -91,6 +95,7 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         if (getArguments() != null) {
             isNewNote = getArguments().getBoolean(ARG_PARAM1);
             if(isNewNote)
@@ -136,6 +141,76 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
             note.setDeletedState(Constants.FALSE);
             setTitleAndSubtitle();
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        Log.v(TAG, "onCreateOptionsMenu");
+        super.onCreateOptionsMenu(menu, inflater);
+
+        getActivity().getMenuInflater().inflate(R.menu.menu_note, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.v(TAG, "onOptionsItemSelected");
+
+        switch (item.getItemId()){
+            case R.id.action_move_to_other_folder:
+                handleNoteMoveAction();
+                break;
+            case R.id.action_delete:
+                deleteNote();
+                break;
+            case R.id.action_discard_changes:
+                discardChanges();
+                break;
+        }
+        return true;
+    }
+
+    private void handleNoteMoveAction(){
+        menu = ((MainActivity)context).getNavigationViewMenu();
+        Dialog dialog = Utils.getFolderListDialog(context, menu,
+                new int[]{(int) note.getFolderId(), (int) Utils.getTrashNavId(context)},
+                getString(R.string.choose_new_folder), getMoveNoteToOtherFolderAction());
+        if(dialog != null)
+            dialog.show();
+    }
+
+    private DialogInterface.OnClickListener getMoveNoteToOtherFolderAction(){
+        return new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                final int newFolderId = Utils.getFolderIdFromArray(which);
+
+                ContentValues contentValues = new ContentValues(1);
+                contentValues.put(Constants.FOLDER_ID_COL, newFolderId);
+
+
+                helper.updateNote(note.getId(), contentValues, new DatabaseHelper.OnItemUpdateListener() {
+                    @Override
+                    public void onItemUpdated(int numberOfRows) {
+                        if (numberOfRows > 0) {
+                            Utils.showToast(context, context.getString(R.string.note_has_been_moved));
+                            Utils.incrementFolderCount(menu, newFolderId, 1);
+                            Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
+
+//                            if (actionBarMenuItemClicked) {
+                            //Update current folderId for folder fragment displayed onBackPressed
+                            ((MainActivity)context).setNavigationItemChecked(newFolderId);
+                            note.setFolderId(newFolderId);
+
+
+//                            } else {
+//                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
+//                                    ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList(); //TODO handle it in main Activity
+//                            }
+                        }
+                    }
+                });
+            }
+        };
     }
 
     private void setTitleAndSubtitle(){
@@ -267,7 +342,6 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
         note.setFolderId(newFolderId);
     }
 
-    @Override
     public void deleteNote() {
         skipSaving = true;
         Utils.showToast(context, context.getString(R.string.moving_to_trash));
@@ -291,7 +365,6 @@ public class NoteFragment extends Fragment implements TitleChangeListener, NoteU
         });
     }
 
-    @Override
     public void discardChanges() {
         skipSaving = true;
         Utils.showToast(context, context.getString(R.string.closed_without_saving));

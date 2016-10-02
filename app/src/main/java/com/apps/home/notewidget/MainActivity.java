@@ -25,13 +25,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
@@ -39,20 +37,17 @@ import com.apps.home.notewidget.settings.SettingsActivity;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.ContentGetter;
 import com.apps.home.notewidget.utils.DatabaseHelper;
-import com.apps.home.notewidget.utils.DeleteListener;
-import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
 import com.apps.home.notewidget.utils.ParametersUpdateListener;
 import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
-
 import com.crashlytics.android.Crashlytics;
-import io.fabric.sdk.android.Fabric;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
+
+import io.fabric.sdk.android.Fabric;
 
 
 public class MainActivity extends AppCompatActivity
@@ -182,32 +177,33 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        if(fragmentManager.findFragmentById(fragmentContainerId) != null) {
-            switch (fragmentManager.findFragmentById(fragmentContainerId).getTag()) {
-                case Constants.FRAGMENT_SEARCH:
-                    getMenuInflater().inflate(R.menu.menu_empty, menu);
-                    break;
-                case Constants.FRAGMENT_FOLDER:
-                    if (folderId == myNotesNavId)
-                        getMenuInflater().inflate(R.menu.menu_my_notes_list, menu);
-                    else if (folderId == trashNavId)
-                        getMenuInflater().inflate(R.menu.menu_trash, menu);
-                    else
-                        getMenuInflater().inflate(R.menu.menu_folder_list, menu);
-                    break;
-                case Constants.FRAGMENT_NOTE:
-                    getMenuInflater().inflate(R.menu.menu_note, menu);
-                    break;
-                case Constants.FRAGMENT_LIST:
-                    getMenuInflater().inflate(R.menu.menu_list, menu);
-                    break;
-                case Constants.FRAGMENT_TRASH_NOTE:
-                case Constants.FRAGMENT_TRASH_LIST:
-                    getMenuInflater().inflate(R.menu.menu_note_trash, menu);
-                    break;
-            }
-        }
-        return true;
+//        if(fragmentManager.findFragmentById(fragmentContainerId) != null) {
+//            switch (fragmentManager.findFragmentById(fragmentContainerId).getTag()) {
+//                case Constants.FRAGMENT_SEARCH:
+//                    getMenuInflater().inflate(R.menu.menu_empty, menu);
+//                    break;
+//                case Constants.FRAGMENT_FOLDER:
+//                    if (folderId == myNotesNavId)
+//                        getMenuInflater().inflate(R.menu.menu_my_notes_list, menu);
+//                    else if (folderId == trashNavId)
+//                        getMenuInflater().inflate(R.menu.menu_trash, menu);
+//                    else
+//                        getMenuInflater().inflate(R.menu.menu_folder_list, menu);
+//                    break;
+//                case Constants.FRAGMENT_NOTE:
+//                    getMenuInflater().inflate(R.menu.menu_note, menu);
+//                    break;
+//                case Constants.FRAGMENT_LIST:
+//                    getMenuInflater().inflate(R.menu.menu_list, menu);
+//                    break;
+//                case Constants.FRAGMENT_TRASH_NOTE:
+//                case Constants.FRAGMENT_TRASH_LIST:
+//                    getMenuInflater().inflate(R.menu.menu_note_trash, menu);
+//                    break;
+//            }
+//        }
+//        return true;
+        return super.onCreateOptionsMenu(menu);
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -215,20 +211,20 @@ public class MainActivity extends AppCompatActivity
         String confirmationTitle;
 
         switch (id){
-            case R.id.action_sort_by_date:
-                setOrderType(true);
-                break;
-            case R.id.action_sort_by_title:
-                setOrderType(false);
-                break;
-            case R.id.action_delete:
-            case R.id.action_discard_changes:
-                if(id == R.id.action_delete){
-                    ((DeleteListener)fragmentManager.findFragmentById(fragmentContainerId)).deleteNote();
-                }
-                else
-                    ((DiscardChangesListener)fragmentManager.findFragmentById(fragmentContainerId)).discardChanges();
-                break;
+//            case R.id.action_sort_by_date:
+//                setOrderType(true);
+//                break;
+//            case R.id.action_sort_by_title:
+//                setOrderType(false);
+//                break;
+//            case R.id.action_delete:
+//            case R.id.action_discard_changes:
+//                if(id == R.id.action_delete){
+//                    ((DeleteListener)fragmentManager.findFragmentById(fragmentContainerId)).deleteNote();
+//                }
+//                else
+//                    ((DiscardChangesListener)fragmentManager.findFragmentById(fragmentContainerId)).discardChanges();
+//                break;
             case R.id.action_delete_all:
             case R.id.action_restore_all:
                 confirmationTitle = id == R.id.action_delete_all ? getString(R.string.do_you_want_to_delete_all_notes) :
@@ -239,10 +235,10 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_restore_from_trash:
                 handleRestoreOrRemoveFromTrashAction(id, true);
                 break;
-            case R.id.action_add_nav_folder:
-                handleAddFolder();
-                //startActivity(new Intent(this, WidgetManualActivity.class));
-                break;
+//            case R.id.action_add_nav_folder:
+//                handleAddFolder();
+//                //startActivity(new Intent(this, WidgetManualActivity.class));
+//                break;
             case R.id.action_delete_nav_folder:
                 Utils.getConfirmationDialog(this, getString(R.string.do_you_want_to_delete_this_folder_and_all_associated_notes),
                         getRemoveFolderAndAllNotesAction()).show();
@@ -252,7 +248,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.action_search:
                 attachFragment(Constants.FRAGMENT_SEARCH);
-                break;
+                return true;
             case R.id.action_share:
                 Utils.sendShareIntent(this, ((ContentGetter) fragmentManager.
                         findFragmentById(fragmentContainerId)).getContent(),
@@ -517,6 +513,11 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
+    public void setNavigationItemChecked(int folderId){
+        navigationView.setCheckedItem(folderId);
+        this.folderId = folderId;
+    }
+
     public void setOnTitleClickListener(boolean enable){
         if(enable)
             toolbar.setOnClickListener(noteTitleChangeOrFolderNameListener());
@@ -602,28 +603,28 @@ public class MainActivity extends AppCompatActivity
         }).create();
     }
 
-    private void handleAddFolder(){
-        Utils.getNameDialog(context, getString(R.string.new_folder), getString(R.string.add_folder),
-                32, getString(R.string.folder_name), new Utils.OnNameSet() {
-            @Override
-            public void onNameSet(String name) {
-                if(name.equals(""))
-                    name = getString(R.string.new_folder);
-                else
-                    name = Utils.capitalizeFirstLetter(name);
-                final Folder folder = new Folder(name);
-                helper.createFolder(folder, new DatabaseHelper.OnItemInsertListener() {
-                    @Override
-                    public void onItemInserted(long id) {
-                        if(id > 0){
-                            folder.setId(id);
-                            addFolderToNavView(folder);
-                        }
-                    }
-                });
-            }
-        }).show();
-    }
+//    private void handleAddFolder(){
+//        Utils.getNameDialog(context, getString(R.string.new_folder), getString(R.string.add_folder),
+//                32, getString(R.string.folder_name), new Utils.OnNameSet() {
+//            @Override
+//            public void onNameSet(String name) {
+//                if(name.equals(""))
+//                    name = getString(R.string.new_folder);
+//                else
+//                    name = Utils.capitalizeFirstLetter(name);
+//                final Folder folder = new Folder(name);
+//                helper.createFolder(folder, new DatabaseHelper.OnItemInsertListener() {
+//                    @Override
+//                    public void onItemInserted(long id) {
+//                        if(id > 0){
+//                            folder.setId(id);
+//                            addFolderToNavView(folder);
+//                        }
+//                    }
+//                });
+//            }
+//        }).show();
+//    }
 
     private void handleRestoreOrRemoveFromTrashAction(int action, boolean actionBarMenuItemClicked){
         String confirmationTitle = action == R.id.action_delete_from_trash ? getString(R.string.do_you_want_to_delete_this_note_from_trash) :
@@ -637,7 +638,7 @@ public class MainActivity extends AppCompatActivity
             dialog.show();
     }
 
-    private void addFolderToNavView(Folder folder){
+    public void addFolderToNavView(Folder folder){
 
         Menu menu = getNavigationViewMenu();
         addMenuCustomItem(menu, (int) folder.getId(), 11, folder.getName(), R.drawable.ic_nav_black_folder, 0);

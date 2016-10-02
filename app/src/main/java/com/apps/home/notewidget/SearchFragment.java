@@ -13,6 +13,9 @@ import android.support.v7.widget.SearchView;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
@@ -21,12 +24,14 @@ import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.DividerItemDecoration;
+import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 
 
 public class SearchFragment extends Fragment implements CompoundButton.OnCheckedChangeListener,
         SearchView.OnQueryTextListener{
+    private static final String TAG = "SearchFragment";
     private static final String ARG_PARAM1 = "param1";
     private SearchView searchView;
     private AppCompatCheckBox titleSearch, contentSearch;
@@ -56,6 +61,7 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
 
         preferences = getActivity().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         context = getActivity();
@@ -93,6 +99,20 @@ public class SearchFragment extends Fragment implements CompoundButton.OnChecked
 
         if(textToFind.length()!=0)
             searchView.setQuery(textToFind, true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        Log.v(TAG, "onCreateOptionsMenu");
+        super.onCreateOptionsMenu(menu, inflater);
+
+        getActivity().getMenuInflater().inflate(R.menu.menu_empty, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.v(TAG, "onOptionsItemSelected");
+        return super.onOptionsItemSelected(item);
     }
 
 
