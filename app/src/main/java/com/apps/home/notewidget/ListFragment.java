@@ -1,24 +1,15 @@
 package com.apps.home.notewidget;
 
 
-import android.app.Dialog;
-import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,8 +19,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -38,43 +27,26 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 
 import com.apps.home.notewidget.customviews.RobotoTextView;
-import com.apps.home.notewidget.edge.EdgeConfigActivity;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.ShoppingListItem;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.ContentGetter;
-import com.apps.home.notewidget.utils.DatabaseHelper;
-import com.apps.home.notewidget.utils.FolderChangeListener;
 import com.apps.home.notewidget.utils.ItemTouchHelperAdapter;
 import com.apps.home.notewidget.utils.ItemTouchHelperViewHolder;
+import com.apps.home.notewidget.utils.AdvancedNoteFragment;
 import com.apps.home.notewidget.utils.NoteUpdateListener;
 import com.apps.home.notewidget.utils.OnStartDragListener;
 import com.apps.home.notewidget.utils.ParametersUpdateListener;
-import com.apps.home.notewidget.utils.SaveListener;
 import com.apps.home.notewidget.utils.SimpleItemTouchHelperCallback;
-import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 
-public class ListFragment extends Fragment implements TitleChangeListener, NoteUpdateListener,
-        FolderChangeListener, SaveListener, ContentGetter, ParametersUpdateListener{
+public class ListFragment extends AdvancedNoteFragment implements NoteUpdateListener, ParametersUpdateListener{
     private static final String TAG = "ListFragment";
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-    private static final String ARG_PARAM3 = "param3";
     private RecyclerView recyclerView;
-    private boolean skipSaving = false;
-    private boolean isNewNote;
-    private Context context;
-    private Note note;
-    private DatabaseHelper helper;
     private ItemTouchHelper itemTouchHelper;
-    private static EdgeVisibilityReceiver receiver;
-    private Menu menu;
 
 
     public ListFragment() {
@@ -100,46 +72,20 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-        if (getArguments() != null) {
-            isNewNote = getArguments().getBoolean(ARG_PARAM1);
-            if(isNewNote)
-                note = (Note) getArguments().getSerializable(ARG_PARAM2);
-            else
-                note = new Note(getArguments().getLong(ARG_PARAM3));
-        }
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        context = getActivity();
-        helper = new DatabaseHelper(context);
-        ((AppCompatActivity)context).invalidateOptionsMenu();
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_note_list, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-//        if(!context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).
-//                getBoolean(Constants.SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY, false))
-//            Utils.getMultilevelNoteManualDialog(context).show();
-
         recyclerView = (RecyclerView) view;
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         recyclerView.setHasFixedSize(true);
 
 
         if(isNewNote) {
-            note.setTitle(getString(R.string.untitled));
-            note.setCreatedAt(Calendar.getInstance().getTimeInMillis());
-            note.setDeletedState(Constants.FALSE);
-
             ArrayList<ShoppingListItem> itemList = new ArrayList<>(3);
 
             itemList.add(new ShoppingListItem(context.getString(R.string.items_to_buy), Constants.HEADER_VIEW));
@@ -155,95 +101,40 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
                     itemTouchHelper.attachToRecyclerView(recyclerView);
                 }
             }));
-            setTitleAndSubtitle();
-        } else {
-            loadNote();
         }
+
+        super.onViewCreated(view, savedInstanceState);
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        Log.v(TAG, "onCreateOptionsMenu");
-        super.onCreateOptionsMenu(menu, inflater);
-
-        getActivity().getMenuInflater().inflate(R.menu.menu_list, menu);
-    }
+//    @Override
+//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        Log.v(TAG, "onCreateOptionsMenu");
+//        super.onCreateOptionsMenu(menu, inflater);
+//
+//        getActivity().getMenuInflater().inflate(R.menu.menu_list, menu);
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.v(TAG, "onOptionsItemSelected");
 
         switch (item.getItemId()){
-            case R.id.action_move_to_other_folder:
-                handleNoteMoveAction();
+            case R.id.action_remove_disabled_items:
+                removeDisabledItems();
                 break;
-            case R.id.action_delete:
-                deleteNote();
+            case R.id.action_add_from_clipboard:
+                addItemsFromClipboard();
                 break;
-            case R.id.action_discard_changes:
-                discardChanges();
-                break;
+            default:
+                super.onOptionsItemSelected(item);
         }
         return true;
     }
 
-    private void handleNoteMoveAction(){
-        menu = ((MainActivity)context).getNavigationViewMenu();
-        Dialog dialog = Utils.getFolderListDialog(context, menu,
-                new int[]{(int) note.getFolderId(), (int) Utils.getTrashNavId(context)},
-                getString(R.string.choose_new_folder), getMoveNoteToOtherFolderAction());
-        if(dialog != null)
-            dialog.show();
-    }
 
-    private DialogInterface.OnClickListener getMoveNoteToOtherFolderAction(){
-        return new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                final int newFolderId = Utils.getFolderIdFromArray(which);
-
-                ContentValues contentValues = new ContentValues(1);
-                contentValues.put(Constants.FOLDER_ID_COL, newFolderId);
-
-
-                helper.updateNote(note.getId(), contentValues, new DatabaseHelper.OnItemUpdateListener() {
-                    @Override
-                    public void onItemUpdated(int numberOfRows) {
-                        if (numberOfRows > 0) {
-                            Utils.showToast(context, context.getString(R.string.note_has_been_moved));
-                            Utils.incrementFolderCount(menu, newFolderId, 1);
-                            Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
-
-//                            if (actionBarMenuItemClicked) {
-                                //Update current folderId for folder fragment displayed onBackPressed
-                            ((MainActivity)context).setNavigationItemChecked(newFolderId);
-                            note.setFolderId(newFolderId);
-
-
-//                            } else {
-//                                if (fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null)
-//                                    ((FolderFragment) fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER)).reloadList(); //TODO handle it in main Activity
-//                            }
-                        }
-                    }
-                });
-            }
-        };
-    }
-
-    private void loadNote(){
-        Log.e(TAG, "load note " + note.getId());
-        helper.getNote(true, note.getId(), new DatabaseHelper.OnNoteLoadListener() {
-            @Override
-            public void onNoteLoaded(Note note) {
-                ListFragment.this.note = note;
-                setRecyclerViewItems();
-                setTitleAndSubtitle();
-            }
-        });
-    }
-
-    private void setRecyclerViewItems(){
+    @Override
+    public void setNoteViews() {
+        super.setNoteViews();
         String content = note.getNote();
         int activeItemsCount = Integer.parseInt(content.substring(0, content.indexOf("<br/>")));
         ArrayList<String> items = new ArrayList<>();
@@ -279,152 +170,26 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
             ((ListRecyclerAdapter)recyclerView.getAdapter()).setItems(itemList, activeItemsCount);
     }
 
-
-    private void setTitleAndSubtitle(){
-        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
-        if(actionBar != null){
-            actionBar.setTitle(note.getTitle());
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(note.getCreatedAt());
-            Log.e(TAG, "millis " + note.getCreatedAt());
-            actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
-        }
-    }
-
     @Override
     public void onParametersUpdated() {
         ((ListRecyclerAdapter)recyclerView.getAdapter()).refreshParameters();
     }
 
-    class EdgeVisibilityReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent arg1) {
-            if(arg1 != null){
-                switch (arg1.getAction()){
-                    case EdgeConfigActivity.SAVE_CHANGES_ACTION:
-                        saveNote(false);
-                        break;
-                }
-            }
-        }
-    }
-
     @Override
-    public void onStart() {
-        super.onStart();
-        receiver = new EdgeVisibilityReceiver();
-        context.registerReceiver(receiver, new IntentFilter(EdgeConfigActivity.SAVE_CHANGES_ACTION));
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.e(TAG, "Stop, skip saving" + skipSaving);
-        if(!skipSaving){
-            saveNote(false);
-        }
-
-        try {
-            context.unregisterReceiver(receiver);
-        } catch (IllegalArgumentException e){
-            Log.e(TAG, "Receiver already unregistered");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        Log.e(TAG, "onDetach");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.e(TAG, "onDestroy");
-    }
-
-    @Override
-    public void onTitleChanged(String newTitle) {
-        note.setTitle(newTitle);
-    }
-
-    @Override
-    public void onNoteUpdate() {
-        loadNote();
-    }
-
-    @Override
-    public void onFolderChanged(int newFolderId) {
-        note.setFolderId(newFolderId);
-    }
-
     public void deleteNote() {
-        skipSaving = true;
-        Utils.showToast(context, context.getString(R.string.moving_to_trash));
         note.setNote(((ListRecyclerAdapter)recyclerView.getAdapter()).getStringFromList());
-        note.setDeletedState(Constants.TRUE);
-        helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
-            @Override
-            public void onItemUpdated(int numberOfRows) {
-                if (numberOfRows > 0) {
-                    Utils.updateConnectedWidgets(context, note.getId()); //TODO update and res
-                    Utils.updateAllEdgePanels(context);
-                    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-                    preferences.edit().putString(Constants.EDGE_VISIBLE_NOTES_KEY,preferences.getString(Constants.EDGE_VISIBLE_NOTES_KEY,"").replace(";" + note.getId() + ";", ";")).apply();
-
-                    Menu menu = ((MainActivity) context).getNavigationViewMenu();
-                    Utils.incrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
-                    Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);
-                }
-                ((AppCompatActivity)context).onBackPressed();
-            }
-        });
-    }
-
-    public void discardChanges() {
-        skipSaving = true;
-        Utils.showToast(context, context.getString(R.string.closed_without_saving));
-        ((AppCompatActivity)context).onBackPressed();
+        super.deleteNote();
     }
 
     @Override
     public void saveNote(final boolean quitAfterSaving) {
-        Utils.showToast(context.getApplicationContext(), getString(R.string.saving));
         note.setNote(((ListRecyclerAdapter)recyclerView.getAdapter()).getStringFromList());
-        if(isNewNote) {
-            helper.createNote(note, new DatabaseHelper.OnItemInsertListener() {
-                @Override
-                public void onItemInserted(long id) {
-                    Log.e(TAG, "note saved " + id);
-                    note.setId(id);
-                    isNewNote = false;
-                    Utils.incrementFolderCount(((MainActivity) context).getNavigationViewMenu(), (int) note.getFolderId(), 1);
-
-                    if(quitAfterSaving)
-                        ((AppCompatActivity)context).onBackPressed();
-                }
-            });
-        } else{
-            helper.updateNote(note, new DatabaseHelper.OnItemUpdateListener() {
-                @Override
-                public void onItemUpdated(int numberOfRows) {
-                    Log.e(TAG, "note saved ");
-                    Utils.updateConnectedWidgets(context, note.getId());
-                    Utils.updateAllEdgePanels(context);
-                    if(quitAfterSaving)
-                        ((AppCompatActivity)context).onBackPressed();
-                }
-            });
-        }
+        super.saveNote(quitAfterSaving);
     }
 
     @Override
     public String getContent() {
-        String content = ((ListRecyclerAdapter)recyclerView.getAdapter()).getActiveItemsFromList();
-        if(content.length() == 0) {
-            Utils.showToast(context, context.getString(R.string.note_is_empty_or_was_not_loaded_yet));
-        }
-        return content;
+        return ((ListRecyclerAdapter)recyclerView.getAdapter()).getActiveItemsFromList();
     }
 
     public void removeDisabledItems(){
@@ -448,30 +213,10 @@ public class ListFragment extends Fragment implements TitleChangeListener, NoteU
         if(clipboardManager.hasPrimaryClip() && clipboardManager.getPrimaryClipDescription().hasMimeType(mimeType)){
             ClipData.Item item = clipboardManager.getPrimaryClip().getItemAt(0);
             String pasteData = item.getText().toString();
-            if(pasteData == null || pasteData.trim().length() == 0)
+            if(pasteData.trim().length() == 0)
                 return null;
             
             return pasteData;
-//            if(pasteData == null){
-//                Uri pasteUri = item.getUri();
-//                if(pasteUri == null){
-//                    return null;
-//                } else {
-//                    ContentResolver cr = context.getContentResolver();
-//                    String uriMimeType = cr.getType(pasteUri);
-//                    if(uriMimeType != null && uriMimeType.equals(mimeType)) {
-//                        Cursor cursor = cr.query(pasteUri, null, null, null, null);
-//                        if(cursor != null && cursor.moveToFirst()){
-//                                
-//                        }
-//                        cursor.close();
-//                    }
-//                }
-//
-//            }
-
-
-
         } else {
             return null;
         }
@@ -625,21 +370,6 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             recyclerView.scrollToPosition(position + 1);
             requestNewItem = true;
             notifyDataSetChanged();
-
-//
-//            if (recyclerView != null) {
-//                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForLayoutPosition(position + 1);
-//                if (viewHolder == null) {
-//                    recyclerView.smoothScrollToPosition(position + 1);
-//                }
-//            }
-//            if (recyclerView != null) {
-//                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForLayoutPosition(activeItemsCount + 1);
-//                if (viewHolder == null) {
-//                    recyclerView.smoothScrollToPosition(activeItemsCount + 2);
-//                    ((SingleLineWithHandleViewHolder)viewHolder).newItemEditText.requestFocus();
-//                }
-//            }
         }
     }
 
@@ -757,22 +487,6 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
         public SingleLineWithHandleViewHolder(final View itemView){
             super(itemView);
-
-//            itemView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    if(listener != null)
-//                        listener.onItemClick(itemView, getLayoutPosition(), false);
-//                }
-//            });
-//            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-//                @Override
-//                public boolean onLongClick(View v) {
-//                    if(listener != null)
-//                        listener.onItemClick(itemView, getLayoutPosition(), true);
-//                    return true;
-//                }
-//            });
 
             titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);
             handle = (AppCompatImageView) itemView.findViewById(R.id.imageView2);

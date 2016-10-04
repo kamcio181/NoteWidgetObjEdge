@@ -25,6 +25,8 @@ import android.widget.ImageView;
 import com.apps.home.notewidget.customviews.RobotoTextView;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.ShoppingListItem;
+import com.apps.home.notewidget.utils.BasicNoteFragment;
+import com.apps.home.notewidget.utils.BasicTrashFragment;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.Utils;
@@ -33,13 +35,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
-public class TrashListFragment extends Fragment {
-    private static final String TAG = "TrashNoteFragment";
+public class TrashListFragment extends BasicTrashFragment {
+    private static final String TAG = "TrashListFragment";
     private static final String ARG_PARAM1 = "param1";
     private RecyclerView recyclerView;
-    private long noteId;
-    private Note note;
-    private Context context;
 
 
     public TrashListFragment() {
@@ -57,55 +56,32 @@ public class TrashListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         if (getArguments() != null) {
-            noteId = getArguments().getLong(ARG_PARAM1);
+            note = new Note(getArguments().getLong(ARG_PARAM1));
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        context = getActivity();
-        ((AppCompatActivity)context).invalidateOptionsMenu();
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_note_list, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
         recyclerView = (RecyclerView) view;
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         recyclerView.setHasFixedSize(true);
 
-        DatabaseHelper helper = new DatabaseHelper(context);
-        helper.getNote(true, noteId, new DatabaseHelper.OnNoteLoadListener() {
-            @Override
-            public void onNoteLoaded(Note note) {
-                TrashListFragment.this.note = note;
-                setRecyclerViewItems();
-                setTitleAndSubtitle();
-            }
-        });
+        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        Log.v(TAG, "onCreateOptionsMenu");
-        super.onCreateOptionsMenu(menu, inflater);
+    public void setNoteViews() {
+        super.setNoteViews();
 
-        getActivity().getMenuInflater().inflate(R.menu.menu_note_trash, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.v(TAG, "onOptionsItemSelected");
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void setRecyclerViewItems(){
         String content = note.getNote();
         int activeItemsCount = Integer.parseInt(content.substring(0, content.indexOf("<br/>")));
         ArrayList<String> items = new ArrayList<>();
@@ -128,16 +104,14 @@ public class TrashListFragment extends Fragment {
             recyclerView.setAdapter(new ListRecyclerAdapter(context, itemList));
     }
 
-    private void setTitleAndSubtitle(){
-        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
-        if(actionBar != null){
-            actionBar.setTitle(note.getTitle());
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(note.getCreatedAt());
-            Log.e(TAG, "millis " + note.getCreatedAt());
-            actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
-        }
-    }
+    //    @Override
+//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        Log.v(TAG, "onCreateOptionsMenu");
+//        super.onCreateOptionsMenu(menu, inflater);
+//
+//        getActivity().getMenuInflater().inflate(R.menu.menu_note_trash, menu);
+//    }
+
 
     static class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder> {
         private static final String TAG = "ListRecyclerAdapter";
@@ -147,7 +121,7 @@ public class TrashListFragment extends Fragment {
         private static int textStyle;
         private final Context context;
 
-        public ListRecyclerAdapter(Context context, ArrayList<ShoppingListItem> items) {
+        ListRecyclerAdapter(Context context, ArrayList<ShoppingListItem> items) {
             this.items = items;
             this.context = context;
             getParameters();
@@ -242,11 +216,11 @@ public class TrashListFragment extends Fragment {
 
         static class SingleLineWithHandleViewHolder extends RecyclerView.ViewHolder {
             public final RobotoTextView titleTextView;
-            public final AppCompatTextView header;
-            public final ImageView handle;
+            final AppCompatTextView header;
+            final ImageView handle;
             public final ImageView divider;
 
-            public SingleLineWithHandleViewHolder(final View itemView){
+            SingleLineWithHandleViewHolder(final View itemView){
                 super(itemView);
 
                 titleTextView = (RobotoTextView) itemView.findViewById(R.id.textView2);

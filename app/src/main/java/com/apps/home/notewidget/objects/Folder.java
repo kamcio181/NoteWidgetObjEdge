@@ -14,6 +14,10 @@ public class Folder implements Serializable {
         this.name = name;
     }
 
+    public Folder(long id){
+        this.id = id;
+    }
+
     public Folder(long id, String name, int count) {
         this.id = id;
         this.name = name;

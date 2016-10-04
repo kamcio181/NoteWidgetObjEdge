@@ -407,7 +407,7 @@ public class Utils {
                     showToast(context, "The note is too big to share it");
             }
         } else
-            Utils.showToast(context, context.getString(R.string.note_is_empty));
+            Utils.showToast(context, context.getString(R.string.note_is_empty_or_was_not_loaded_yet));
     }
 
     public static long getMyNotesNavId(Context context){
