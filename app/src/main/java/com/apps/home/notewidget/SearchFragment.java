@@ -10,7 +10,6 @@ import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -253,8 +252,8 @@ class SearchRecyclerAdapter extends RecyclerView.Adapter<SearchRecyclerAdapter.D
             content = trimmedText(content);
         }
 
-        holder.titleTextView.setText(Html.fromHtml(title));
-        holder.subtitleTextView.setText(Html.fromHtml(content));
+        holder.titleTextView.setText(Utils.getHtmlFormattedText(title));
+        holder.subtitleTextView.setText(Utils.getHtmlFormattedText(content));
     }
 
     private String trimmedText(String text) {

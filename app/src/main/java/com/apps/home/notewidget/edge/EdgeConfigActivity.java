@@ -15,7 +15,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -259,7 +258,7 @@ public class EdgeConfigActivity extends AppCompatActivity implements CompoundBut
             String noteText = note.getNote();
             holder.titleTV.setText(note.getTitle());
             if(note.getType() == Constants.TYPE_NOTE) {
-                holder.contentTV.setText(Html.fromHtml(ignoreTabs ? noteText.replace("\u0009", "") : noteText));
+                holder.contentTV.setText(Utils.getHtmlFormattedText(ignoreTabs ? noteText.replace("\u0009", "") : noteText));
             } else {
                 StringBuilder builder = new StringBuilder();
 

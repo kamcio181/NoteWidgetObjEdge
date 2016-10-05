@@ -3,16 +3,13 @@ package com.apps.home.notewidget;
 
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatTextView;
-import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.apps.home.notewidget.objects.Note;
-import com.apps.home.notewidget.utils.BasicNoteFragment;
 import com.apps.home.notewidget.utils.BasicTrashFragment;
+import com.apps.home.notewidget.utils.Utils;
 
 public class TrashNoteFragment extends BasicTrashFragment {
     private static final String TAG = "TrashNoteFragment";
@@ -57,7 +54,7 @@ public class TrashNoteFragment extends BasicTrashFragment {
     @Override
     public void setNoteViews() {
         super.setNoteViews();
-        noteTextView.setText(Html.fromHtml(note.getNote()));
+        noteTextView.setText(Utils.getHtmlFormattedText(note.getNote()));
     }
 
     //    @Override

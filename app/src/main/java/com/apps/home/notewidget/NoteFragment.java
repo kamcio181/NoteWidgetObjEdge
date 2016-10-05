@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
-import android.text.Html;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
@@ -89,7 +88,7 @@ public class NoteFragment extends AdvancedNoteFragment implements  NoteUpdateLis
     @Override
     public void setNoteViews() {
         super.setNoteViews();
-        noteEditText.setText(Html.fromHtml(note.getNote()));
+        noteEditText.setText(Utils.getHtmlFormattedText(note.getNote()));
     }
 
     private void setTextWatcher(){

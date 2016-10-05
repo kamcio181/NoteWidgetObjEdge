@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.text.Html;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
@@ -13,6 +12,7 @@ import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.utils.Constants;
 import com.apps.home.notewidget.utils.DatabaseHelper;
+import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,7 +95,7 @@ public class EdgeListProvider implements RemoteViewsService.RemoteViewsFactory {
         } else {
             if(note.getType() == Constants.TYPE_NOTE){
                 boolean skipTabs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getBoolean(Constants.EDGE_IGNORE_TABS_KEY, false);
-                remoteView.setTextViewText(R.id.textView, Html.fromHtml(skipTabs ? noteText.replace("\u0009", "") : noteText));
+                remoteView.setTextViewText(R.id.textView, Utils.getHtmlFormattedText(skipTabs ? noteText.replace("\u0009", "") : noteText));
             } else {
                 StringBuilder builder = new StringBuilder();
 

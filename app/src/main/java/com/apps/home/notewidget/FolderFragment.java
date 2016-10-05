@@ -13,11 +13,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -388,7 +386,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
         helper.getNote(false, note.getId(), new DatabaseHelper.OnNoteLoadListener() {
             @Override
             public void onNoteLoaded(Note note) {
-                Utils.sendShareIntent(context, Html.fromHtml(note.getNote()).toString(), note.getTitle());
+                Utils.sendShareIntent(context, String.valueOf(Utils.getHtmlFormattedText((note.getNote()))), note.getTitle());
             }
         });
     }

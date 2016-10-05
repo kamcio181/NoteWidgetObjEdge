@@ -20,7 +20,9 @@ import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.Html;
 import android.text.InputType;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -388,11 +390,24 @@ public class Utils {
     }
 
     public static void hideShadowSinceLollipop(Context context){
-        if(Build.VERSION.SDK_INT >= 21){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
             ((Activity)context).findViewById(R.id.shadowImageView).setVisibility(View.GONE);
         }
     }
+
+    public static Spanned getHtmlFormattedText(String text){
+        if(text != null && text.length() > 0) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                return Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY);
+            else {
+                return Html.fromHtml(text);
+            }
+        }
+        return null;
+    }
+
     public static void sendShareIntent(Context context, String text, String title) {
+        Log.v(TAG, String.format("text %s size %d",text,text.length()));
         if(text.length()!=0) {
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");
@@ -433,19 +448,19 @@ public class Utils {
     public static void incrementFolderCount(Menu m, int folderId, int inc){
         MenuItem menuItem = m.findItem(folderId);
         AppCompatTextView view = (AppCompatTextView) menuItem.getActionView();
-        view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) + inc));
+        view.setText(String.valueOf(Integer.parseInt(view.getText().toString()) + inc));
     }
 
     public static void decrementFolderCount(Menu m, int folderId, int dec){
         MenuItem menuItem = m.findItem(folderId);
         AppCompatTextView view = (AppCompatTextView) menuItem.getActionView();
-        view.setText(Integer.toString(Integer.parseInt(view.getText().toString()) - dec));
+        view.setText(String.valueOf(Integer.parseInt(view.getText().toString()) - dec));
     }
 
     public static void setFolderCount(Menu m, int folderId, int count){
         MenuItem menuItem = m.findItem(folderId);
         AppCompatTextView view = (AppCompatTextView) menuItem.getActionView();
-        view.setText(Integer.toString(count));
+        view.setText(String.valueOf(count));
     }
 
     public static void updateConnectedWidgets(final Context context, long noteId){
