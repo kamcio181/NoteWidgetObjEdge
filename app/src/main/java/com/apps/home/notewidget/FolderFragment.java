@@ -142,6 +142,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
                 break;
             case R.id.action_delete_all:
                 handleDeleteAllAction();
+                break;
             case R.id.action_restore_all:
                 handleRestoreAllAction();
                 break;

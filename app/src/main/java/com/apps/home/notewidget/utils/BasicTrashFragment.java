@@ -37,6 +37,7 @@ public abstract class BasicTrashFragment extends BasicNoteFragment{
                         @Override
                         public void onItemRemoved(int numberOfRows) {
                             if(numberOfRows > 0){
+                                getActivityMenu();
                                 Utils.decrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
 
                                 Utils.showToast(context, context.getString(R.string.note_was_removed));
@@ -60,6 +61,7 @@ public abstract class BasicTrashFragment extends BasicNoteFragment{
                         @Override
                         public void onItemUpdated(int numberOfRows) {
                             if (numberOfRows > 0) {
+                                getActivityMenu();
                                 Utils.decrementFolderCount(menu, (int) Utils.getTrashNavId(context), 1);
 
                                 helper.getColumnValue(Constants.NOTES_TABLE, Constants.FOLDER_ID_COL, note.getId(), new DatabaseHelper.OnIntFieldLoadListener() {

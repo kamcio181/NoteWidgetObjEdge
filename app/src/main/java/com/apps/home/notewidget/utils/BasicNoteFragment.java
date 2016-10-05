@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 
+import com.apps.home.notewidget.MainActivity;
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.objects.Note;
 
@@ -69,5 +70,10 @@ public abstract class BasicNoteFragment extends Fragment {
             actionBar.setSubtitle(String.format("%1$tb %1$te, %1$tY %1$tT", calendar));
 //            Utils.setSubtitleMarquee(((MainActivity)context).getToolbar());
         }
+    }
+
+    public void getActivityMenu() {
+        if(menu == null)
+            menu = ((MainActivity)context).getNavigationViewMenu();
     }
 }

@@ -109,15 +109,6 @@ public class MainActivity extends AppCompatActivity
         loadNavViewItems();
         Utils.setTitleMarquee(toolbar);
 
-//        helper.getNotes(true, new DatabaseHelper.OnNotesLoadListener() {
-//            @Override
-//            public void onNotesLoaded(ArrayList<Note> notes) {
-//                if (notes != null) {
-//                    for (Note n : notes)
-//                        Log.e(TAG, n.toString());
-//                }
-//            }
-//        });
     }
 
     private void reloadMainActivityAfterRestore(){

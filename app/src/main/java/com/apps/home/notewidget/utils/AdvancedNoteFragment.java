@@ -136,7 +136,7 @@ public abstract class AdvancedNoteFragment extends BasicNoteFragment implements 
     }
 
     private void handleNoteMoveAction(){
-        menu = ((MainActivity)context).getNavigationViewMenu();
+        getActivityMenu();
         Dialog dialog = Utils.getFolderListDialog(context, menu,
                 new int[]{(int) note.getFolderId(), (int) Utils.getTrashNavId(context)},
                 getString(R.string.choose_new_folder), getMoveNoteToOtherFolderAction());
@@ -158,6 +158,7 @@ public abstract class AdvancedNoteFragment extends BasicNoteFragment implements 
                     @Override
                     public void onItemUpdated(int numberOfRows) {
                         if (numberOfRows > 0) {
+                            getActivityMenu();
                             Utils.showToast(context, context.getString(R.string.note_has_been_moved));
                             Utils.incrementFolderCount(menu, newFolderId, 1);
                             Utils.decrementFolderCount(menu, (int) note.getFolderId(), 1);

@@ -12,10 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.apps.home.notewidget.objects.Note;
+import com.apps.home.notewidget.utils.AdvancedNoteFragment;
 import com.apps.home.notewidget.utils.Constants;
-import com.apps.home.notewidget.utils.ContentGetter;
 import com.apps.home.notewidget.utils.DatabaseHelper;
-import com.apps.home.notewidget.utils.DiscardChangesListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
@@ -136,27 +135,11 @@ public class EditNoteActivity extends AppCompatActivity{
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+
         switch (id){
-            case R.id.action_discard_changes:
-                skipSaving = true;
-                ((DiscardChangesListener)fragmentManager.findFragmentById(fragmentContainerId)).discardChanges();
-                finish();
-                break;
             case R.id.action_save:
                 finish();
-                break;
-            case R.id.action_share:
-                Utils.sendShareIntent(this, ((ContentGetter) fragmentManager.
-                                findFragmentById(fragmentContainerId)).getContent(),
-                        getSupportActionBar().getTitle().toString());
-                break;
-            case R.id.action_remove_disabled_items:
-                ((ListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).removeDisabledItems();
-                break;
-            case R.id.action_add_from_clipboard:
-                ((ListFragment)fragmentManager.findFragmentByTag(Constants.FRAGMENT_LIST)).addItemsFromClipboard();
-                break;
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
