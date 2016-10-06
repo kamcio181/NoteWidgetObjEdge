@@ -22,6 +22,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
+import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -403,12 +404,11 @@ public class Utils {
                 return Html.fromHtml(text);
             }
         }
-        return null;
+        return new SpannableString("");
     }
 
     public static void sendShareIntent(Context context, String text, String title) {
-        Log.v(TAG, String.format("text %s size %d",text,text.length()));
-        if(text.length()!=0) {
+        if(text != null && text.length()!=0) {
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");
             intent.putExtra(Intent.EXTRA_TEXT, text);

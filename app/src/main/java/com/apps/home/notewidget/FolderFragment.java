@@ -29,6 +29,7 @@ import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -386,9 +387,27 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
         helper.getNote(false, note.getId(), new DatabaseHelper.OnNoteLoadListener() {
             @Override
             public void onNoteLoaded(Note note) {
-                Utils.sendShareIntent(context, String.valueOf(Utils.getHtmlFormattedText((note.getNote()))), note.getTitle());
+                String noteText;
+                if(note.getType() == Constants.TYPE_LIST) {
+                    noteText = getActiveItemsFromListNote(note.getNote());
+                } else {
+                    noteText = String.valueOf(Utils.getHtmlFormattedText((note.getNote())));
+                }
+                Utils.sendShareIntent(context, noteText, note.getTitle());
             }
         });
+    }
+
+    private String getActiveItemsFromListNote(String noteText){
+        int activeItemsCount = Integer.parseInt(noteText.substring(0, noteText.indexOf("<br/>")));
+        if(activeItemsCount > 0) {
+            String[] items = noteText.split("<br/>");
+            StringBuilder builder = new StringBuilder();
+            for (int i = 1; i < activeItemsCount + 1; i++)
+                builder.append(items[i]).append("\n");
+            return builder.toString().trim();
+        }
+        return null;
     }
 
     private void handleNoteMoveAction(final Note note){
