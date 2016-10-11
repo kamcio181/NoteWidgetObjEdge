@@ -49,55 +49,88 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, FolderFragment.OnNoteClickListener,
         View.OnClickListener, SearchFragment.OnItemClickListener{
     private static final String TAG = "MainActivity";
+    private static final int FRAGMENT_CONTAINER_ID = R.id.container;
+    private final UpdateReceiver receiver = new UpdateReceiver();
+    private final Handler handler = new Handler();
+    private final Runnable resetExitFlag = new Runnable() {
+        @Override
+        public void run() {
+            exit = false;
+        }
+    };
     private Context context;
     private Toolbar toolbar;
+    private DrawerLayout drawer;
     private FloatingActionButton fab;
+    private IntentFilter intentFilter;
     private FragmentManager fragmentManager;
     private SharedPreferences preferences;
     private NavigationView navigationView;
-    private int folderId;
+    private Menu menu;
+    private int currentFolderId;
     private int myNotesNavId;
     private int trashNavId;
     private String textToFind;
     private boolean exit = false;
-    private final Handler handler = new Handler();
-    private Runnable exitRunnable;
     private DatabaseHelper helper;
-    private ArrayList<Folder> folders;
     private Note note;
     private ActionBar actionBar;
-    private final int fragmentContainerId = R.id.container;
-    private static UpdateReceiver receiver;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fabric.with(this, new Crashlytics());
-        setContentView(R.layout.activity_main);
         context = this;
+        Fabric.with(context, new Crashlytics());
+
+        setupActivityViews();
+        getBaseFolderIds();
+        setupIntentFilterForUpdateReceiver();
+
+        fragmentManager = getSupportFragmentManager();
+        preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
+        helper = new DatabaseHelper(context);
+
+        loadNavigationViewItems();
+    }
+
+
+    private void getBaseFolderIds(){
+        myNotesNavId = (int) Utils.getMyNotesNavId(context);
+        Log.d(TAG, "My notes folder id " + myNotesNavId);
+        trashNavId = (int) Utils.getTrashNavId(context);
+        Log.d(TAG, "Trash folder id " + trashNavId);
+        currentFolderId = preferences.getInt(Constants.STARTING_FOLDER_KEY, (int) Utils.getMyNotesNavId(context));
+        Log.d(TAG, "Starting folder id " + currentFolderId);
+    }
+
+    private void setupIntentFilterForUpdateReceiver(){
+        intentFilter = new IntentFilter(Constants.ACTION_RELOAD_MAIN_ACTIVITY);
+        intentFilter.addAction(Constants.ACTION_UPDATE_NOTE);
+        intentFilter.addAction(Constants.ACTION_UPDATE_NOTE_PARAMETERS);
+    }
+
+    private void setupActivityViews(){
+        setContentView(R.layout.activity_main);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(this);
+
+        setupActionBar();
+        setupNavigationViewViews();
+        Utils.hideShadowSinceLollipop(context);
+    }
+
+    private void setupActionBar(){
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setContentInsetsAbsolute(0,0);
         actionBar = getSupportActionBar();
-        fragmentManager = getSupportFragmentManager();
-        preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
-        helper = new DatabaseHelper(this);
-        setResetExitFlagRunnable();
+        Utils.setTitleMarquee(toolbar);
+    }
 
-        myNotesNavId = (int) Utils.getMyNotesNavId(this);
-        Log.e(TAG, "my notes id " + myNotesNavId);
-        trashNavId = (int) Utils.getTrashNavId(this);
-        Log.e(TAG, "trash id " + trashNavId);
-        folderId = preferences.getInt(Constants.STARTING_FOLDER_KEY, (int) Utils.getMyNotesNavId(context));
-        Log.e(TAG, "created");
-
-
-        Utils.hideShadowSinceLollipop(this);
-
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(this);
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    private void setupNavigationViewViews(){
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -105,22 +138,150 @@ public class MainActivity extends AppCompatActivity
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        Log.e(TAG, "nav created");
-        loadNavViewItems();
-        Utils.setTitleMarquee(toolbar);
+        menu = navigationView.getMenu();
+    }
 
+    private void loadNavigationViewItems(){
+        helper.getFolders(new DatabaseHelper.OnFoldersLoadListener() {
+            @Override
+            public void onFoldersLoaded(ArrayList<Folder> folders) {
+                if (folders != null) {
+                    Log.d(TAG, "Folders loaded");
+                    setupNavigationViewItems(folders);
+                    attachFragment(Constants.FRAGMENT_FOLDER);
+                }
+            }
+        });
+    }
+
+    private void setupNavigationViewItems(ArrayList<Folder> folders){
+        resetNavigationViewMenu();
+        addNavigationViewItems(folders);
+        checkCurrentFolderInNavigationView();
+   }
+
+    private void resetNavigationViewMenu(){
+        if(menu.size()!=0)
+            Utils.removeAllMenuItems(menu);
+
+        navigationView.inflateMenu(R.menu.activity_main_drawer);
+        Log.d(TAG, "NavigationView menu inflated");
+    }
+
+    private void addNavigationViewItems(ArrayList<Folder> folders){
+        for (Folder f : folders){
+            int id = (int) f.getId();
+            int order = 11;
+            int icon = R.drawable.ic_nav_black_folder;
+
+            if(id == myNotesNavId) {
+                order = 10;
+                icon = R.drawable.ic_nav_black_home;
+            } else if (id == trashNavId) {
+                order = 10000;
+                icon = R.drawable.ic_nav_black_trash;
+            }
+
+            addMenuCustomItem(id, order, f.getName(), icon, f.getCount());
+        }
+    }
+
+    private void addMenuCustomItem(int id, int orderId, String name, int icon, int notesCount){
+        MenuItem newItem = menu.add(R.id.nav_group_notes, id, orderId, name);
+        newItem.setIcon(icon);
+        LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        @SuppressLint("InflateParams") AppCompatTextView countTextView = (AppCompatTextView) inflater.inflate(R.layout.nav_folder_item, null);
+        countTextView.setText(String.valueOf(notesCount));
+        newItem.setActionView(countTextView);
+        newItem.setCheckable(true);
+    }
+
+    private void checkCurrentFolderInNavigationView(){
+        if(!isCurrentFolderPresentInNavigationView())
+            currentFolderId = myNotesNavId;
+
+        navigationView.setCheckedItem(currentFolderId);
+    }
+
+    private boolean isCurrentFolderPresentInNavigationView(){
+        return menu.findItem(currentFolderId) == null;
+    }
+
+    private void attachFragment(String fragment) {
+        attachFragment(fragment, false);
+    }
+
+    private void attachFragment (String fragment, boolean isNewFragment){
+        Log.d(TAG, fragment);
+        Fragment fragmentToAttach = null;
+        boolean fabVisible = false;
+        switch (fragment){
+            case Constants.FRAGMENT_FOLDER:
+                textToFind = "";
+                fragmentToAttach = FolderFragment.newInstance(currentFolderId);
+
+                if(currentFolderId != trashNavId)  //Folder list
+                    fabVisible = true;
+                if(currentFolderId != trashNavId && currentFolderId != myNotesNavId)
+                    setOnTitleClickListener(true);
+                else
+                    setOnTitleClickListener(false);
+
+                navigationView.setCheckedItem(currentFolderId);
+                break;
+            case Constants.FRAGMENT_NOTE:
+
+                setOnTitleClickListener(true);
+                if(isNewFragment) {
+                    note = new Note();
+                    note.setType(Constants.TYPE_NOTE);
+                    note.setFolderId(currentFolderId);
+                    fragmentToAttach = NoteFragment.newInstance(note);
+                } else
+                    fragmentToAttach = NoteFragment.newInstance(note.getId());
+                break;
+            case Constants.FRAGMENT_LIST:
+                setOnTitleClickListener(true);
+                if(isNewFragment){
+                    note = new Note();
+                    note.setType(Constants.TYPE_LIST);
+                    note.setFolderId(currentFolderId);
+                    fragmentToAttach = ListFragment.newInstance(note);
+                } else
+                    fragmentToAttach = ListFragment.newInstance(note.getId());
+                break;
+            case Constants.FRAGMENT_TRASH_NOTE:
+                setOnTitleClickListener(false);
+                fragmentToAttach = TrashNoteFragment.newInstance(note.getId());
+                break;
+            case Constants.FRAGMENT_TRASH_LIST:
+                setOnTitleClickListener(false);
+                fragmentToAttach = TrashListFragment.newInstance(note.getId());
+                break;
+            case Constants.FRAGMENT_SEARCH:
+                setOnTitleClickListener(false);
+                fragmentToAttach = SearchFragment.newInstance(textToFind);
+                actionBar.setTitle(R.string.search);
+                break;
+        }
+        fragmentManager.beginTransaction().replace(FRAGMENT_CONTAINER_ID, fragmentToAttach, fragment).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commitAllowingStateLoss();
+        Log.e(TAG, "attached fragment");
+        if(fabVisible)
+            fab.show();
+        else
+            fab.hide();
     }
 
     private void reloadMainActivityAfterRestore(){
-        folderId = myNotesNavId;
+        currentFolderId = myNotesNavId;
         attachFragment(Constants.FRAGMENT_FOLDER);
-        loadNavViewItems();
+        loadNavigationViewItems();
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        String attachedFragment = fragmentManager.findFragmentById(fragmentContainerId).getTag();
+
+        String attachedFragment = fragmentManager.findFragmentById(FRAGMENT_CONTAINER_ID).getTag();
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -140,7 +301,7 @@ public class MainActivity extends AppCompatActivity
                 case Constants.FRAGMENT_FOLDER:
                     if(!exit){
                         exit = true;
-                        handler.postDelayed(exitRunnable, 5000);
+                        handler.postDelayed(resetExitFlag, 5000);
                         Utils.showToast(this, getString(R.string.press_back_button_again_to_exit));
                     } else {
                         //Exit flag reset and canceling exit runnable in onStop method to handle home button presses
@@ -151,27 +312,18 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void setResetExitFlagRunnable(){
-        exitRunnable = new Runnable() {
-            @Override
-            public void run() {
-                exit = false;
-            }
-        };
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        if(fragmentManager.findFragmentById(fragmentContainerId) != null) {
-            switch (fragmentManager.findFragmentById(fragmentContainerId).getTag()) {
+        if(fragmentManager.findFragmentById(FRAGMENT_CONTAINER_ID) != null) {
+            switch (fragmentManager.findFragmentById(FRAGMENT_CONTAINER_ID).getTag()) {
                 case Constants.FRAGMENT_SEARCH:
                     getMenuInflater().inflate(R.menu.menu_empty, menu);
                     break;
                 case Constants.FRAGMENT_FOLDER:
-                    if (folderId == myNotesNavId)
+                    if (currentFolderId == myNotesNavId)
                         getMenuInflater().inflate(R.menu.menu_my_notes_list, menu);
-                    else if (folderId == trashNavId)
+                    else if (currentFolderId == trashNavId)
                         getMenuInflater().inflate(R.menu.menu_trash, menu);
                     else
                         getMenuInflater().inflate(R.menu.menu_folder_list, menu);
@@ -189,8 +341,8 @@ public class MainActivity extends AppCompatActivity
             }
         }
         return true;
-//        return super.onCreateOptionsMenu(menu);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -204,40 +356,21 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    public void loadNavViewItems(){
-        helper.getFolders(new DatabaseHelper.OnFoldersLoadListener() {
-            @Override
-            public void onFoldersLoaded(ArrayList<Folder> folders) {
-                if (folders != null) {
-                    MainActivity.this.folders = folders;
-                    Log.e(TAG, "folders got");
-                    addFolderToNavView(folders);
-                }
-            }
-        });
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
 
         int id = item.getItemId();
-        Log.e(TAG, "nav clicked " + id + " " + item.getTitle().toString());
+        Log.d(TAG, "NavigationView item clicked: " + id + " " + item.getTitle().toString());
 
         if(id == R.id.nav_settings){
-            Log.e(TAG, "NAV clicked - Settings");
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_about) {
             Utils.showToast(this, getString(R.string.created_by));
-            Log.e(TAG, "NAV clicked - About Activity");
         } else {
-            Log.e(TAG, "NAV clicked - Other");
             openFolderWithNotes(id);
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer != null) {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         }
         return true;
@@ -247,11 +380,6 @@ public class MainActivity extends AppCompatActivity
     protected void onStart() {
         super.onStart();
 
-        IntentFilter intentFilter = new IntentFilter(Constants.ACTION_RELOAD_MAIN_ACTIVITY);
-        intentFilter.addAction(Constants.ACTION_UPDATE_NOTE);
-        intentFilter.addAction(Constants.ACTION_UPDATE_NOTE_PARAMETERS);
-        if(receiver == null)
-            receiver = new UpdateReceiver();
         registerReceiver(receiver, intentFilter);
     }
 
@@ -259,8 +387,8 @@ public class MainActivity extends AppCompatActivity
     protected void onStop() {
         super.onStop();
         exit = false;
-        handler.removeCallbacks(exitRunnable);
-        Log.e(TAG, "Stop");
+        handler.removeCallbacks(resetExitFlag);
+        Log.d(TAG, "Stop");
     }
 
     @Override
@@ -274,14 +402,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void openFolderWithNotes(long id){
-        folderId = (int) id;
+        currentFolderId = (int) id;
         attachFragment(Constants.FRAGMENT_FOLDER);
-        navigationView.setCheckedItem(folderId);
     }
 
     public void setNavigationItemChecked(int folderId){
         navigationView.setCheckedItem(folderId);
-        this.folderId = folderId;
+        currentFolderId = folderId;
     }
 
     public void setOnTitleClickListener(boolean enable){
@@ -296,77 +423,35 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 Utils.getNameDialog(context, actionBar.getTitle().toString(),
-                        fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null ?
-                                getString(R.string.set_folder_name) : getString(R.string.set_note_title),
-                        32, fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null?
-                                getString(R.string.folder_name) : getString(R.string.note_name),
+                        isFolderFragmentAttached() ? getString(R.string.set_folder_name) : getString(R.string.set_note_title),
+                        32, isFolderFragmentAttached() ? getString(R.string.folder_name) : getString(R.string.note_name),
                         new Utils.OnNameSet() {
                             @Override
                             public void onNameSet(String name) {
-                                setNoteTitleOrFolderName(name);
+                                setNewTitle(name);
                             }
                         }).show();
             }
         };
     }
 
-    public void addFolderToNavView(Folder folder){
+    private boolean isFolderFragmentAttached(){
+        return fragmentManager.findFragmentByTag(Constants.FRAGMENT_FOLDER) != null;
+    }
 
-        Menu menu = getNavigationViewMenu();
-        addMenuCustomItem(menu, (int) folder.getId(), 11, folder.getName(), R.drawable.ic_nav_black_folder, 0);
-        folders.add(folder);
+    public void setupNavigationViewItems(Folder folder){
+
+        addMenuCustomItem((int) folder.getId(), 11, folder.getName(), R.drawable.ic_nav_black_folder, 0);
 
         openFolderWithNotes((int) folder.getId());
     }
 
-    private void addFolderToNavView(ArrayList<Folder> folders){
-        Menu menu = navigationView.getMenu();
-
-        if(menu.size()!=0)
-            Utils.removeAllMenuItems(menu);
-
-        navigationView.inflateMenu(R.menu.activity_main_drawer);
-        Log.e(TAG, "inflate nav ");
-
-        for (Folder f : folders){
-            long id = f.getId();
-            int order = 11;
-            int icon = R.drawable.ic_nav_black_folder;
 
 
-            if(id == myNotesNavId) {
-                order = 10;
-                icon = R.drawable.ic_nav_black_home;
-            } else if (id == trashNavId) {
-                order = 10000;
-                icon = R.drawable.ic_nav_black_trash;
-            }
-
-            addMenuCustomItem(menu, (int) id, order, f.getName(), icon, f.getCount());
-        }
-
-        if(menu.findItem(folderId) == null)
-            folderId = myNotesNavId;
-
-        navigationView.setCheckedItem(folderId);
-        Log.e(TAG, "menu created");
-        attachFragment(Constants.FRAGMENT_FOLDER);
-    }
-
-    private void addMenuCustomItem(Menu m, int id, int order, String name, int icon, int count){
-        MenuItem newItem = m.add(R.id.nav_group_notes, id, order, name);
-        newItem.setIcon(icon);
-        LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        @SuppressLint("InflateParams") AppCompatTextView countTextView = (AppCompatTextView) inflater.inflate(R.layout.nav_folder_item, null);
-        countTextView.setText(String.valueOf(count));
-        newItem.setActionView(countTextView);
-        newItem.setCheckable(true);
-    }
-
-	private void setNoteTitleOrFolderName(String title){
+	private void setNewTitle(String title){
 		title = setTitle(title);
 
-        Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
+        Fragment fragment = fragmentManager.findFragmentById(FRAGMENT_CONTAINER_ID);
         String fragmentTag = fragment.getTag();
         if(fragmentTag.equals(Constants.FRAGMENT_FOLDER) || fragmentTag.equals(Constants.FRAGMENT_NOTE)
                 || fragmentTag.equals(Constants.FRAGMENT_LIST))
@@ -388,7 +473,7 @@ public class MainActivity extends AppCompatActivity
     public void onClick(View v) {
         switch(v.getId()){
             case R.id.fab:
-                switch (fragmentManager.findFragmentById(fragmentContainerId).getTag()){
+                switch (fragmentManager.findFragmentById(FRAGMENT_CONTAINER_ID).getTag()){
                     case Constants.FRAGMENT_FOLDER:
                         getNoteTypeDialog().show();
                         break;
@@ -414,74 +499,15 @@ public class MainActivity extends AppCompatActivity
         }).create();
     }
 
-    private void attachFragment(String fragment) {
-        attachFragment(fragment, false);
-    }
 
-    private void attachFragment (String fragment, boolean isNew){
-        Fragment fragmentToAttach = null;
-        boolean fabVisible = false;
-        switch (fragment){
-            case Constants.FRAGMENT_FOLDER:
-                textToFind = "";
-                fragmentToAttach = FolderFragment.newInstance(folderId);
 
-                if(folderId != trashNavId)  //Folder list
-                    fabVisible = true;
-                if(folderId != trashNavId && folderId != myNotesNavId)
-                    setOnTitleClickListener(true);
-                else
-                    setOnTitleClickListener(false);
-                break;
-            case Constants.FRAGMENT_NOTE:
-                Log.e(TAG, "NOTE FRAGMENT");
-                setOnTitleClickListener(true);
-                if(isNew) {
-                    note = new Note();
-                    note.setType(Constants.TYPE_NOTE);
-                    note.setFolderId(folderId);
-                    fragmentToAttach = NoteFragment.newInstance(note);
-                } else
-                    fragmentToAttach = NoteFragment.newInstance(note.getId());
-                break;
-            case Constants.FRAGMENT_LIST:
-                Log.e(TAG, "LIST FRAGMENT");
-                setOnTitleClickListener(true);
-                if(isNew){
-                    note = new Note();
-                    note.setType(Constants.TYPE_LIST);
-                    note.setFolderId(folderId);
-                    fragmentToAttach = ListFragment.newInstance(note);
-                } else
-                    fragmentToAttach = ListFragment.newInstance(note.getId());
-                break;
-            case Constants.FRAGMENT_TRASH_NOTE:
-                setOnTitleClickListener(false);
-                fragmentToAttach = TrashNoteFragment.newInstance(note.getId());
-                break;
-            case Constants.FRAGMENT_TRASH_LIST:
-                setOnTitleClickListener(false);
-                fragmentToAttach = TrashListFragment.newInstance(note.getId());
-                break;
-            case Constants.FRAGMENT_SEARCH:
-                setOnTitleClickListener(false);
-                fragmentToAttach = SearchFragment.newInstance(textToFind);
-                actionBar.setTitle(R.string.search);
-                break;
-        }
-        fragmentManager.beginTransaction().replace(fragmentContainerId, fragmentToAttach, fragment).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commitAllowingStateLoss();
-        Log.e(TAG, "attached fragment");
-        if(fabVisible)
-            fab.show();
-        else
-            fab.hide();
-    }
+
 
     //Interface from FolderFragment
     @Override
     public void onNoteClicked(Note note) {
         this.note = note;
-        if (folderId == trashNavId) {
+        if (currentFolderId == trashNavId) {
             if(note.getType() == Constants.TYPE_NOTE)
                 attachFragment(Constants.FRAGMENT_TRASH_NOTE);
             else if (note.getType() == Constants.TYPE_LIST)
@@ -511,22 +537,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     public Menu getNavigationViewMenu() {
-        return navigationView.getMenu();
+        return menu;
     }
 
     class UpdateReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent arg1) {
             if(arg1 != null){
-                final Fragment fragment = fragmentManager.findFragmentById(fragmentContainerId);
+                final Fragment fragment = fragmentManager.findFragmentById(FRAGMENT_CONTAINER_ID);
                 String fragmentTag = fragment.getTag();
                 switch (arg1.getAction()){
                     case Constants.ACTION_RELOAD_MAIN_ACTIVITY:
                         reloadMainActivityAfterRestore();
                         break;
                     case Constants.ACTION_UPDATE_NOTE:
-
-
                         if(fragmentTag.equals(Constants.FRAGMENT_NOTE) || fragmentTag.equals(Constants.FRAGMENT_LIST)){
                             ((AdvancedNoteFragment)fragment).onNoteUpdate();
                         }

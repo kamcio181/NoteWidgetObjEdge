@@ -29,7 +29,6 @@ import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -176,7 +175,7 @@ public class FolderFragment extends Fragment implements TitleChangeListener{
                             public void onItemInserted(long id) {
                                 if(id > 0){
                                     folder.setId(id);
-                                    ((MainActivity)context).addFolderToNavView(folder);
+                                    ((MainActivity)context).setupNavigationViewItems(folder);
                                 }
                             }
                         });
