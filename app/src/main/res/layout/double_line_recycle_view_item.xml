@@ -18,7 +18,7 @@
         android:layout_alignParentTop="true"
         android:textSize="16sp"
         android:textColor="#DD000000"
-        android:singleLine="true" />
+        android:maxLines="1" />
 
     <android.support.v7.widget.AppCompatTextView
         android:layout_width="wrap_content"
@@ -28,5 +28,5 @@
         android:layout_alignParentBottom="true"
         android:textSize="14sp"
         android:textColor="#8A000000"
-        android:singleLine="true" />
+        android:maxLines="1" />
 </RelativeLayout>

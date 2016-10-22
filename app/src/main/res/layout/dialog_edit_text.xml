@@ -14,9 +14,9 @@
             android:layout_height="wrap_content"
             android:id="@+id/titleEditText"
             android:layout_gravity="center"
-            android:singleLine="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true" />
+            android:layout_alignParentTop="true"
+            android:maxLines="1" />
     </android.support.design.widget.TextInputLayout>
 
     <android.support.v7.widget.AppCompatTextView

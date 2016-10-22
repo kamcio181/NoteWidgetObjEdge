@@ -134,6 +134,9 @@
     <string name="item_name_cannot_be_empty">Nazwa artykułu nie może być pusta</string>
     <string name="open_menu">Otwórz menu</string>
     <string name="item_removed">Artykuł usunięty</string>
+    <string name="restored_from_bought_items">Przywrócono z kupionych artykułów</string>
+    <string name="added_new_item">Dodano nowy artykuł</string>
+    <string name="item_is_already_on_list">Artykuł jest już na liście</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

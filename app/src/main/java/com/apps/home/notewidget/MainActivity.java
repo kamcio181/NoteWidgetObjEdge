@@ -84,13 +84,13 @@ public class MainActivity extends AppCompatActivity
         context = this;
         Fabric.with(context, new Crashlytics());
 
-        setupActivityViews();
-        getBaseFolderIds();
-        setupIntentFilterForUpdateReceiver();
-
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
         helper = new DatabaseHelper(context);
+
+        setupActivityViews();
+        getBaseFolderIds();
+        setupIntentFilterForUpdateReceiver();
 
         loadNavigationViewItems();
     }

@@ -142,6 +142,9 @@
     <string name="item_name_cannot_be_empty">Item name cannot be empty</string>
     <string name="open_menu">Open menu</string>
     <string name="item_removed">Item removed</string>
+    <string name="restored_from_bought_items">Restored from bought items</string>
+    <string name="added_new_item">New item added</string>
+    <string name="item_is_already_on_list">Item is already on list</string>
 
     <string-array name="note_types">
         <item>Note</item>

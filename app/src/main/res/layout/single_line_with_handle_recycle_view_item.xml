@@ -14,10 +14,10 @@
         android:id="@+id/textView2"
         android:textSize="16sp"
         android:textColor="#DD000000"
-        android:singleLine="true"
         android:layout_centerVertical="true"
         android:layout_toLeftOf="@+id/imageView2"
-        android:layout_marginLeft="16dp" />
+        android:layout_marginLeft="16dp"
+        android:maxLines="1" />
 
     <android.support.v7.widget.AppCompatImageView
         android:layout_width="56dp"

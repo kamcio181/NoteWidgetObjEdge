@@ -23,7 +23,7 @@
         android:id="@+id/textView2"
         android:textSize="16sp"
         android:textColor="#DD000000"
-        android:singleLine="true"
-        android:layout_centerVertical="true" />
+        android:layout_centerVertical="true"
+        android:maxLines="1" />
 
 </RelativeLayout>

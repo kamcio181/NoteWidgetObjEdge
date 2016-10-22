@@ -4,12 +4,14 @@ package com.apps.home.notewidget;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
@@ -363,14 +365,44 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     }
 
     private void insertItem(SingleLineWithHandleViewHolder holder, int position){
-        if(holder.newItemEditText.getText().toString().length() > 0) {
-            items.add(activeItemsCount + 1, new ShoppingListItem(holder.newItemEditText.getText().toString(), Constants.ENABLED_ITEM_VIEW)); //+1 because header is 1st item
+        String name = holder.newItemEditText.getText().toString().trim();
+        if(name.length() > 0){
+            ShoppingListItem newItem = new ShoppingListItem(Utils.capitalizeFirstLetter(name), Constants.ENABLED_ITEM_VIEW);
+            if(checkIfActiveItemIsPresent(newItem)){
+                Utils.showToast(context,  context.getString(R.string.item_is_already_on_list));
+                return;
+            }
+
+            int index = checkIfDisabledItemIsPresent(newItem);
+            if(index != -1){
+                items.remove(index);
+                Utils.showToast(context, context.getString(R.string.restored_from_bought_items));
+            } else {
+                Utils.showToast(context, context.getString(R.string.added_new_item));
+            }
+            items.add(activeItemsCount + 1, newItem); //+1 because header is 1st item
             holder.newItemEditText.setText("");
             activeItemsCount++;
             recyclerView.scrollToPosition(position + 1);
             requestNewItem = true;
             notifyDataSetChanged();
         }
+    }
+
+    private int checkIfDisabledItemIsPresent(ShoppingListItem newItem){
+        for(int i = activeItemsCount + 3; i < items.size(); i++){
+            if(newItem.getContent().equalsIgnoreCase(items.get(i).getContent().trim()))
+                return i;
+        }
+        return -1;
+    }
+
+    private boolean checkIfActiveItemIsPresent(ShoppingListItem newItem){
+        for(int i = 1; i < activeItemsCount +1; i++){
+            if(newItem.getContent().equalsIgnoreCase(items.get(i).getContent().trim()))
+                return true;
+        }
+        return false;
     }
 
     private void onBindEnabledItemViewHolder(final SingleLineWithHandleViewHolder holder, final int position){
@@ -452,6 +484,25 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
                 items.add(activeItemsCount+1, items.remove(position));
                 activeItemsCount++;
                 notifyDataSetChanged();
+            }
+        });
+
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle(context.getString(R.string.edit_item))
+                        .setMessage(items.get(position).getContent())
+                        .setNegativeButton(context.getText(R.string.cancel), null)
+                        .setNeutralButton(context.getText(R.string.delete), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                items.remove(position);
+                                notifyDataSetChanged();
+                                Utils.showToast(context, context.getString(R.string.item_removed));
+                            }
+                        }).show();
+                return false;
             }
         });
 
