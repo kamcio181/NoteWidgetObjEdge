@@ -36,6 +36,7 @@ public interface Constants {
     String LIST_TILE_SIZE_KEY = "listTileSize";
     String BOUGHT_ITEM_STYLE_KEY = "boughtItemStyle";
     String NEWLY_BOUGHT_ITEM_BEHAVIOR = "newlyBoughtItemBehavior";
+    String LIST_ITEM_LENGTH = "itemLength";
     String LIST_TILE_TEXT_SIZE = "listTileTextSize";
     String STARTING_FOLDER_KEY = "startingFolder";
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
@@ -95,5 +96,9 @@ public interface Constants {
 
     int WIDGET_THEME_LIGHT = 0;
     int WIDGET_THEME_DARK = 1;
+
+    int DEFAULT_LIST_TILE_SIZE = 56;
+    int DEFAULT_LIST_TILE_TEXT_SIZE = 16;
+    int DEFAULT_LIST_ITEM_LENGTH = 32;
 
 }

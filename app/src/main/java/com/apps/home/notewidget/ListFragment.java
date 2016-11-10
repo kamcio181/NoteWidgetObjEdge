@@ -233,7 +233,6 @@ public class ListFragment extends AdvancedNoteFragment implements NoteUpdateList
 class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.SingleLineWithHandleViewHolder>
         implements ItemTouchHelperAdapter{
     private static final String TAG = "ListRecyclerAdapter";
-    private static final int ITEM_CHAR_LIMIT = 32;
     private final Context context;
     private RecyclerView recyclerView;
     private final OnStartDragListener listener;
@@ -243,6 +242,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
     private static int tileSize;
     private static int textSize;
     private static int textStyle;
+    private static int itemLength;
     private static int newlyBoughtItemBehavior;
     private boolean requestNewItem;
     private boolean firstDrawing = true;
@@ -383,10 +383,11 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             @Override
             public void afterTextChanged(Editable s) {
                 String text = s.toString().trim();
-                if (text.length() > ITEM_CHAR_LIMIT) {
-                    holder.newItemEditText.setText(text.substring(0, ITEM_CHAR_LIMIT));
-                    holder.newItemEditText.setSelection(ITEM_CHAR_LIMIT);
-                    Utils.showToast(context, String.format(Locale.getDefault(), context.getString(R.string.item_size_is_limited_to_s_chars), ITEM_CHAR_LIMIT));
+                if (text.length() > itemLength) {
+                    holder.newItemEditText.setText(text.substring(0, itemLength));
+                    holder.newItemEditText.setSelection(itemLength);
+                    Utils.showToast(context, String.format(Locale.getDefault(),
+                            context.getString(R.string.item_size_is_limited_to_s_chars), itemLength));
                 }
             }
         });
@@ -457,7 +458,7 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
             @Override
             public boolean onLongClick(View v) {
                 Utils.getNameDialog(context, items.get(position).getContent(), context.getString(R.string.edit_item),
-                        ITEM_CHAR_LIMIT, context.getString(R.string.new_item), new Utils.OnNameSet() {
+                        itemLength, context.getString(R.string.new_item), new Utils.OnNameSet() {
                             @Override
                             public void onNameSet(String name) {
                                 if (name.length() > 0) {
@@ -630,10 +631,11 @@ class ListRecyclerAdapter extends RecyclerView.Adapter<ListRecyclerAdapter.Singl
 
     private void getParameters(){
         SharedPreferences preferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-        tileSize = Utils.convertPxToDP(context, preferences.getInt(Constants.LIST_TILE_SIZE_KEY, 56));
-        textSize = preferences.getInt(Constants.LIST_TILE_TEXT_SIZE, 16);
+        tileSize = Utils.convertPxToDP(context, preferences.getInt(Constants.LIST_TILE_SIZE_KEY, Constants.DEFAULT_LIST_TILE_SIZE));
+        textSize = preferences.getInt(Constants.LIST_TILE_TEXT_SIZE, Constants.DEFAULT_LIST_TILE_TEXT_SIZE);
         textStyle = preferences.getInt(Constants.BOUGHT_ITEM_STYLE_KEY, Constants.COLOR);
         newlyBoughtItemBehavior = preferences.getInt(Constants.NEWLY_BOUGHT_ITEM_BEHAVIOR, Constants.MOVE_TO_BOTTOM);
+        itemLength = preferences.getInt(Constants.LIST_ITEM_LENGTH, Constants.DEFAULT_LIST_ITEM_LENGTH);
     }
 }
 

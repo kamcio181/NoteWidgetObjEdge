@@ -145,10 +145,13 @@
     <string name="restored_from_bought_items">Restored from bought items</string>
     <string name="added_new_item">New item added</string>
     <string name="item_is_already_on_list">Item is already on list</string>
-    <string name="item_size_is_limited_to_s_chars">Item length is limited to %s chars</string>
+    <string name="item_size_is_limited_to_s_chars">Item length is limited to %d chars</string>
     <string name="newly_bought_item_behavior">NEWLY BOUGHT ITEM BEHAVIOR</string>
     <string name="move_to_top_of_bought_list">move to top of bought list</string>
     <string name="move_to_bottom_of_bought_list">move to bottom of bought list</string>
+    <string name="list_configuration">List configuration</string>
+    <string name="item_length">ITEM LENGTH</string>
+    <string name="item_length_hint">Item length</string>
 
     <string-array name="note_types">
         <item>Note</item>

@@ -6,10 +6,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatRadioButton;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,14 +28,16 @@ import com.apps.home.notewidget.utils.Utils;
 
 public class SettingsListConfigFragment extends Fragment implements NumberPicker.OnValueChangeListener,
         RadioGroup.OnCheckedChangeListener{
+    private static final String TAG = "SettingsListConfigFr";
     private SharedPreferences preferences;
     private Context context;
-
     private AppCompatRadioButton small, medium, big, veryBig, color, strikethrough, moveToTop, moveToBottom;
     private RadioGroup sizeGroup, styleGroup, behaviorGroup;
     private NumberPicker picker;
+    private TextInputEditText itemLengthEditText;
     private RobotoTextView example;
     private RelativeLayout tile;
+    private int tileSize, style, textSize, newlyBoughtItemBehavior, itemLength;
 
     public SettingsListConfigFragment() {
         // Required empty public constructor
@@ -54,7 +58,7 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ((AppCompatActivity)context).getSupportActionBar().setTitle("Tile settings");
+        ((AppCompatActivity)context).getSupportActionBar().setTitle(R.string.list_configuration);
 
         small = (AppCompatRadioButton) view.findViewById(R.id.radioButton);
         medium = (AppCompatRadioButton) view.findViewById(R.id.radioButton2);
@@ -70,13 +74,15 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
         picker = (NumberPicker) view.findViewById(R.id.numberPicker2);
         example = (RobotoTextView) view.findViewById(R.id.textView2);
         tile = (RelativeLayout) view.findViewById(R.id.relativeLayout);
+        itemLengthEditText = (TextInputEditText) view.findViewById(R.id.lengthEditText);
 
-        int size = preferences.getInt(Constants.LIST_TILE_SIZE_KEY, 56);
-        int style = preferences.getInt(Constants.BOUGHT_ITEM_STYLE_KEY, Constants.COLOR);
-        int textSize = preferences.getInt(Constants.LIST_TILE_TEXT_SIZE, 16);
-        int newlyBoughtItemBehavior = preferences.getInt(Constants.NEWLY_BOUGHT_ITEM_BEHAVIOR, Constants.MOVE_TO_BOTTOM);
+        tileSize = preferences.getInt(Constants.LIST_TILE_SIZE_KEY, Constants.DEFAULT_LIST_TILE_SIZE);
+        style = preferences.getInt(Constants.BOUGHT_ITEM_STYLE_KEY, Constants.COLOR);
+        textSize = preferences.getInt(Constants.LIST_TILE_TEXT_SIZE, Constants.DEFAULT_LIST_TILE_TEXT_SIZE);
+        newlyBoughtItemBehavior = preferences.getInt(Constants.NEWLY_BOUGHT_ITEM_BEHAVIOR, Constants.MOVE_TO_BOTTOM);
+        itemLength = preferences.getInt(Constants.LIST_ITEM_LENGTH, Constants.DEFAULT_LIST_ITEM_LENGTH);
 
-        switch (size){
+        switch (tileSize){
             case 48:
                 small.setChecked(true);
                 break;
@@ -92,7 +98,7 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
         }
 
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)tile.getLayoutParams();
-        params.height = Utils.convertPxToDP(context, size);
+        params.height = Utils.convertPxToDP(context, tileSize);
         tile.setLayoutParams(params);
 
         switch (style){
@@ -122,6 +128,8 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
                 break;
         }
 
+        itemLengthEditText.setText(String.valueOf(itemLength));
+
         sizeGroup.setOnCheckedChangeListener(this);
         styleGroup.setOnCheckedChangeListener(this);
         behaviorGroup.setOnCheckedChangeListener(this);
@@ -133,10 +141,12 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
     public void onCheckedChanged(RadioGroup group, int checkedId) {
         switch (group.getId()){
             case R.id.radioGroup:
-                int tileSize = 56;
                 switch (checkedId){
                     case R.id.radioButton:
                         tileSize = 48;
+                        break;
+                    case R.id.radioButton2:
+                        tileSize = 56;
                         break;
                     case R.id.radioButton3:
                         tileSize = 64;
@@ -145,15 +155,15 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
                         tileSize = 72;
                         break;
                 }
-                preferences.edit().putInt(Constants.LIST_TILE_SIZE_KEY, tileSize).apply();
+
                 LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)tile.getLayoutParams();
                 params.height = Utils.convertPxToDP(context, tileSize);
                 tile.setLayoutParams(params);
                 break;
             case R.id.radioGroup2:
-                int style = Constants.COLOR;
                 switch (checkedId){
                     case R.id.radioButton5:
+                        style = Constants.COLOR;
                         example.setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
                         example.setStrikeEnabled(false);
                         break;
@@ -163,19 +173,16 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
                         example.setTextColor(Color.BLACK);
                         break;
                 }
-                preferences.edit().putInt(Constants.BOUGHT_ITEM_STYLE_KEY, style).apply();
                 break;
             case R.id.radioGroup3:
-                int behavior = Constants.MOVE_TO_BOTTOM;
                 switch (checkedId){
                     case R.id.radioButton7:
-                        behavior = Constants.MOVE_TO_TOP;
+                        newlyBoughtItemBehavior = Constants.MOVE_TO_TOP;
                         break;
                     case R.id.radioButton8:
-                        //The default behavior was assigned during initialization
+                        newlyBoughtItemBehavior = Constants.MOVE_TO_BOTTOM;
                         break;
                 }
-                preferences.edit().putInt(Constants.NEWLY_BOUGHT_ITEM_BEHAVIOR, behavior).apply();
                 break;
         }
     }
@@ -183,13 +190,23 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
     @Override
     public void onStop() {
         super.onStop();
+        try {
+            itemLength = Integer.parseInt(itemLengthEditText.getText().toString().trim());
+        } catch (NumberFormatException e){
+            Log.e(TAG, "Wrong item length value, using the current one");
+        }
 
+        preferences.edit().putInt(Constants.LIST_TILE_SIZE_KEY, tileSize).
+                putInt(Constants.BOUGHT_ITEM_STYLE_KEY, style).
+                putInt(Constants.LIST_TILE_TEXT_SIZE, textSize).
+                putInt(Constants.NEWLY_BOUGHT_ITEM_BEHAVIOR, newlyBoughtItemBehavior).
+                putInt(Constants.LIST_ITEM_LENGTH, itemLength).apply();
         context.sendBroadcast(new Intent(Constants.ACTION_UPDATE_NOTE_PARAMETERS));
     }
 
     @Override
     public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+        textSize = newVal;
         example.setTextSize(TypedValue.COMPLEX_UNIT_SP, newVal);
-        preferences.edit().putInt(Constants.LIST_TILE_TEXT_SIZE, newVal).apply();
     }
 }
