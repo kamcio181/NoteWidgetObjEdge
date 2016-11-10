@@ -35,6 +35,7 @@ public interface Constants {
     String NOTE_TEXT_SIZE_KEY = "noteTextSize";
     String LIST_TILE_SIZE_KEY = "listTileSize";
     String BOUGHT_ITEM_STYLE_KEY = "boughtItemStyle";
+    String NEWLY_BOUGHT_ITEM_BEHAVIOR = "newlyBoughtItemBehavior";
     String LIST_TILE_TEXT_SIZE = "listTileTextSize";
     String STARTING_FOLDER_KEY = "startingFolder";
     String SKIP_MULTILEVEL_NOTE_MANUAL_DIALOG_KEY = "skipMultilevelNoteManualDialog";
@@ -68,6 +69,9 @@ public interface Constants {
 
     int COLOR = 0;
     int STRIKETHROUGH = 1;
+
+    int MOVE_TO_TOP = 0;
+    int MOVE_TO_BOTTOM = 1;
 
     int HEADER_VIEW = 0;
     int NEW_ITEM_VIEW = 1;

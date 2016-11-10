@@ -119,7 +119,7 @@ public class Utils {
 //        }
 //    }
 
-    private static void setMarquee(TextView textView){
+    public static void setMarquee(TextView textView){
         textView.setSingleLine(true);
         textView.setSelected(true);
         textView.setEllipsize(TextUtils.TruncateAt.MARQUEE);

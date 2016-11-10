@@ -137,6 +137,10 @@
     <string name="restored_from_bought_items">Przywrócono z kupionych artykułów</string>
     <string name="added_new_item">Dodano nowy artykuł</string>
     <string name="item_is_already_on_list">Artykuł jest już na liście</string>
+    <string name="item_size_is_limited_to_s_chars">Długość artykułu jest ograniczona do %s znaków</string>
+    <string name="newly_bought_item_behavior">ZACHOWANIE NOWO KUPIONYCH ARTYKUŁÓW</string>
+    <string name="move_to_top_of_bought_list">przenieś na górę listy kupionych</string>
+    <string name="move_to_bottom_of_bought_list">przenieś na dół listy kupionych</string>
 
     <string-array name="settings_items">
         <item>Ustawienia widgetu</item>

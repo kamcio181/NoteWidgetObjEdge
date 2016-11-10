@@ -29,8 +29,8 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
     private SharedPreferences preferences;
     private Context context;
 
-    private AppCompatRadioButton small, medium, big, veryBig, color, strikethorugh;
-    private RadioGroup sizeGroup, styleGroup;
+    private AppCompatRadioButton small, medium, big, veryBig, color, strikethrough, moveToTop, moveToBottom;
+    private RadioGroup sizeGroup, styleGroup, behaviorGroup;
     private NumberPicker picker;
     private RobotoTextView example;
     private RelativeLayout tile;
@@ -61,9 +61,12 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
         big = (AppCompatRadioButton) view.findViewById(R.id.radioButton3);
         veryBig = (AppCompatRadioButton) view.findViewById(R.id.radioButton4);
         color = (AppCompatRadioButton) view.findViewById(R.id.radioButton5);
-        strikethorugh = (AppCompatRadioButton) view.findViewById(R.id.radioButton6);
+        strikethrough = (AppCompatRadioButton) view.findViewById(R.id.radioButton6);
+        moveToTop = (AppCompatRadioButton) view.findViewById(R.id.radioButton7);
+        moveToBottom = (AppCompatRadioButton) view.findViewById(R.id.radioButton8);
         sizeGroup = (RadioGroup) view.findViewById(R.id.radioGroup);
         styleGroup = (RadioGroup) view.findViewById(R.id.radioGroup2);
+        behaviorGroup = (RadioGroup) view.findViewById(R.id.radioGroup3);
         picker = (NumberPicker) view.findViewById(R.id.numberPicker2);
         example = (RobotoTextView) view.findViewById(R.id.textView2);
         tile = (RelativeLayout) view.findViewById(R.id.relativeLayout);
@@ -71,6 +74,7 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
         int size = preferences.getInt(Constants.LIST_TILE_SIZE_KEY, 56);
         int style = preferences.getInt(Constants.BOUGHT_ITEM_STYLE_KEY, Constants.COLOR);
         int textSize = preferences.getInt(Constants.LIST_TILE_TEXT_SIZE, 16);
+        int newlyBoughtItemBehavior = preferences.getInt(Constants.NEWLY_BOUGHT_ITEM_BEHAVIOR, Constants.MOVE_TO_BOTTOM);
 
         switch (size){
             case 48:
@@ -97,7 +101,7 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
                 example.setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
                 break;
             case Constants.STRIKETHROUGH:
-                strikethorugh.setChecked(true);
+                strikethrough.setChecked(true);
                 example.setStrikeEnabled(true);
                 break;
         }
@@ -109,8 +113,18 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
 
         example.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
 
+        switch (newlyBoughtItemBehavior){
+            case Constants.MOVE_TO_TOP:
+                moveToTop.setChecked(true);
+                break;
+            case Constants.MOVE_TO_BOTTOM:
+                moveToBottom.setChecked(true);
+                break;
+        }
+
         sizeGroup.setOnCheckedChangeListener(this);
         styleGroup.setOnCheckedChangeListener(this);
+        behaviorGroup.setOnCheckedChangeListener(this);
     }
 
 
@@ -150,6 +164,18 @@ public class SettingsListConfigFragment extends Fragment implements NumberPicker
                         break;
                 }
                 preferences.edit().putInt(Constants.BOUGHT_ITEM_STYLE_KEY, style).apply();
+                break;
+            case R.id.radioGroup3:
+                int behavior = Constants.MOVE_TO_BOTTOM;
+                switch (checkedId){
+                    case R.id.radioButton7:
+                        behavior = Constants.MOVE_TO_TOP;
+                        break;
+                    case R.id.radioButton8:
+                        //The default behavior was assigned during initialization
+                        break;
+                }
+                preferences.edit().putInt(Constants.NEWLY_BOUGHT_ITEM_BEHAVIOR, behavior).apply();
                 break;
         }
     }
