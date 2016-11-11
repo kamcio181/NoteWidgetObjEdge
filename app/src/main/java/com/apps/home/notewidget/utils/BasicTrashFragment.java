@@ -14,6 +14,7 @@ public abstract class BasicTrashFragment extends BasicNoteFragment{
         switch (item.getItemId()){
             case R.id.action_delete_from_trash:
                 handleRemoveFromTrashAction();
+                break;
             case R.id.action_restore_from_trash:
                 handleRestoreFromTrashAction();
                 break;
