@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:divider="@drawable/divider"
+    android:showDividers="middle">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingRight="16dp">
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_height="48dp"
+            android:layout_marginLeft="16dp"
+            app:srcCompat="@drawable/ic_access_time_grey_24dp"
+            android:scaleType="center"
+            android:layout_width="36dp" />
+        <android.support.v7.widget.SwitchCompat
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:id="@+id/allDaySwitch"
+            android:layout_marginLeft="72dp"
+            android:text="All day"/>
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:id="@+id/startDate"
+            android:layout_marginLeft="72dp"
+            android:layout_below="@+id/allDaySwitch"
+            android:layout_toLeftOf="@+id/startTime"
+            android:text="DATA"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="center_vertical" />
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:id="@+id/startTime"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="16dp"
+            android:layout_below="@+id/allDaySwitch"
+            android:text="HOUR"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="center_vertical" />
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:id="@+id/endDate"
+            android:layout_marginLeft="72dp"
+            android:layout_below="@+id/startDate"
+            android:layout_toLeftOf="@+id/endTime"
+            android:text="DATA"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="center_vertical" />
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:id="@+id/endTime"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="16dp"
+            android:layout_below="@+id/startTime"
+            android:text="HOUR"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="center_vertical" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingRight="16dp">
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:layout_marginLeft="16dp"
+            app:srcCompat="@drawable/ic_refresh_grey_24dp"
+            android:scaleType="center" />
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:id="@+id/repeat"
+            android:layout_marginLeft="72dp"
+            android:text="Repeat"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="center_vertical" />
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingRight="16dp">
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:layout_marginLeft="16dp"
+            app:srcCompat="@drawable/ic_place_grey_24dp"
+            android:scaleType="center" />
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:id="@+id/location"
+            android:inputType="textMultiLine"
+            android:focusableInTouchMode="true"
+            android:layout_marginLeft="72dp"
+            android:text="Location"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="center_vertical"/>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingRight="16dp">
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:layout_marginLeft="16dp"
+            app:srcCompat="@drawable/ic_notifications_grey_24dp"
+            android:scaleType="center" />
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:id="@+id/notify"
+            android:layout_marginLeft="72dp"
+            android:text="notify"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="center_vertical" />
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingRight="16dp">
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_height="48dp"
+            android:layout_marginLeft="16dp"
+            android:id="@+id/colorIV"
+            app:srcCompat="@drawable/circle"
+            android:layout_width="36dp"
+            android:scaleType="center" />
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:id="@+id/color"
+            android:layout_marginLeft="72dp"
+            android:text="Color"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="center_vertical" />
+    </RelativeLayout>
+</LinearLayout>

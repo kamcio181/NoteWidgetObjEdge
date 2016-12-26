@@ -86,7 +86,7 @@ public class SettingsListFragment extends Fragment {
             mListener = (OnItemClickListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnEventClickListener");
         }
     }
 

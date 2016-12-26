@@ -123,11 +123,16 @@
             android:name="io.fabric.ApiKey"
             android:value="d7697b7e9f243d365e768b6440052ff8119c7118" />
 
-        <activity android:name=".widget.WidgetActionActivity"
+        <activity
+            android:name=".widget.WidgetActionActivity"
             android:excludeFromRecents="true"
             android:screenOrientation="portrait"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
             android:theme="@style/AppTheme.AlertDialog.NoTitle" />
+        <activity
+            android:name=".calendar.CalendarActivity"
+            android:label="@string/title_activity_calendar"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

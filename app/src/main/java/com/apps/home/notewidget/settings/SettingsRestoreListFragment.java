@@ -101,7 +101,7 @@ public class SettingsRestoreListFragment extends Fragment {
             mListener = (OnItemClickListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnEventClickListener");
         }
     }
 

@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.apps.home.notewidget.R;
+import com.apps.home.notewidget.objects.Event;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.objects.Widget;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
     private final Context context;
     private SearchNotes searchNotes;
 
@@ -49,7 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + Constants.NOTE_TEXT_COL + " TEXT, "
                     + Constants.FOLDER_ID_COL + " INTEGER, "
                     + Constants.DELETED_COL + " INTEGER);");
-            Log.e("helper", "created" + Constants.NOTES_TABLE + " table");
+            Log.d("helper", "created" + Constants.NOTES_TABLE + " table");
 
             db.execSQL("CREATE TABLE " + Constants.WIDGETS_TABLE + " ("
                     + Constants.ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -58,12 +59,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + Constants.CURRENT_WIDGET_MODE_COL + " INTEGER, "
                     + Constants.CURRENT_THEME_MODE_COL + " INTEGER, "
                     + Constants.CURRENT_TEXT_SIZE_COL + " INTEGER);");
-            Log.e("helper", "created" + Constants.WIDGETS_TABLE + " table");
+            Log.d("helper", "created" + Constants.WIDGETS_TABLE + " table");
 
             db.execSQL("CREATE TABLE " + Constants.FOLDER_TABLE + " ("
                     + Constants.ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + Constants.FOLDER_NAME_COL + " TEXT);");
-            Log.e("helper", "created" + Constants.FOLDER_TABLE + " table");
+            Log.d("helper", "created" + Constants.FOLDER_TABLE + " table");
 
             final SharedPreferences.Editor editor = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).edit();
 
@@ -71,12 +72,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(Constants.FOLDER_NAME_COL, context.getString(R.string.my_notes));
 
             editor.putLong(Constants.MY_NOTES_ID_KEY, db.insert(Constants.FOLDER_TABLE, null, values)).apply();
-            Log.e("Helper", "myNotes ");
+            Log.d("Helper", "myNotes ");
 
             values.put(Constants.FOLDER_NAME_COL, context.getString(R.string.trash));
 
             editor.putLong(Constants.TRASH_ID_KEY, db.insert(Constants.FOLDER_TABLE, null, values)).apply();
-            Log.e("Helper", "trash ");
+            Log.d("Helper", "trash ");
         }
 
         if(oldVersion <2) {
@@ -85,6 +86,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
             values.put(Constants.TYPE_COL, Constants.TYPE_NOTE);
             updateNotesWithValueOnDemand(db, values);
+        }
+
+        if(oldVersion <3){
+            db.execSQL("CREATE TABLE " + Constants.CALENDAR_TABLE + " ("
+                    + Constants.ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + Constants.EVENT_TITLE_COL + " TEXT, "
+                    + Constants.EVENT_ALL_DAY_COL + " INTEGER, "
+                    + Constants.EVENT_START_COL + " INTEGER, "
+                    + Constants.EVENT_END_COL + " INTEGER, "
+                    + Constants.EVENT_LOCATION_COL + " TEXT, "
+                    + Constants.EVENT_NOTIFICATION_COL + " INTEGER, "
+                    + Constants.EVENT_COLOR_COL + " INTEGER);");
+            Log.e("helper", "created" + Constants.CALENDAR_TABLE + " table");
         }
     }
 
@@ -130,6 +144,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public interface OnFinishListener {
         void onFinished(boolean result);
+    }
+
+    public interface OnEventLoadListener {
+        void onEventLoaded(Event event);
+    }
+
+    public interface OnEventsLoadListener {
+        void onEventsLoaded(ArrayList<Event> events);
     }
 
     public void createNote (Note note, OnItemInsertListener listener){
@@ -293,7 +315,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new GetFolders(listener).execute();
     }
 
-    public ArrayList<Folder> getFoldersOnDemand(){
+    ArrayList<Folder> getFoldersOnDemand(){
         try {
             SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
             Log.e("Helper", "get Readable - Folders");
@@ -419,11 +441,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         new ClearWidgetsTable(listener).execute();
     }
 
+    public void createEvent(Event event, OnItemInsertListener listener){
+        new CreateEvent(event, listener).execute();
+    }
+
+    public void updateEvent(Event event, OnItemUpdateListener listener){
+        new UpdateEvent(event, listener).execute();
+    }
+
+    public void removeEvent(long id, OnItemRemoveListener listener){
+        new RemoveEvent(id, listener).execute();
+    }
+
+    public void getEvent(long id, OnEventLoadListener listener){
+        new GetEvent(id, listener).execute();
+    }
+
+    public void getEvents(long startDate, OnEventsLoadListener listener){
+        new GetAllEvents().execute();
+        new GetEvents(startDate, listener).execute();
+    }
+
     private class CreateNote extends AsyncTask<Void, Void, Long>{
         private final Note note;
         private final OnItemInsertListener listener;
 
-        public CreateNote(Note note, OnItemInsertListener listener) {
+        CreateNote(Note note, OnItemInsertListener listener) {
             this.note = note;
             this.listener = listener;
         }
@@ -467,12 +510,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private ContentValues contentValues;
         private long noteId;
 
-        public UpdateNote(Note note, OnItemUpdateListener listener) {
+        UpdateNote(Note note, OnItemUpdateListener listener) {
             this.note = note;
             this.listener = listener;
         }
 
-        public UpdateNote(long noteId, ContentValues contentValues, OnItemUpdateListener listener) {
+        UpdateNote(long noteId, ContentValues contentValues, OnItemUpdateListener listener) {
             this.noteId = noteId;
             this.contentValues = contentValues;
             this.listener = listener;
@@ -518,7 +561,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final long noteId;
         private final OnNoteLoadListener listener;
 
-        public GetNote(boolean includeDeleted, long noteId, OnNoteLoadListener listener) {
+        GetNote(boolean includeDeleted, long noteId, OnNoteLoadListener listener) {
             this.includeDeleted = includeDeleted;
             this.noteId = noteId;
             this.listener = listener;
@@ -581,7 +624,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final OnIntFieldLoadListener intListener;
         private final int mode;
 
-        public GetColumnValue(String table, String column, long id, OnIntFieldLoadListener listener) {
+        GetColumnValue(String table, String column, long id, OnIntFieldLoadListener listener) {
             this.table = table;
             this.column = column;
             this.id = id;
@@ -638,7 +681,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final boolean includeDeleted;
         private final OnNotesLoadListener listener;
 
-        public GetNotes(boolean includeDeleted, OnNotesLoadListener listener) {
+        GetNotes(boolean includeDeleted, OnNotesLoadListener listener) {
             this.includeDeleted = includeDeleted;
             this.listener = listener;
         }
@@ -701,7 +744,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final boolean sortByDate;
         private final OnNotesLoadListener listener;
 
-        public GetFolderNotes(long folderId, boolean sortByDate, OnNotesLoadListener listener) {
+        GetFolderNotes(long folderId, boolean sortByDate, OnNotesLoadListener listener) {
             this.folderId = folderId;
             this.sortByDate = sortByDate;
             this.listener = listener;
@@ -770,7 +813,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final String textToFind;
         private final OnNotesLoadListener listener;
 
-        public SearchNotes(boolean searchInTitle, boolean searchInContent, String textToFind, OnNotesLoadListener listener) {
+        SearchNotes(boolean searchInTitle, boolean searchInContent, String textToFind, OnNotesLoadListener listener) {
             this.searchInTitle = searchInTitle;
             this.searchInContent = searchInContent;
             this.textToFind = textToFind;
@@ -844,7 +887,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final long noteId;
         private final OnItemRemoveListener listener;
 
-        public RemoveNote(long noteId, OnItemRemoveListener listener) {
+        RemoveNote(long noteId, OnItemRemoveListener listener) {
             this.noteId = noteId;
             this.listener = listener;
         }
@@ -878,7 +921,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private class RemoveAllNotesFromTrash extends AsyncTask<Void, Void, Integer> {
         private final OnItemRemoveListener listener;
 
-        public RemoveAllNotesFromTrash(OnItemRemoveListener listener) {
+        RemoveAllNotesFromTrash(OnItemRemoveListener listener) {
             this.listener = listener;
         }
 
@@ -910,7 +953,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private class RestoreAllNotesFromTrash extends AsyncTask<Void, Void, ArrayList<Folder>> {
         private final OnFoldersLoadListener listener;
 
-        public RestoreAllNotesFromTrash(OnFoldersLoadListener listener) {
+        RestoreAllNotesFromTrash(OnFoldersLoadListener listener) {
             this.listener = listener;
         }
 
@@ -968,7 +1011,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final long folderId;
         private final OnItemRemoveListener listener;
 
-        public RemoveAllNotesFromFolder(long folderId, OnItemRemoveListener listener) {
+        RemoveAllNotesFromFolder(long folderId, OnItemRemoveListener listener) {
             this.folderId = folderId;
             this.listener = listener;
         }
@@ -1025,7 +1068,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final Folder folder;
         private final OnItemInsertListener listener;
 
-        public CreateFolder(Folder folder, OnItemInsertListener listener) {
+        CreateFolder(Folder folder, OnItemInsertListener listener) {
             this.folder = folder;
             this.listener = listener;
         }
@@ -1062,7 +1105,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final Folder folder;
         private final OnItemUpdateListener listener;
 
-        public UpdateFolder(Folder folder, OnItemUpdateListener listener) {
+        UpdateFolder(Folder folder, OnItemUpdateListener listener) {
             this.folder = folder;
             this.listener = listener;
         }
@@ -1100,7 +1143,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final long folderId;
         private final OnFolderLoadListener listener;
 
-        public GetFolder(long folderId, OnFolderLoadListener listener) {
+        GetFolder(long folderId, OnFolderLoadListener listener) {
             this.folderId = folderId;
             this.listener = listener;
         }
@@ -1151,7 +1194,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private class GetFolders extends AsyncTask<Void, Void, ArrayList<Folder>> {
         private final OnFoldersLoadListener listener;
 
-        public GetFolders(OnFoldersLoadListener listener) {
+        GetFolders(OnFoldersLoadListener listener) {
             this.listener = listener;
         }
 
@@ -1212,7 +1255,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final long folderId;
         private final OnItemRemoveListener listener;
 
-        public RemoveFolder(long folderId, OnItemRemoveListener listener) {
+        RemoveFolder(long folderId, OnItemRemoveListener listener) {
             this.folderId = folderId;
             this.listener = listener;
         }
@@ -1247,7 +1290,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final Widget widget;
         private final OnItemInsertListener listener;
 
-        public CreateWidget(Widget widget, OnItemInsertListener listener) {
+        CreateWidget(Widget widget, OnItemInsertListener listener) {
             this.widget = widget;
             this.listener = listener;
         }
@@ -1288,7 +1331,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final Widget widget;
         private final OnItemUpdateListener listener;
 
-        public UpdateWidget(Widget widget, OnItemUpdateListener listener) {
+        UpdateWidget(Widget widget, OnItemUpdateListener listener) {
             this.widget = widget;
             this.listener = listener;
         }
@@ -1390,7 +1433,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final long noteId;
         private final OnWidgetsLoadListener listener;
 
-        public GetWidgetsWithNote(long noteId, OnWidgetsLoadListener listener) {
+        GetWidgetsWithNote(long noteId, OnWidgetsLoadListener listener) {
             this.noteId = noteId;
             this.listener = listener;
         }
@@ -1446,7 +1489,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         private final int widgetId;
         private final OnItemRemoveListener listener;
 
-        public RemoveWidget(int widgetId, OnItemRemoveListener listener) {
+        RemoveWidget(int widgetId, OnItemRemoveListener listener) {
             this.widgetId = widgetId;
             this.listener = listener;
         }
@@ -1507,6 +1550,281 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             if(listener!= null)
                 listener.onFinished(result);
+        }
+    }
+
+    private class CreateEvent extends AsyncTask<Void, Void, Long>{
+        private final Event event;
+        private final OnItemInsertListener listener;
+
+        CreateEvent(Event event, OnItemInsertListener listener) {
+            this.event = event;
+            this.listener = listener;
+        }
+
+        @Override
+        protected Long doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+
+                ContentValues values = new ContentValues();
+                values.put(Constants.EVENT_TITLE_COL, event.getTitle());
+                values.put(Constants.EVENT_ALL_DAY_COL, event.isAllDay()? 1:0);
+                values.put(Constants.EVENT_START_COL, event.getStart()/(1000*60));
+                values.put(Constants.EVENT_END_COL, event.getEnd()/(1000*60));
+                values.put(Constants.EVENT_LOCATION_COL, event.getLocation());
+                values.put(Constants.EVENT_NOTIFICATION_COL, event.getNotification());
+                values.put(Constants.EVENT_COLOR_COL, event.getColor());
+
+                //TODO set alarm notification
+
+                long widgetId = db.insert(Constants.CALENDAR_TABLE, null, values);
+
+                db.close();
+
+                return widgetId;
+            }catch (SQLiteException e){
+                Log.e(TAG, "" + e);
+                return (long) -1;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Long aLong) {
+            super.onPostExecute(aLong);
+
+            if(listener != null)
+                listener.onItemInserted(aLong);
+        }
+    }
+
+    private class UpdateEvent extends AsyncTask<Void, Void, Integer> {
+        private final Event event;
+        private final OnItemUpdateListener listener;
+
+        UpdateEvent(Event event, OnItemUpdateListener listener) {
+            this.event = event;
+            this.listener = listener;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+
+                ContentValues values = new ContentValues();
+                values.put(Constants.EVENT_TITLE_COL, event.getTitle());
+                values.put(Constants.EVENT_ALL_DAY_COL, event.isAllDay()? 1:0);
+                values.put(Constants.EVENT_START_COL, event.getStart()/(1000*60));
+                values.put(Constants.EVENT_END_COL, event.getEnd()/(1000*60));
+                values.put(Constants.EVENT_LOCATION_COL, event.getLocation());
+                values.put(Constants.EVENT_NOTIFICATION_COL, event.getNotification());
+                values.put(Constants.EVENT_COLOR_COL, event.getColor());
+
+                //TODO cancel previous and set new alarm notification
+                int rows = db.update(Constants.CALENDAR_TABLE, values, Constants.ID_COL + " = ?",
+                        new String[]{Long.toString(event.getId())});
+
+                db.close();
+
+                return rows;
+            }catch (SQLiteException e){
+                Log.e(TAG, "" + e);
+                return -1;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer aInt) {
+            super.onPostExecute(aInt);
+
+            if(listener != null)
+                listener.onItemUpdated(aInt);
+        }
+    }
+
+    private class RemoveEvent extends AsyncTask<Void, Void, Integer> {
+        private final long id;
+        private final OnItemRemoveListener listener;
+
+        RemoveEvent(long id, OnItemRemoveListener listener) {
+            this.id = id;
+            this.listener = listener;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+
+                //TODO cancel previous alarm
+                int rows = db.delete(Constants.CALENDAR_TABLE, Constants.ID_COL + " = ?",
+                        new String[]{Long.toString(id)});
+
+                db.close();
+
+                return rows;
+            }catch (SQLiteException e){
+                Log.e(TAG, "" + e);
+                return -1;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer aInt) {
+            super.onPostExecute(aInt);
+
+            if(listener != null)
+                listener.onItemRemoved(aInt);
+        }
+    }
+
+    private class GetEvent extends AsyncTask<Void, Void, Event> {
+        private long id;
+        private final OnEventLoadListener listener;
+
+        GetEvent(long id, OnEventLoadListener listener) {
+            this.id = id;
+            this.listener = listener;
+        }
+
+        @Override
+        protected Event doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+
+                Cursor cursor = db.query(Constants.CALENDAR_TABLE, null, Constants.ID_COL + " = ?", new String[]{Long.toString(id)},
+                                null, null, null, null);
+
+                if(cursor != null && cursor.moveToFirst()){
+                    Event event = new Event(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                    event.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.EVENT_TITLE_COL)));
+                    event.setAllDay(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.EVENT_ALL_DAY_COL)) != 0);
+                    event.setStart(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.EVENT_START_COL))*1000*60);
+                    event.setEnd(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.EVENT_END_COL))*1000*60);
+                    event.setLocation(cursor.getString(cursor.getColumnIndexOrThrow(Constants.EVENT_LOCATION_COL)));
+                    event.setNotification(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.EVENT_NOTIFICATION_COL)));
+                    event.setColor(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.EVENT_COLOR_COL)));
+
+                    cursor.close();
+                    db.close();
+
+                    return event;
+                } else
+                    return null;
+            }catch (SQLiteException e){
+                Log.e(TAG, "" + e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Event event) {
+            super.onPostExecute(event);
+
+            if(listener != null)
+                listener.onEventLoaded(event);
+        }
+    }
+
+    private class GetEvents extends AsyncTask<Void, Void, ArrayList<Event>> {
+        private long startDate;
+        private final OnEventsLoadListener listener;
+
+        GetEvents(long startDate, OnEventsLoadListener listener) {
+            this.startDate = startDate/(1000*60);
+            this.listener = listener;
+        }
+
+        @Override
+        protected ArrayList<Event> doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+                Log.d(TAG, "start " + startDate);
+                Log.d(TAG, "end " + (startDate+(60*24)-1));
+
+                Cursor cursor = db.query(Constants.CALENDAR_TABLE, new String[]{Constants.ID_COL,
+                        Constants.EVENT_TITLE_COL, Constants.EVENT_ALL_DAY_COL, Constants.EVENT_START_COL,
+                        Constants.EVENT_END_COL, Constants.EVENT_LOCATION_COL, Constants.EVENT_COLOR_COL},
+                        Constants.EVENT_START_COL + " BETWEEN ? AND ?", new String[]{Long.toString(startDate),
+                        Long.toString(startDate+(60*24)-1)}, null, null, Constants.EVENT_ALL_DAY_COL + " DESC, " + Constants.EVENT_START_COL);
+
+                if(cursor != null && cursor.moveToFirst()){
+                    ArrayList<Event> events = new ArrayList<>(cursor.getCount());
+                    do{
+                        Event event = new Event(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                        event.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.EVENT_TITLE_COL)));
+                        event.setAllDay(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.EVENT_ALL_DAY_COL)) != 0);
+                        event.setStart(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.EVENT_START_COL))*1000*60);
+                        event.setEnd(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.EVENT_END_COL))*1000*60);
+                        event.setLocation(cursor.getString(cursor.getColumnIndexOrThrow(Constants.EVENT_LOCATION_COL)));
+                        event.setColor(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.EVENT_COLOR_COL)));
+
+                        events.add(event);
+
+                    } while (cursor.moveToNext());
+
+                    cursor.close();
+                    db.close();
+
+                    return events;
+                } else
+                    return null;
+            }catch (SQLiteException e){
+                Log.e(TAG, "" + e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Event> events) {
+            super.onPostExecute(events);
+
+            if(listener != null)
+                listener.onEventsLoaded(events);
+        }
+    }
+
+    private class GetAllEvents extends AsyncTask<Void, Void, ArrayList<Event>> {
+
+        GetAllEvents() {
+        }
+
+        @Override
+        protected ArrayList<Event> doInBackground(Void... params) {
+            try {
+                SQLiteDatabase db = DatabaseHelper.this.getReadableDatabase();
+
+                Cursor cursor = db.query(Constants.CALENDAR_TABLE, new String[]{Constants.ID_COL,
+                                Constants.EVENT_TITLE_COL, Constants.EVENT_ALL_DAY_COL, Constants.EVENT_START_COL,
+                                Constants.EVENT_END_COL, Constants.EVENT_LOCATION_COL, Constants.EVENT_COLOR_COL},
+                        null, null, null, null, Constants.EVENT_START_COL);
+
+                if (cursor != null && cursor.moveToFirst()) {
+                    ArrayList<Event> events = new ArrayList<>(cursor.getCount());
+                    do {
+                        Event event = new Event(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.ID_COL)));
+                        event.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(Constants.EVENT_TITLE_COL)));
+                        event.setAllDay(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.EVENT_ALL_DAY_COL)) != 0);
+                        event.setStart(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.EVENT_START_COL)));
+                        event.setEnd(cursor.getLong(cursor.getColumnIndexOrThrow(Constants.EVENT_END_COL)));
+                        event.setLocation(cursor.getString(cursor.getColumnIndexOrThrow(Constants.EVENT_LOCATION_COL)));
+                        event.setColor(cursor.getInt(cursor.getColumnIndexOrThrow(Constants.EVENT_COLOR_COL)));
+
+                        Log.d(TAG, event.toString());
+
+                    } while (cursor.moveToNext());
+
+                    cursor.close();
+                    db.close();
+
+                    return events;
+                } else
+                    return null;
+            } catch (SQLiteException e) {
+                Log.e(TAG, "" + e);
+                return null;
+            }
         }
     }
 }

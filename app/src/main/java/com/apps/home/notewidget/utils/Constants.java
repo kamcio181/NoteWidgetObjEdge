@@ -22,6 +22,15 @@ public interface Constants {
     String FOLDER_NAME_COL = "folderName";
     String NOTES_COUNT_COL = "notesCount";
 
+    String CALENDAR_TABLE = "CALENDAR";
+    String EVENT_TITLE_COL = "eventTitle";
+    String EVENT_ALL_DAY_COL = "eventAllDay";
+    String EVENT_START_COL = "eventStart";
+    String EVENT_END_COL = "eventEnd";
+    String EVENT_LOCATION_COL = "eventLocation";
+    String EVENT_NOTIFICATION_COL = "eventNotification";
+    String EVENT_COLOR_COL = "eventColor";
+
     String PREFS_NAME = "prefs";
     String CONFIGURED_KEY = "configured";
     String SORT_BY_DATE_KEY = "sortByDate";
@@ -53,6 +62,8 @@ public interface Constants {
     String FRAGMENT_SETTINGS_WIDGET_CONFIG = "SettingsWidgetConfigFragment";
     String FRAGMENT_SETTINGS_LIST_CONFIG = "SettingsListConfigFragment";
     String FRAGMENT_SETTINGS_RESTORE_LIST = "SettingsRestoreListFragment";
+    String FRAGMENT_CALENDAR = "CalendarFragment";
+    String FRAGMENT_CALENDAR_EVENT_EDIT = "CalendarEventEditFragment";
 
     String EDGE_VISIBLE_NOTES_KEY = "EdgeVisibleNotes";
     String EDGE_NOTES_ORDER_KEY = "EdgeNotesOrder";
@@ -100,5 +111,6 @@ public interface Constants {
     int DEFAULT_LIST_TILE_SIZE = 56;
     int DEFAULT_LIST_TILE_TEXT_SIZE = 16;
     int DEFAULT_LIST_ITEM_LENGTH = 32;
+
 
 }

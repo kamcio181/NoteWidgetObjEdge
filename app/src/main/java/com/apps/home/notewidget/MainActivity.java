@@ -29,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.apps.home.notewidget.calendar.CalendarActivity;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Note;
 import com.apps.home.notewidget.settings.SettingsActivity;
@@ -38,11 +39,8 @@ import com.apps.home.notewidget.utils.DatabaseHelper;
 import com.apps.home.notewidget.utils.ParametersUpdateListener;
 import com.apps.home.notewidget.utils.TitleChangeListener;
 import com.apps.home.notewidget.utils.Utils;
-import com.crashlytics.android.Crashlytics;
 
 import java.util.ArrayList;
-
-import io.fabric.sdk.android.Fabric;
 
 
 public class MainActivity extends AppCompatActivity
@@ -82,7 +80,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
-        Fabric.with(context, new Crashlytics());
+//        Fabric.with(context, new Crashlytics());
 
         fragmentManager = getSupportFragmentManager();
         preferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
@@ -362,12 +360,19 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
         Log.d(TAG, "NavigationView item clicked: " + id + " " + item.getTitle().toString());
 
-        if(id == R.id.nav_settings){
-            startActivity(new Intent(this, SettingsActivity.class));
-        } else if (id == R.id.nav_about) {
-            Utils.showToast(this, getString(R.string.created_by));
-        } else {
-            openFolderWithNotes(id);
+        switch (id){
+            case R.id.nav_calendar:
+                startActivity(new Intent(this, CalendarActivity.class));
+                break;
+            case R.id.nav_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            case R.id.nav_about:
+                Utils.showToast(this, getString(R.string.created_by));
+                break;
+            default:
+                openFolderWithNotes(id);
+                break;
         }
 
         if (drawer.isDrawerOpen(GravityCompat.START)) {
