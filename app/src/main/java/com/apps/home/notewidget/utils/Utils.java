@@ -42,6 +42,8 @@ import com.apps.home.notewidget.edge.EdgePanelProvider;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.widget.WidgetProvider;
+import com.samsung.android.sdk.SsdkUnsupportedException;
+import com.samsung.android.sdk.look.Slook;
 import com.samsung.android.sdk.look.cocktailbar.SlookCocktailManager;
 
 import java.io.File;
@@ -376,10 +378,18 @@ public class Utils {
     }
 
     public static void updateAllEdgePanels(Context context){
-        EdgePanelProvider edgePanelProvider = new EdgePanelProvider();
-        ComponentName componentName = new ComponentName(context, EdgePanelProvider.class);
-        SlookCocktailManager cocktailManager = SlookCocktailManager.getInstance(context);
-        edgePanelProvider.onUpdate(context, cocktailManager, cocktailManager.getCocktailIds(componentName));
+        Slook slook = new Slook();
+        try{
+            slook.initialize(context);
+            if(slook.isFeatureEnabled(Slook.COCKTAIL_PANEL)){
+                EdgePanelProvider edgePanelProvider = new EdgePanelProvider();
+                ComponentName componentName = new ComponentName(context, EdgePanelProvider.class);
+                SlookCocktailManager cocktailManager = SlookCocktailManager.getInstance(context);
+                edgePanelProvider.onUpdate(context, cocktailManager, cocktailManager.getCocktailIds(componentName));
+            }
+        } catch (SsdkUnsupportedException e) {
+            Log.d(TAG, "Device unsupported");
+        }
     }
 
     public static String capitalizeFirstLetter(String text){
