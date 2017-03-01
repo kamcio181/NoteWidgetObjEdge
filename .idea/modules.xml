@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/NoteWidgetObjEdge.iml" filepath="$PROJECT_DIR$/NoteWidgetObjEdge.iml" />
-      <module fileurl="file://$PROJECT_DIR$/NoteWidgetObjEdgeNew.iml" filepath="$PROJECT_DIR$/NoteWidgetObjEdgeNew.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

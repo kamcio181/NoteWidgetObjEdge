@@ -12,6 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/white"
         android:text="Medium Text"
         android:id="@+id/textView7"
         android:layout_marginBottom="6dp"
@@ -21,6 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
         android:text="Small Text"
         android:id="@+id/textView"
         android:textSize="10sp" />

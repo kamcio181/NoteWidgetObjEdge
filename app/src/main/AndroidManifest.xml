@@ -63,6 +63,7 @@
             android:excludeFromRecents="true"
             android:label="@string/title_activity_widget_edit_note"
             android:noHistory="true"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:taskAffinity="com.apps.home.NoteWidget.WidgetTask"
             android:theme="@style/AppTheme.NoActionBar"
