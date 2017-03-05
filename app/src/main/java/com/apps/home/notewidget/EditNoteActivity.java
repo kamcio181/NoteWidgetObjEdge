@@ -25,7 +25,6 @@ public class EditNoteActivity extends AppCompatActivity{
     private long noteId = -1;
     private FragmentManager fragmentManager;
     private Toolbar toolbar;
-    private boolean skipSaving = false;
     private final int fragmentContainerId = R.id.container;
     private int noteType;
 
@@ -46,6 +45,21 @@ public class EditNoteActivity extends AppCompatActivity{
             noteId = getIntent().getLongExtra(Constants.ID_COL, -1);
         }
 
+        showNote();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        if(intent.getExtras()!=null){
+            noteId = intent.getLongExtra(Constants.ID_COL, -1);
+        }
+
+        showNote();
+    }
+
+    private void showNote(){
         if(noteId>0) {
             DatabaseHelper helper = new DatabaseHelper(context);
             helper.getNote(false, noteId, new DatabaseHelper.OnNoteLoadListener() {
@@ -112,10 +126,8 @@ public class EditNoteActivity extends AppCompatActivity{
     @Override
     protected void onStop() {
         super.onStop();
-        if(!skipSaving)
-//            getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit().
-//                    putBoolean(Constants.NOTE_UPDATED_FROM_WIDGET, true).apply();
-        sendBroadcast(new Intent(Constants.ACTION_UPDATE_NOTE));
+        if(!((AdvancedNoteFragment)fragmentManager.findFragmentById(fragmentContainerId)).isSkipSaving())
+            sendBroadcast(new Intent(Constants.ACTION_UPDATE_NOTE));
     }
 
     @Override
@@ -134,7 +146,6 @@ public class EditNoteActivity extends AppCompatActivity{
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
 
         switch (id){
             case R.id.action_save:

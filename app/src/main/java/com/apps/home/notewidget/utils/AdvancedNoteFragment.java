@@ -25,7 +25,7 @@ public abstract class AdvancedNoteFragment extends BasicNoteFragment implements 
     public static final String ARG_PARAM2 = "param2";
     public static final String ARG_PARAM3 = "param3";
 
-    private boolean skipSaving;
+    private boolean skipSaving = false;
     private EdgeVisibilityReceiver receiver;
 
     @Override
@@ -200,6 +200,10 @@ public abstract class AdvancedNoteFragment extends BasicNoteFragment implements 
         } catch (IllegalArgumentException e){
             Log.e(TAG, "Receiver already unregistered");
         }
+    }
+
+    public boolean isSkipSaving() {
+        return skipSaving;
     }
 
     class EdgeVisibilityReceiver extends BroadcastReceiver {

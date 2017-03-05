@@ -27,7 +27,6 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -40,7 +39,6 @@ import android.widget.Toast;
 
 import com.apps.home.notewidget.R;
 import com.apps.home.notewidget.edge.EdgePanelProvider;
-import com.apps.home.notewidget.objects.Color;
 import com.apps.home.notewidget.objects.Folder;
 import com.apps.home.notewidget.objects.Widget;
 import com.apps.home.notewidget.widget.WidgetProvider;
@@ -56,8 +54,6 @@ public class Utils {
     private static final String TAG = "Utils";
     private static Toast toast;
     private static int[][][] widgetLayouts;
-    private static Color[] colors;
-    private static SparseArray<String> notificationMap;
     private static int idArray[];
     private static SharedPreferences preferences;
     private static long myNotesNavId = -1;
@@ -90,61 +86,6 @@ public class Utils {
 
         return widgetLayouts[context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).
                 getInt(Constants.WIDGET_THEME_KEY, 0)][themeMode][widgetMode];
-    }
-
-    public static Color[] getColors(){
-        if(colors == null)
-            initializeColors();
-
-        return colors;
-    }
-
-    public static SparseArray<String> getNotificationTypes(){
-        if(notificationMap == null)
-            initializeNotificationTypes();
-
-        return notificationMap;
-    }
-
-    public static Color getColor(int index){
-        if(colors == null)
-            initializeColors();
-        return colors[index];
-    }
-
-    private static void initializeColors(){
-        colors = new Color[]{
-                new Color("Red", "#F44336"),
-                new Color("Pink", "#E91E63"),
-                new Color("Purple", "#9C27B0"),
-                new Color("Deep Purple", "#673AB7"),
-                new Color("Indigo", "#3F51B5"),
-                new Color("Blue", "#2196F3"),
-                new Color("Light Blue", "#03A9F4"),
-                new Color("Cyan", "#00BCD4"),
-                new Color("Teal", "#009688"),
-                new Color("Green", "#4CAF50"),
-                new Color("Light Green", "#8BC34A"),
-                new Color("Cyan", "#00BCD4"),
-                new Color("Lime", "#CDDC39"),
-                new Color("Yellow", "#FFEB3B"),
-                new Color("Amber", "#FFC107"),
-                new Color("Orange", "#FF9800"),
-                new Color("Deep Orange", "#FF5722"),
-                new Color("Brown", "#795548"),
-                new Color("Grey", "#9E9E9E"),
-                new Color("Blue Grey", "#607D8B"),
-                new Color("Black", "#000000")
-        };
-    }
-
-    private static void initializeNotificationTypes(){
-        notificationMap = new SparseArray<>();
-        notificationMap.append(0, "No notification");
-        notificationMap.append(10, "10 minutes before");
-        notificationMap.append(30, "30 minutes before");
-        notificationMap.append(60, "1 hour before");
-        notificationMap.append(720, "12 hours before");
     }
 
     public static int switchWidgetMode(int currentMode){

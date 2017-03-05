@@ -154,7 +154,7 @@ public class EdgePanelProvider extends SlookCocktailProvider {
 
     private PendingIntent getNoteEditPendingIntent(Context context){
         Intent startIntent = new Intent(context, EditNoteActivity.class);
-        startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         return PendingIntent.getActivity(context, 0, startIntent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 

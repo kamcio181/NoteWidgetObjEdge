@@ -99,7 +99,6 @@
     <string name="decrease_text_size">Decrease text size</string>
     <string name="light_dark_theme">Light/dark theme</string>
     <string name="share_via">Share via</string>
-    <string name="note_is_empty">Note is empty</string>
     <string name="database_unavailable_or_you_do_not_have_notes">Database unavailable or you do not have notes</string>
     <string name="creating_widget">Creating widget</string>
     <string name="example_note_text">\n\n\nExample note text</string>
@@ -161,9 +160,4 @@
         <item>Open application</item>
         <item>Change displayed note</item>
     </string-array>
-    <string name="title_activity_calendar">CalendarActivity</string>
-    <string name="action_settings">Settings</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

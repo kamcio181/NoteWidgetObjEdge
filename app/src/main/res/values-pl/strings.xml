@@ -115,7 +115,6 @@
     <string name="bought_item_style">STYL KUPIONEGO ARTYKUŁU</string>
     <string name="color">kolor</string>
     <string name="strikethrough">przekreślenie</string>
-    <string name="note_is_empty">Notatka jest pusta</string>
     <string name="title_activity_edge_config">Ustawienia listy Edge</string>
     <string name="ignore_tabs_in_edge_panel">Pomiń tabulatory w liście Edge</string>
     <string name="hide_content_when_device_is_locked">Ukryj treść gdy urządzenie jest zablokowane</string>
